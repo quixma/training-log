@@ -4,7 +4,9 @@ from flask import Flask, render_template, request, jsonify
 import sqlite3
 
 #style w css, format home page tables better
-#in season forms: throwing log, data upload and dashboard
+#in season forms: throwing log, data upload/post outing report page, stuff+/other metric page
+#can have link to a page with stuff+ metrics
+
 
 app = Flask(__name__)
 
