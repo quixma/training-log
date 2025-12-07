@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+  </head>
+  <body>
+    <form id="throwing-plan" method="POST" action="/submit_throwing_plan">
+    <h2>Update Throwing Plan</h2>
+    
+    <label for="date">Date:</label>
+    <input type="date" id="date" name="date" required><br><br>
+    
+    <label for="throwing-block">Throwing Block:</label>
+    <select id="throwing-block" name="throwing_block" required>
+    	<option value="">Select Block</option>
+    	<option value="deload">Deload</option>
+    	<option value="on_ramp">On Ramp</option>
+    	<option value="velo_phase">Velo Phase</option>
+    	<option value="pre_season">Pre-season</option>
+    	<option value="in_season">In-season</option>
+    	<option value="return_to_throw">Return to Throw</option>
+  	 </select><br><br>
+     
+     <h3>Throwing Breakdown</h3>
+     
+     <label for="num-throwing-days"># of Throwing Days:</label>
+     <input type="number" id="num-throwing-days" name="num_throwing_days"><br><br>
+     
+     <label for="throwing-days">Throwing Sessions:</label><br>
+     <textarea id="throwing-days" name="throwing_days"  rows="4" cols="50" placeholder = "Types of throwing days and session breakdown"></textarea><br><br>
+     
+     <label for="throwing-notes">Throwing Notes:</label><br>
+     <textarea id="throwing-notes" name="throwing_notes" placeholder = "Focuses/Goals" rows="4" cols="50"></textarea><br><br>
+     
+     <label for="pitching-notes">Pitching Notes:</label><br>
+     <textarea id="pitching-notes" name="pitching_notes" rows="4" cols="50" placeholder = "Pitching Work/Focuses/Constraints"></textarea><br><br>
+     
+     <h3>Drill Work</h3>
+     
+    <div id="drills-container">
+    <div class="drill-row">
+      <input type="text" name="drill_name[]" placeholder="Drill Name">
+      <select name="drill_type[]">
+      	<option value =""> Drill Type </option>
+      	<option>Plyo</option>
+      	<option>Throwing</option>
+      	<option>Pitching</option>
+      	<option>Medball</option>
+      	<option>CVB</option>
+      	<option>AB</option>
+			<option>Club</option>
+      </select>
+      <select name="drill_ball_weight[]">
+        <option value="">Ball Weight</option>
+        <option>3</option>
+        <option>3.5</option>
+        <option>4</option>
+        <option>5</option>
+        <option>6</option>
+        <option>7</option>
+        <option>9</option>
+        <option>11</option>
+        <option>16</option>
+        <option>21</option>
+        <option>32</option>
+        <option>48</option>
+        <option>64</option>
+      </select>
+    </div>
+  </div>
+  <button type="button" onclick="addDrillRow()">Add Another Drill</button><br><br>
+  
+  <script>
+  function addDrillRow() {
+    const container = document.getElementById('drills-container');
+    const newRow = document.createElement('div');
+    newRow.classList.add('drill-row');
+    newRow.innerHTML = `
+      <input type="text" name="drill_name[]" placeholder="Drill Name">
+      <select name="drill_type[]">
+      	<option value =""> Drill Type </option>
+      	<option>Plyo</option>
+      	<option>Throwing</option>
+      	<option>Pitching</option>
+      	<option>Medball</option>
+      	<option>CVB</option>
+      	<option>AB</option>
+      	<option>Club</option>
+      </select>
+      <select name="drill_ball_weight[]">
+        <option value="">Ball Weight</option>
+        <option>3</option>
+        <option>3.5</option>
+        <option>4</option>
+        <option>5</option>
+        <option>6</option>
+        <option>7</option>
+        <option>9</option>
+        <option>11</option>
+        <option>16</option>
+        <option>21</option>
+        <option>32</option>
+        <option>48</option>
+        <option>64</option>
+      </select>
+     
+    `;
+    container.appendChild(newRow);
+  }
+</script>
+     
+     <label for="drill-notes">Drill Notes:</label><br>
+     <textarea id="drill-notes" name="drill_notes" rows="4" cols="50"></textarea><br><br>
+    <button type="submit">Update Throwing Plan</button>
+    </form>
+  </body>
+</html>

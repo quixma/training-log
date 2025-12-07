@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+  </head>
+  <body>
+   <form id="offszn-throwing-form" method="POST" action="/submit_throw">
+  <h2>Throwing Session Log</h2>
+
+  <label for="date">Date:</label>
+  <input type="date" id="date" name="date" required><br><br>
+
+  <label for="throwing-block">Throwing Block:</label>
+  <select id="throwing-block" name="throwing_block" required>
+    <option value="">Select Block</option>
+    <option value="deload">Deload</option>
+    <option value="on_ramp">On Ramp</option>
+    <option value="velo_phase">Velo Phase</option>
+    <option value="pre_season">Pre-season</option>
+    <option value="in_season">In-season</option>
+    <option value="return_to_throw">Return to Throw</option>
+  </select><br><br>
+
+  <label for="session-type">Session Type:</label>
+  <select id="session-type" name="session_type" required>
+    <option value="">Select Type</option>
+    <option value="recovery">Recovery</option>
+    <option value="hybrid_a">Hybrid A</option>
+    <option value="hybrid_b">Hybrid B</option>
+    <option value="constraint_long_toss">Constraint Long Toss</option>
+    <option value="mound_blend">Mound Blend</option>
+    <option value="plyo_velo">Plyo Velo</option>
+    <option value="pitch_design">Pitch Design</option>
+    <option value="command_training">Command Training</option>
+    <option value="bullpen">Bullpen</option>
+    <option value="live_abs">Live ABs</option>
+  </select><br><br>
+
+  <label for="total-throws">Total Throws:</label>
+  <input type="number" id="total-throws" name="total_throws"><br><br>
+  
+  <label for="body-weight">Bodyweight:</label>
+  <input type="number" step="0.01" id="body-weight" name="body_weight"><br><br>
+  
+  <label for="Max Velocity">Max Velocity:</label>
+  <input type="number" id="max-velocity" step="0.01" name="max_velocity"><br><br>
+
+  <label for="one-day-workload">1-Day Workload:</label>
+  <input type="number" step="0.01" id="one-day-workload" name="one_day_workload"><br><br>
+  
+  <label for="rpe">RPE (1-10):</label>
+  <input type="number" step="0.1" id="rpe" name="rpe" min="1" max="10"><br><br>
+
+  <label for="arm-readiness">Arm Readiness (1-10):</label>
+  <input type="number" step="0.1" id="arm-readiness" name="arm_readiness" min="1" max="10"><br><br>
+
+  <h3>Session Breakdown</h3>
+  <div id="drills-container">
+    <div class="drill-row">
+      <input type="text" name="drill_name[]" placeholder="Throw Type">
+      <select name="drill_ball_weight[]">
+        <option value="">Ball Weight</option>
+        <option>3</option>
+        <option>3.5</option>
+        <option>4</option>
+        <option>5</option>
+        <option>6</option>
+        <option>7</option>
+        <option>9</option>
+        <option>11</option>
+        <option>16</option>
+        <option>21</option>
+        <option>32</option>
+        <option>48</option>
+        <option>64</option>
+      </select>
+      <input type="number" step="0.01" name="drill_velocity[]" placeholder="Max Velocity">
+      <input type="number" name="throw_count[]" placeholder="Throw Count">
+    </div>
+  </div>
+  <button type="button" onclick="addDrillRow()">Add Another Drill</button><br><br>
+
+  <label for="notes">Throwing Notes:</label><br>
+  <textarea id="notes" name="notes" rows="4" cols="50"></textarea><br><br>
+  
+  <button type="submit">Save Throwing Session</button>
+</form>
+
+<script>
+  function addDrillRow() {
+    const container = document.getElementById('drills-container');
+    const newRow = document.createElement('div');
+    newRow.classList.add('drill-row');
+    newRow.innerHTML = `
+      <input type="text" name="drill_name[]" placeholder="Drill Name">
+      <select name="drill_ball_weight[]">
+        <option value="">Ball Weight</option>
+        <option>3</option>
+        <option>3.5</option>
+        <option>4</option>
+        <option>5</option>
+        <option>6</option>
+        <option>7</option>
+        <option>9</option>
+        <option>11</option>
+        <option>16</option>
+        <option>21</option>
+        <option>32</option>
+        <option>48</option>
+        <option>64</option>
+      </select>
+      <input type="number" step="0.01" name="drill_velocity[]" placeholder="Max Velocity">
+      <input type="number" step="0.01" name="throw_count[]" placeholder="Throw Count">
+    `;
+    container.appendChild(newRow);
+  }
+</script>
+
+
+  </body>
+</html>

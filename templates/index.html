@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <title>Throwing Log Home</title>
+  </head>
+  <body>
+    <header>Baseball Web App Home</header>
+    <main>
+     <p><a href="{{ url_for('offszn_throwing_form') }}">Offseason Throwing Log</a></p>
+     <p><a href="{{ url_for('dashboard') }}">Data Dashboard</a></p>
+     
+     <p><a href = "{{ url_for('throwing_plan') }}">Update Throwing Plan </a></p>
+     <table border="1">
+     			<caption>Throwing Plan</caption>
+            <thead>
+                <tr>
+                    <th>Date Uploaded</th>
+						  <th>Throwing Block</th>
+						  <th># of Throwing Days</th>
+						  <th>Session Breakdown</th>
+						  <th>Throwing Notes</th>
+						  <th>Pitching Notes</th>
+						  <th>Drill Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in throwing_plan_data %}
+                <tr>
+                	  <td>{{ data[1] }}</td> {#date#}
+                    <td>{{ data[2] }}</td> {#throwing block#}
+                    <td>{{ data[3] }}</td> {#num throwing days#}
+                    <td>{{ data[4] }}</td> {#session breakdown#}
+                    <td>{{ data[5] }}</td> {#throwing notes#}
+                    <td>{{ data[6] }}</td> {#pitching notes#}
+                    <td>{{ data[7] }}</td> {#drill notes#}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+      <table border="1">
+            <thead>
+                <tr>
+                    <th>Drill Name</th>
+                    <th>Drill Type</th>
+						  <th>Ball Weight</th>
+						  
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in throwing_plan_drills %}
+                <tr>
+                	  <td>{{ data[2] }}</td> {#Name#}
+                    <td>{{ data[3] }}</td> {#Type#}
+                    <td>{{ data[4] }}</td> {#Weight#}
+                </tr>
+                {% endfor %}
+             </tbody>
+        </table>
+         <table border = "1">
+         <thead><tr><th>Drill Notes:</th></tr></thead>
+         	<tbody>
+                <tr>
+                	{% for data in throwing_plan_data %}
+                		<td>{{ data[7] }} </td>
+                	{% endfor %}
+                </tr>
+             </tbody>
+          </table>
+		<table border="1">
+            <thead>
+                <tr>
+                <td></td>
+                    <th>Recent Throwing Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in throwing_notes %}
+                <tr>
+                	  <td>{{ data[1] }}</td> {#date#}
+                    <td>{{ data[0] }}</td> {#notes#}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </main>
+    <footer></footer>
+  </body>
+</html>
