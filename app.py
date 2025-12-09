@@ -12,9 +12,9 @@ app = Flask(__name__)
 
 @app.route("/", methods=["GET"])
 def index():
-    throwing_notes = get_throwing_notes()
-    throwing_plan_data, throwing_plan_drills = get_throwing_plan()
-    return render_template('index.html', throwing_notes=throwing_notes, throwing_plan_data=throwing_plan_data, throwing_plan_drills=throwing_plan_drills)
+    throwing_notes = get_throwing_notes()  
+    throwing_plan, drills = get_throwing_plan()
+    return render_template('index.html', throwing_notes = throwing_notes, throwing_plan=throwing_plan, drills=drills)
 
 @app.route('/offszn-throwing-form', methods=["GET","POST"])
 def offszn_throwing_form():
@@ -102,17 +102,29 @@ def submit_throw():
         cursor = conn.cursor()
         cursor.execute("INSERT INTO throwing_sessions (date, throwing_block, session_type, total_throws, body_weight, one_day_workload, max_velo, rpe, arm_readiness, notes) VALUES (?,?,?,?,?,?,?,?,?,?)",
                        (date,throwing_block, session_type, total_throws, bodyweight, one_day_wkld, max_velo, rpe, arm_readiness, notes))
-        #cursor.execute("UPDATE throwing_sessions SET total_throws = NULL WHERE total_throws = '', body_weight = NULL WHERE body_weight = '', one_day_workload = NULL WHERE one_day_workload = '', max_velo = NULL WHERE max_velo = '', rp = NULL WHERE rpe = '', arm_readiness = NULL WHERE arm_readiness = ''")
         
         session_id = cursor.lastrowid
         for x in range(len(drill_names)):
             cursor.execute("INSERT INTO drills (session_id, drill_name, ball_weight, drill_max_velo, throw_count) VALUES (?,?,?,?,?)",
                            (session_id, drill_names[x], ball_weights[x], drill_velos[x], throw_counts[x]))   
-        
+    
         conn.commit()
         conn.close()
+        updateEmptytoNull()
         return index()
-
+    
+def updateEmptytoNull():
+    conn = get_db_connection();
+    cursor = conn.cursor()
+    cursor.execute("UPDATE throwing_sessions SET total_throws = NULL WHERE total_throws = ''")
+    cursor.execute('UPDATE throwing_sessions SET body_weight = NULL WHERE body_weight = ''')
+    cursor.execute('UPDATE throwing_sessions SET one_day_workload = NULL WHERE one_day_workload = '' ')
+    cursor.execute('UPDATE throwing_sessions SET max_velo = NULL WHERE max_velo = ''')
+    cursor.execute('UPDATE throwing_sessions SET rpe = NULL WHERE rpe = ''')
+    cursor.execute('UPDATE throwing_sessions SET arm_readiness = NULL WHERE arm_readiness = ''')
+    conn.commit()
+    conn.close()
+    
 def get_db_connection():
     conn = sqlite3.connect('training_log.db')
     conn.row_factory = sqlite3.Row
@@ -124,7 +136,15 @@ def get_throwing_notes():
     cursor.execute('Select notes, date from throwing_sessions Where date >= datetime("now", "-8 days") ORDER BY  date DESC')
     notes = cursor.fetchall()
     conn.close()
-    return notes
+    
+    updated_notes = []
+    for row in notes:
+        notes = row["notes"] or ""
+        updated_notes.append({
+            "date": row["date"],
+            "notes_html": notes.replace("-", "<br>-")
+    })
+    return updated_notes
 
 def get_throwing_plan():
     conn = get_db_connection()
@@ -134,7 +154,25 @@ def get_throwing_plan():
     cursor.execute('Select * from throwing_plan_drills where sessionId = (SELECT max(sessionId) from throwing_plan_drills)')
     drills = cursor.fetchall()
     conn.close()
-    return (throwing_plan, drills)
+    
+    updatedThrowing_plan = []
+    for row in throwing_plan:
+        sessions = row['throwing_sessions'] or ""
+        th_notes = row['throwing_notes'] or ""
+        p_notes = row['pitching_notes'] or ""
+        d_notes = row['drill_notes'] or ""
+        
+        updatedThrowing_plan.append({
+            "date": row["date"],
+            "throwing_block": row["throwing_block"],
+            "num_throwing_days": row["num_throwing_days"],
+            "sessions_html": sessions.replace("-","<br>-"),
+            "th_notes_html": th_notes.replace("-","<br>-"),
+            "p_notes_html": p_notes.replace("-","<br>-"),
+            "d_notes_html": d_notes.replace("-","<br>-"),
+            })
+        
+    return (updatedThrowing_plan, drills)
 
 def get_summary_data():
     conn = get_db_connection()
@@ -146,6 +184,7 @@ def get_summary_data():
 
     conn.close()
     return (peak_velo, avg_readiness, total_throws)
+    
     
 if(__name__ == '__main__'):
         app.run()

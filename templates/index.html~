@@ -3,16 +3,45 @@
   <head>
     <meta charset="utf-8">
     <title>Throwing Log Home</title>
+    <style>
+        .table-container {
+            display: flex;
+            justify-content: space-around; /* Distributes space between and around tables */
+            margin: 20px;
+            gap: 20px; /* Adds space between the tables */
+        }
+
+        .table {
+            border-collapse: collapse;
+            width: 35%; /* Adjust width as needed */
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+        header{
+				text-align: center;
+        }
+        a {
+				text-align: center;        
+        }
+    </style>
   </head>
   <body>
-    <header>Baseball Web App Home</header>
+    <header><h1>Baseball Web App Home</h1></header>
     <main>
      <p><a href="{{ url_for('offszn_throwing_form') }}">Offseason Throwing Log</a></p>
      <p><a href="{{ url_for('dashboard') }}">Data Dashboard</a></p>
      
      <p><a href = "{{ url_for('throwing_plan') }}">Update Throwing Plan </a></p>
      <table border="1">
-     			<caption>Throwing Plan</caption>
+     			<caption><h3>Throwing Plan</h3></caption>
             <thead>
                 <tr>
                     <th>Date Uploaded</th>
@@ -21,24 +50,24 @@
 						  <th>Session Breakdown</th>
 						  <th>Throwing Notes</th>
 						  <th>Pitching Notes</th>
-						  <th>Drill Notes</th>
+						  
                 </tr>
             </thead>
             <tbody>
-                {% for data in throwing_plan_data %}
+                {% for data in throwing_plan %}
                 <tr>
-                	  <td>{{ data[1] }}</td> {#date#}
-                    <td>{{ data[2] }}</td> {#throwing block#}
-                    <td>{{ data[3] }}</td> {#num throwing days#}
-                    <td>{{ data[4] }}</td> {#session breakdown#}
-                    <td>{{ data[5] }}</td> {#throwing notes#}
-                    <td>{{ data[6] }}</td> {#pitching notes#}
-                    <td>{{ data[7] }}</td> {#drill notes#}
+                	  <td>{{ data["date"] }}</td> {#date#}
+                    <td>{{ data["throwing_block"] }}</td> {#throwing block#}
+                    <td>{{ data["num_throwing_days"] }}</td> {#num throwing days#}
+                    <td>{{ data["sessions_html"]  | safe }}</td> {#session breakdown#}
+                    <td>{{ data["th_notes_html"]  | safe }}</td> {#throwing notes#}
+                    <td>{{ data["p_notes_html"]  | safe }}</td> {#pitching notes#}
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-      <table border="1">
+      <div class = "table-container">
+      <table class = "table" border="1">
             <thead>
                 <tr>
                     <th>Drill Name</th>
@@ -48,39 +77,49 @@
                 </tr>
             </thead>
             <tbody>
-                {% for data in throwing_plan_drills %}
+                {% for data in drills %}
                 <tr>
                 	  <td>{{ data[2] }}</td> {#Name#}
                     <td>{{ data[3] }}</td> {#Type#}
                     <td>{{ data[4] }}</td> {#Weight#}
                 </tr>
                 {% endfor %}
-             </tbody>
+            </tbody>
         </table>
-         <table border = "1">
+        <table class="table">
+        <thead><tr><th>Drill Notes</th></tr></thead>
+        <tbody><tr>
+        	{% for data in throwing_plan %}
+					 	<td>{{ data["d_notes_html"]  | safe }}</td> {#drill notes#}
+					 {% endfor %}
+        </tr></tbody>     
+         </table>    
+         </div>    
+        <!-- <table border = "1">
          <thead><tr><th>Drill Notes:</th></tr></thead>
          	<tbody>
                 <tr>
                 	{% for data in throwing_plan_data %}
                 		<td>{{ data[7] }} </td>
                 	{% endfor %}
-                </tr>
+                </tr> 
              </tbody>
-          </table>
+          </table> -->
 		<table border="1">
             <thead>
                 <tr>
                 <td></td>
-                    <th>Last Weeks Throwing Notes</th>
+                    <th>Recent Throwing Notes</th>
                 </tr>
             </thead>
             <tbody>
-                {% for data in throwing_notes %}
+               	{% for data in throwing_notes %}
                 <tr>
-                	  <td>{{ data[1] }}</td> {#date#}
-                    <td>{{ data[0] }}</td> {#notes#}
+                	  <td>{{ data["date"] }}</td> {#date#}
+                    <td>{{ data["notes_html"] | safe }}</td> {#notes#}
                 </tr>
                 {% endfor %}
+          	
             </tbody>
         </table>
     </main>
