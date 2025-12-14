@@ -28,7 +28,7 @@
         header{
 				text-align: center;
         }
-       p{
+        p{
 			text-align: center;       
        }
     </style>
@@ -73,6 +73,7 @@
                     <th>Drill Name</th>
                     <th>Drill Type</th>
 						  <th>Ball Weight</th>
+						  <th>Throw Count</th>
 						  
                 </tr>
             </thead>
@@ -82,6 +83,7 @@
                 	  <td>{{ data[2] }}</td> {#Name#}
                     <td>{{ data[3] }}</td> {#Type#}
                     <td>{{ data[4] }}</td> {#Weight#}
+                    <td>{{ data[5] }}</td> {#throw_count#}
                 </tr>
                 {% endfor %}
             </tbody>
@@ -95,16 +97,6 @@
         </tr></tbody>     
          </table>    
          </div>    
-        <!-- <table border = "1">
-         <thead><tr><th>Drill Notes:</th></tr></thead>
-         	<tbody>
-                <tr>
-                	{% for data in throwing_plan_data %}
-                		<td>{{ data[7] }} </td>
-                	{% endfor %}
-                </tr> 
-             </tbody>
-          </table> -->
 		<table border="1">
             <thead>
                 <tr>

@@ -28,9 +28,9 @@
         header{
 				text-align: center;
         }
-        a {
-				text-align: center;        
-        }
+        p{
+			text-align: center;       
+       }
     </style>
   </head>
   <body>
@@ -95,16 +95,6 @@
         </tr></tbody>     
          </table>    
          </div>    
-        <!-- <table border = "1">
-         <thead><tr><th>Drill Notes:</th></tr></thead>
-         	<tbody>
-                <tr>
-                	{% for data in throwing_plan_data %}
-                		<td>{{ data[7] }} </td>
-                	{% endfor %}
-                </tr> 
-             </tbody>
-          </table> -->
 		<table border="1">
             <thead>
                 <tr>

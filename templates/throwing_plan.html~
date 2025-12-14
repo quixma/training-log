@@ -33,7 +33,7 @@
      <label for="throwing-notes">Throwing Notes:</label><br>
      <textarea id="throwing-notes" name="throwing_notes" placeholder = "Focuses/Goals" rows="4" cols="50"></textarea><br><br>
      
-     <label for="pitching-notes">Pitching Work:</label><br>
+     <label for="pitching-notes">Pitching Notes:</label><br>
      <textarea id="pitching-notes" name="pitching_notes" rows="4" cols="50" placeholder = "Pitching Work/Focuses/Constraints"></textarea><br><br>
      
      <h3>Drill Work</h3>
@@ -67,6 +67,8 @@
         <option>48</option>
         <option>64</option>
       </select>
+     <label for="drill-throw-count">Throws:</label>
+  	  <input type="text" id="drill_throw_count" name="drill_throw_count[]">
     </div>
   </div>
   <button type="button" onclick="addDrillRow()">Add Another Drill</button><br><br>
@@ -104,7 +106,8 @@
         <option>48</option>
         <option>64</option>
       </select>
-     
+     <label for="drill-throw-count">Throws:</label>
+  	  <input type="text" id="drill-throw-count" name="drill_throw_count[]">
     `;
     container.appendChild(newRow);
   }

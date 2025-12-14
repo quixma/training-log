@@ -3,9 +3,9 @@
 from flask import Flask, render_template, request, jsonify
 import sqlite3
 
-#style w css, format home page tables better
+#style w css
 #in season forms: throwing log, data upload/post outing report page, stuff+/other metric page
-#can have link to a page with stuff+ metrics
+
 
 
 app = Flask(__name__)
@@ -58,6 +58,7 @@ def submit_throwing_plan():
         drill_names = request.form.getlist('drill_name[]')
         drill_types = request.form.getlist('drill_type[]')
         drill_weights = request.form.getlist('drill_ball_weight[]')
+        drill_throws = request.form.getlist('drill_throw_count[]')
         
         
         conn = get_db_connection()
@@ -68,8 +69,8 @@ def submit_throwing_plan():
         
         session_id = cursor.lastrowid
         for x in range(len(drill_names)):
-            cursor.execute("INSERT INTO throwing_plan_drills (sessionId, drill_name, drill_type, ball_weight) VALUES (?,?,?,?)",
-                           (session_id, drill_names[x], drill_types[x], drill_weights[x]))
+            cursor.execute("INSERT INTO throwing_plan_drills (sessionId, drill_name, drill_type, ball_weight, throw_count) VALUES (?,?,?,?,?)",
+                           (session_id, drill_names[x], drill_types[x], drill_weights[x], drill_throws[x]))
     
         conn.commit()
         conn.close()
@@ -110,18 +111,18 @@ def submit_throw():
     
         conn.commit()
         conn.close()
-        updateEmptytoNull()
+        #updateEmptytoNull()
         return index()
     
 def updateEmptytoNull():
     conn = get_db_connection();
     cursor = conn.cursor()
     cursor.execute("UPDATE throwing_sessions SET total_throws = NULL WHERE total_throws = ''")
-    cursor.execute('UPDATE throwing_sessions SET body_weight = NULL WHERE body_weight = ''')
-    cursor.execute('UPDATE throwing_sessions SET one_day_workload = NULL WHERE one_day_workload = '' ')
-    cursor.execute('UPDATE throwing_sessions SET max_velo = NULL WHERE max_velo = ''')
-    cursor.execute('UPDATE throwing_sessions SET rpe = NULL WHERE rpe = ''')
-    cursor.execute('UPDATE throwing_sessions SET arm_readiness = NULL WHERE arm_readiness = ''')
+    cursor.execute("UPDATE throwing_sessions SET body_weight = NULL WHERE body_weight = ''")
+    cursor.execute("UPDATE throwing_sessions SET one_day_workload = NULL WHERE one_day_workload = '' ")
+    cursor.execute("UPDATE throwing_sessions SET max_velo = NULL WHERE max_velo = ''")
+    cursor.execute("UPDATE throwing_sessions SET rpe = NULL WHERE rpe = ''")
+    cursor.execute("UPDATE throwing_sessions SET arm_readiness = NULL WHERE arm_readiness = ''")
     conn.commit()
     conn.close()
     
@@ -142,7 +143,7 @@ def get_throwing_notes():
         notes = row["notes"] or ""
         updated_notes.append({
             "date": row["date"],
-            "notes_html": notes.replace("-", "<br>-")
+            "notes_html": notes.replace(".", ".<br>")
     })
     return updated_notes
 
@@ -166,10 +167,10 @@ def get_throwing_plan():
             "date": row["date"],
             "throwing_block": row["throwing_block"],
             "num_throwing_days": row["num_throwing_days"],
-            "sessions_html": sessions.replace("-","<br>-"),
-            "th_notes_html": th_notes.replace("-","<br>-"),
-            "p_notes_html": p_notes.replace("-","<br>-"),
-            "d_notes_html": d_notes.replace("-","<br>-"),
+            "sessions_html": sessions.replace(".", ".<br>"),
+            "th_notes_html": th_notes.replace(".", ".<br>"),
+            "p_notes_html": p_notes.replace(".", ".<br>"),
+            "d_notes_html": d_notes.replace(".", ".<br>"),
             })
         
     return (updatedThrowing_plan, drills)
@@ -178,9 +179,9 @@ def get_summary_data():
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    peak_velo = cursor.execute('Select max(max_velo) from throwing_sessions where date >= datetime("now","-8 days")').fetchall()
+    peak_velo = cursor.execute('Select max(max_velo) from throwing_sessions').fetchall()
     avg_readiness = cursor.execute('Select Round(avg(arm_readiness),1) from throwing_sessions where date >= datetime("now","-8 days")').fetchall()
-    total_throws = cursor.execute('select sum(total_throws) from throwing_sessions where date >= datetime("now","-8 days")').fetchall()
+    total_throws = cursor.execute('select sum(total_throws) from throwing_sessions where date >= datetime("now","-7 days")').fetchall()
 
     conn.close()
     return (peak_velo, avg_readiness, total_throws)
