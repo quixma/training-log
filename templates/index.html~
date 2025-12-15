@@ -2,7 +2,7 @@
 <html lang="">
   <head>
     <meta charset="utf-8">
-    <title>Throwing Log Home</title>
+    <title>Baseball Web App</title>
     <style>
         .table-container {
             display: flex;
@@ -41,7 +41,7 @@
      
      <p><a href = "{{ url_for('throwing_plan') }}">Update Throwing Plan </a></p>
      <table border="1">
-     			<caption><h3>Throwing Plan</h3></caption>
+     			<caption><h3>Offseason Throwing Plan</h3></caption>
             <thead>
                 <tr>
                     <th>Date Uploaded</th>
@@ -73,6 +73,7 @@
                     <th>Drill Name</th>
                     <th>Drill Type</th>
 						  <th>Ball Weight</th>
+						  <th>Throw Count</th>
 						  
                 </tr>
             </thead>
@@ -82,6 +83,7 @@
                 	  <td>{{ data[2] }}</td> {#Name#}
                     <td>{{ data[3] }}</td> {#Type#}
                     <td>{{ data[4] }}</td> {#Weight#}
+                    <td>{{ data[5] }}</td> {#throw_count#}
                 </tr>
                 {% endfor %}
             </tbody>

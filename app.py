@@ -2,11 +2,13 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, render_template, request, jsonify
 import sqlite3
+import pathlib
+from pydantic import BaseModel
+from datetime import dates
 
 #style w css
 #in season forms: throwing log, data upload/post outing report page, stuff+/other metric page
-
-
+#error handling, data validation, security risks
 
 app = Flask(__name__)
 
@@ -25,27 +27,71 @@ def dashboard():
     peak_velo, avg_readiness, total_throws = get_summary_data()
     return render_template('dashboard.html', peak_velo = peak_velo, avg_readiness = avg_readiness, total_throws = total_throws)
 
+@app.route('/throwing-plan', methods = ["GET", "POST"])
+def throwing_plan():
+    return render_template('throwing_plan.html')
+
+@app.route('/inszn-home', methods = ["GET", "POST"])
+def inszn_home():
+    return render_template('inszn_home.html')
 
 @app.route('/api/data', methods = ["POST"])
 def get_chart_data():
     data = request.get_json()
+    #pydantic validation
     metric = data.get('metric')
     time = data.get('time')
     
     conn= get_db_connection()
     cursor = conn.cursor()
-    results = cursor.execute(f'select {metric}, date from throwing_sessions Where date >= datetime("now", "-{time} days") IS NOT NULL').fetchall()
+    results = cursor.execute(f'select {metric}, date from throwing_sessions Where date >= datetime("now", "-{time} days")').fetchall()
     conn.close()
     return jsonify([dict(row) for row in results])
+
+
+@app.route("/submit_throw", methods=["POST"])
+def submit_throw():
+    if request.method == "POST":
        
-
-@app.route('/throwing-plan', methods = ["GET", "POST"])
-def throwing_plan():
-    return render_template('throwing_plan.html')
-
+        date = request.form.get("date")
+        throwing_block = request.form.get('throwing_block')
+        session_type = request.form.get('session_type')
+        total_throws = request.form.get('total_throws')
+        bodyweight = request.form.get('body_weight')
+        max_velo = request.form.get('max_velocity')
+        one_day_wkld = request.form.get('one_day_workload')
+        rpe = request.form.get('rpe')
+        arm_readiness = request.form.get('arm_readiness')
+        
+       #going to have to alter lists to get them in format for pydantic
+        drill_names = request.form.getlist("drill_name[]")
+        ball_weights = request.form.getlist('drill_ball_weight[]')
+        drill_velos = request.form.getlist('drill_velocity[]')
+        throw_counts = request.form.getlist('throw_count[]')
+        
+        notes = request.form.get('notes')
+        
+        
+        #connect to db 
+        conn = get_db_connection()
+        
+        #insert data
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO throwing_sessions (date, throwing_block, session_type, total_throws, body_weight, one_day_workload, max_velo, rpe, arm_readiness, notes) VALUES (?,?,?,?,?,?,?,?,?,?)",
+                       (date,throwing_block, session_type, total_throws, bodyweight, one_day_wkld, max_velo, rpe, arm_readiness, notes))
+        
+        session_id = cursor.lastrowid
+        for x in range(len(drill_names)):
+            cursor.execute("INSERT INTO drills (session_id, drill_name, ball_weight, drill_max_velo, throw_count) VALUES (?,?,?,?,?)",
+                           (session_id, drill_names[x], ball_weights[x], drill_velos[x], throw_counts[x]))   
+    
+        conn.commit()
+        conn.close()
+        #updateEmptytoNull()
+        return index()
 @app.route('/submit_throwing_plan', methods = ["GET","POST"])
 def submit_throwing_plan():
-    #submit data to db, redirect to home
+    #same pydantic here
     if request.method == "POST":
         date = request.form.get("date")
         throwing_block = request.form.get("throwing_block")
@@ -75,56 +121,6 @@ def submit_throwing_plan():
         conn.commit()
         conn.close()
         return index()
-
-@app.route("/submit_throw", methods=["POST"])
-def submit_throw():
-    if request.method == "POST":
-        date = request.form.get("date")
-        throwing_block = request.form.get('throwing_block')
-        session_type = request.form.get('session_type')
-        total_throws = request.form.get('total_throws')
-        bodyweight = request.form.get('body_weight')
-        max_velo = request.form.get('max_velocity')
-        one_day_wkld = request.form.get('one_day_workload')
-        rpe = request.form.get('rpe')
-        arm_readiness = request.form.get('arm_readiness')
-        
-        drill_names = request.form.getlist("drill_name[]")
-        ball_weights = request.form.getlist('drill_ball_weight[]')
-        drill_velos = request.form.getlist('drill_velocity[]')
-        throw_counts = request.form.getlist('throw_count[]')
-        
-        notes = request.form.get('notes')
-        
-        #connect to db 
-        conn = get_db_connection()
-        
-        #insert data
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO throwing_sessions (date, throwing_block, session_type, total_throws, body_weight, one_day_workload, max_velo, rpe, arm_readiness, notes) VALUES (?,?,?,?,?,?,?,?,?,?)",
-                       (date,throwing_block, session_type, total_throws, bodyweight, one_day_wkld, max_velo, rpe, arm_readiness, notes))
-        
-        session_id = cursor.lastrowid
-        for x in range(len(drill_names)):
-            cursor.execute("INSERT INTO drills (session_id, drill_name, ball_weight, drill_max_velo, throw_count) VALUES (?,?,?,?,?)",
-                           (session_id, drill_names[x], ball_weights[x], drill_velos[x], throw_counts[x]))   
-    
-        conn.commit()
-        conn.close()
-        #updateEmptytoNull()
-        return index()
-    
-def updateEmptytoNull():
-    conn = get_db_connection();
-    cursor = conn.cursor()
-    cursor.execute("UPDATE throwing_sessions SET total_throws = NULL WHERE total_throws = ''")
-    cursor.execute("UPDATE throwing_sessions SET body_weight = NULL WHERE body_weight = ''")
-    cursor.execute("UPDATE throwing_sessions SET one_day_workload = NULL WHERE one_day_workload = '' ")
-    cursor.execute("UPDATE throwing_sessions SET max_velo = NULL WHERE max_velo = ''")
-    cursor.execute("UPDATE throwing_sessions SET rpe = NULL WHERE rpe = ''")
-    cursor.execute("UPDATE throwing_sessions SET arm_readiness = NULL WHERE arm_readiness = ''")
-    conn.commit()
-    conn.close()
     
 def get_db_connection():
     conn = sqlite3.connect('training_log.db')
@@ -185,7 +181,19 @@ def get_summary_data():
 
     conn.close()
     return (peak_velo, avg_readiness, total_throws)
-    
+
+def updateEmptytoNull():
+    conn = get_db_connection();
+    cursor = conn.cursor()
+    cursor.execute("UPDATE throwing_sessions SET total_throws = NULL WHERE total_throws = ''")
+    cursor.execute("UPDATE throwing_sessions SET body_weight = NULL WHERE body_weight = ''")
+    cursor.execute("UPDATE throwing_sessions SET one_day_workload = NULL WHERE one_day_workload = '' ")
+    cursor.execute("UPDATE throwing_sessions SET max_velo = NULL WHERE max_velo = ''")
+    cursor.execute("UPDATE throwing_sessions SET rpe = NULL WHERE rpe = ''")
+    cursor.execute("UPDATE throwing_sessions SET arm_readiness = NULL WHERE arm_readiness = ''")
+    conn.commit()
+    conn.close()
+
     
 if(__name__ == '__main__'):
         app.run()
