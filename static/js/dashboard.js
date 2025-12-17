@@ -2,7 +2,7 @@
 //once html is loaded, get inital chart
 document.addEventListener("DOMContentLoaded", () => {
   initializeChart();
-  initializeSummaryCards();
+  //initializeSummaryCards();
 });
 
 //get form elements
@@ -18,9 +18,6 @@ timeframeSelect.addEventListener("change", getData);
 
 getData();
 
-async function initializeSummaryCards() {
-
-}
 
 async function getData() {
   const formData = {
@@ -40,7 +37,7 @@ async function getData() {
         body: JSON.stringify(formData)
       });
 
-    // Check if response is ok before parsing
+    // Check if response is ok before parsing, display to html
     if (!response.ok) {
       const errorText = await response.text(); // Use .text() to see raw response
       console.error('Error response:', errorText);

@@ -2,15 +2,58 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, render_template, request, jsonify
 import sqlite3
-import pathlib
-from pydantic import BaseModel
-from datetime import dates
+from typing import Annotated, Literal, Optional
+from pydantic import BaseModel, Field, ValidationError
+from datetime import date
 
-#style w css
+#Next steps:
+#make throwing plan tables editable, run update statement to db on update
+#option to query specfic throwing notes by week or day - view throwing notes link, or on dashboard
 #in season forms: throwing log, data upload/post outing report page, stuff+/other metric page
-#error handling, data validation, security risks
+#any error handling redirects
+#style w css
+
 
 app = Flask(__name__)
+
+class ThrowingLogDrillEntry(BaseModel):
+    drill_name: Optional[str]
+    ball_weight: Optional[Annotated[float, Field(ge= 0, le=64)]]
+    max_velocity: Optional[Annotated[float, Field(gt= 0)]]
+    throw_count: Optional[Annotated[int, Field(gt= 0)]]
+
+class ThrowingLogModel(BaseModel):
+    date: date
+    throwing_block: Literal["deload", "on_ramp", "velo_phase", "pre_season", "in_season", "return_to_throw"]
+    session_type: Literal["recovery", "hybrid_a","hybrid_b", "constraint_long_toss", "mound_blend", "plyo_velo", "pitch_design", "command_training", "bullpen", "live_abs"]
+    total_throws: Optional[Annotated[int, Field(ge = 0)]]
+    body_weight: Optional[Annotated[float, Field(gt= 0)]]
+    max_velo: Optional[Annotated[float, Field(gt= 0)]]
+    one_day_workload: Optional[Annotated[float, Field(gt= 0)]]
+    rpe: Optional[Annotated[float, Field(ge= 1, le=10)]]
+    arm_readiness: Optional[Annotated[int, Field(ge= 1, le=10)]]
+    notes: Optional[str]
+    drills: list[ThrowingLogDrillEntry]
+    
+class DrillEntryThrowingPlan(BaseModel):
+    drill_names: Optional[str]
+    drill_types: Optional[Literal['Plyo', 'Mound_Plyo', 'Throwing', 'Pitching', 'Medball', 'CVB', 'AB', 'Club']]
+    drill_weights: Optional[Literal['3', '3.5', '4', '5', '6', '7', '9', '11', '16', '21', '32', '48', '64']]
+    drill_throws: Optional[str]
+    
+class ThrowingPlanModel(BaseModel):
+    date: date
+    throwing_block: Literal['deload', 'on_ramp', 'velo_phase', 'pre_season', 'in_season', 'return_to_throw']
+    num_throwing_days: Optional[Annotated[int, Field(ge = 1, le = 7)]]
+    throwing_sessions: Optional[str]
+    throwing_notes: Optional[str]
+    pitching_notes: Optional[str]
+    drill_notes: Optional[str]
+    drills: list[DrillEntryThrowingPlan]
+    
+class DashboardMetrics(BaseModel):
+    metric: Literal['body_weight', 'max_velo', 'total_throws', 'one_day_workload', 'rpe', 'arm_readiness']
+    time: Literal['7', '14', '21', '30', '60', '90']
 
 @app.route("/", methods=["GET"])
 def index():
@@ -38,13 +81,19 @@ def inszn_home():
 @app.route('/api/data', methods = ["POST"])
 def get_chart_data():
     data = request.get_json()
-    #pydantic validation
-    metric = data.get('metric')
-    time = data.get('time')
+    dict_data = {
+        'metric': data.get('metric'),
+        'time': data.get('time')
+        }
+    try:
+        DashboardMetrics(**dict_data)
+        #proceed to insertion
+    except ValidationError as e:
+        return render_template('validation_error.html', error_details = e)
     
     conn= get_db_connection()
     cursor = conn.cursor()
-    results = cursor.execute(f'select {metric}, date from throwing_sessions Where date >= datetime("now", "-{time} days")').fetchall()
+    results = cursor.execute(f'select {dict_data["metric"]}, date from throwing_sessions Where date >= datetime("now", "-{dict_data["time"]} days")').fetchall()
     conn.close()
     return jsonify([dict(row) for row in results])
 
@@ -52,72 +101,107 @@ def get_chart_data():
 @app.route("/submit_throw", methods=["POST"])
 def submit_throw():
     if request.method == "POST":
-       
-        date = request.form.get("date")
-        throwing_block = request.form.get('throwing_block')
-        session_type = request.form.get('session_type')
-        total_throws = request.form.get('total_throws')
-        bodyweight = request.form.get('body_weight')
-        max_velo = request.form.get('max_velocity')
-        one_day_wkld = request.form.get('one_day_workload')
-        rpe = request.form.get('rpe')
-        arm_readiness = request.form.get('arm_readiness')
-        
-       #going to have to alter lists to get them in format for pydantic
+        #transforming drill arrays to list of dict entries for all values per drill, b4 validation
         drill_names = request.form.getlist("drill_name[]")
         ball_weights = request.form.getlist('drill_ball_weight[]')
         drill_velos = request.form.getlist('drill_velocity[]')
         throw_counts = request.form.getlist('throw_count[]')
+        drills_list = [] 
         
-        notes = request.form.get('notes')
+        if(len(drill_names) == len(ball_weights) == len(drill_velos) == len(throw_counts)):
+            for x in range(len(drill_names)):
+                drill_entry = {
+                    "drill_name": drill_names[x],
+                    "ball_weight": ball_weights[x],
+                    "max_velocity": drill_velos[x],
+                    "throw_count": throw_counts[x]
+                    }
+                drill_entry = {key: None if value == "" else value for key, value in drill_entry.items()}
+                drills_list.append(drill_entry)  
+                
+        form_data = {
+           "date": request.form.get("date"),
+           "throwing_block": request.form.get('throwing_block'),
+           "session_type": request.form.get('session_type'),
+           "total_throws": request.form.get('total_throws'),
+           "body_weight": request.form.get('body_weight'),
+           "max_velo": request.form.get('max_velocity'),
+           "one_day_workload": request.form.get('one_day_workload'),
+           "rpe": request.form.get('rpe'),
+           "arm_readiness": request.form.get('arm_readiness'),
+           "notes": request.form.get('notes'),
+           "drills": drills_list
+           }
+        #converts unentered field values to None
+        form_data = {key: None if value == "" else value for key, value in form_data.items()}
         
-        
-        #connect to db 
-        conn = get_db_connection()
-        
+        try:
+            ThrowingLogModel(**form_data)
+            #proceed to insertion
+        except ValidationError as e:
+            return render_template('validation_error.html', error_details = e)
+
         #insert data
+        conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("INSERT INTO throwing_sessions (date, throwing_block, session_type, total_throws, body_weight, one_day_workload, max_velo, rpe, arm_readiness, notes) VALUES (?,?,?,?,?,?,?,?,?,?)",
-                       (date,throwing_block, session_type, total_throws, bodyweight, one_day_wkld, max_velo, rpe, arm_readiness, notes))
+                       (form_data["date"],form_data["throwing_block"], form_data["session_type"], form_data["total_throws"], form_data["body_weight"], form_data["one_day_workload"], form_data["max_velo"], form_data["rpe"], form_data["arm_readiness"], form_data["notes"]))
         
         session_id = cursor.lastrowid
         for x in range(len(drill_names)):
             cursor.execute("INSERT INTO drills (session_id, drill_name, ball_weight, drill_max_velo, throw_count) VALUES (?,?,?,?,?)",
-                           (session_id, drill_names[x], ball_weights[x], drill_velos[x], throw_counts[x]))   
-    
+                           (session_id, drills_list[x]['drill_name'], drills_list[x]['ball_weight'], drills_list[x]['max_velocity'], drills_list[x]['throw_count']))   
         conn.commit()
         conn.close()
-        #updateEmptytoNull()
         return index()
+    
 @app.route('/submit_throwing_plan', methods = ["GET","POST"])
 def submit_throwing_plan():
-    #same pydantic here
     if request.method == "POST":
-        date = request.form.get("date")
-        throwing_block = request.form.get("throwing_block")
-        num_throwing_days = request.form.get("num_throwing_days")
-        throwing_sessions = request.form.get("throwing_days")
-        throwing_notes = request.form.get("throwing_notes")
-        pitching_notes = request.form.get("pitching_notes")
-        drill_notes = request.form.get('drill_notes')
-        
         drill_names = request.form.getlist('drill_name[]')
         drill_types = request.form.getlist('drill_type[]')
         drill_weights = request.form.getlist('drill_ball_weight[]')
         drill_throws = request.form.getlist('drill_throw_count[]')
+        drillsTP = []
         
+        if(len(drill_names) == len(drill_types) == len(drill_weights) == len(drill_throws)):
+            for x in range(len(drill_names)):
+                drill_entryTP = {
+                    "drill_names": drill_names[x],
+                    "drill_types": drill_types[x],
+                    "drill_weights": drill_weights[x],
+                    "drill_throws": drill_throws[x]
+                    }
+                drill_entryTP = {key: None if value == "" else value for key, value in drill_entryTP.items()}
+                drillsTP.append(drill_entryTP)
+                
+        tp_data = {
+            "date": request.form.get("date"),
+            "throwing_block": request.form.get("throwing_block"),
+            "num_throwing_days": request.form.get("num_throwing_days"),
+            "throwing_sessions": request.form.get("throwing_days"),
+            "throwing_notes": request.form.get("throwing_notes"),
+            "pitching_notes": request.form.get("pitching_notes"),
+            "drill_notes": request.form.get('drill_notes'),
+            "drills": drillsTP
+            }
+        tp_data = {key: None if value == "" else value for key, value in tp_data.items()}
         
+        try:
+            ThrowingPlanModel(**tp_data)
+            #proceed to insertion
+        except ValidationError as e:
+            return render_template('validation_error.html', error_details = e)
+            
         conn = get_db_connection()
         cursor = conn.cursor()
-        
         cursor.execute("INSERT INTO throwing_plan (date, throwing_block, num_throwing_days, throwing_sessions, throwing_notes, pitching_notes, drill_notes) VALUES (?,?,?,?,?,?,?)",
-                       (date, throwing_block, num_throwing_days, throwing_sessions, throwing_notes, pitching_notes, drill_notes))
+                       (tp_data["date"], tp_data["throwing_block"], tp_data["num_throwing_days"], tp_data["throwing_sessions"], tp_data["throwing_notes"], tp_data["pitching_notes"], tp_data["drill_notes"]))
         
         session_id = cursor.lastrowid
         for x in range(len(drill_names)):
             cursor.execute("INSERT INTO throwing_plan_drills (sessionId, drill_name, drill_type, ball_weight, throw_count) VALUES (?,?,?,?,?)",
-                           (session_id, drill_names[x], drill_types[x], drill_weights[x], drill_throws[x]))
-    
+                           (session_id, drillsTP[x]['drill_names'], drillsTP[x]['drill_types'], drillsTP[x]['drill_weights'], drillsTP[x]['drill_throws']))
         conn.commit()
         conn.close()
         return index()
@@ -181,19 +265,6 @@ def get_summary_data():
 
     conn.close()
     return (peak_velo, avg_readiness, total_throws)
-
-def updateEmptytoNull():
-    conn = get_db_connection();
-    cursor = conn.cursor()
-    cursor.execute("UPDATE throwing_sessions SET total_throws = NULL WHERE total_throws = ''")
-    cursor.execute("UPDATE throwing_sessions SET body_weight = NULL WHERE body_weight = ''")
-    cursor.execute("UPDATE throwing_sessions SET one_day_workload = NULL WHERE one_day_workload = '' ")
-    cursor.execute("UPDATE throwing_sessions SET max_velo = NULL WHERE max_velo = ''")
-    cursor.execute("UPDATE throwing_sessions SET rpe = NULL WHERE rpe = ''")
-    cursor.execute("UPDATE throwing_sessions SET arm_readiness = NULL WHERE arm_readiness = ''")
-    conn.commit()
-    conn.close()
-
     
 if(__name__ == '__main__'):
         app.run()

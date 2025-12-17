@@ -102,16 +102,20 @@
             <div class="card">
                 <h3>Peak Velocity</h3>
                  {% for data in peak_velo %}
-                <p id="peak_velo">{{ data[0] }}</p>
-                {% endfor %}
+                	<p id="peak_velo">{{ data[0] }}</p>
+                 {% endfor %}
             </div>
             <div class="card">
                 <h3>Avg Readiness (7d)</h3>
-                <p id="avg-readiness">--</p>
+                {% for data in avg_readiness %}
+                	<p id="avg-readiness">{{ data[0] }}</p>
+                {% endfor %}
             </div>
             <div class="card">
                 <h3>Total Throws (7d)</h3>
-                <p id="total-throws">--</p>
+                {% for data in total_throws %}
+                	<p id="total-throws">{{ data[0] }}</p>
+					 {% endfor %}
             </div>
         </div>
 
