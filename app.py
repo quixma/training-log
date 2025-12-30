@@ -7,7 +7,8 @@ from pydantic import BaseModel, Field, ValidationError
 from datetime import date
 
 #Next steps:
-#editing old throwing notes, pushes update to most recent throwing plan, look into that, check it on notes as well.
+#check on editing prior thorwing notes, pushing update to most recent instead (save most recent thorwing note to kwrite first to avoid retyping it everytime.)
+#go thru and make sure all variable names, function names, casing all makes sense and is consistent
 #in season forms: throwing log, data upload/post outing report page, stuff+/other metric page
 #any error handling redirects
 #style w css

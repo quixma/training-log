@@ -6,9 +6,8 @@ var saveTP_Btn = document.getElementById('saveTP')
 //get drill row for drill notes
 const drill_row = document.getElementById("drill-row")
 
-//finds nearest table row, id set in html to throwing plan id from db
-const rowTP = editTP_Btn.closest("tr")
-const session_id = rowTP.id
+//finds table row of throwing plan, id set in html to throwing plan id from db
+const rowTP = editTP_Btn.closest("tr");
 
 //edit throwing notes buttons/modal
 var modalNotes = document.getElementById('editNotes-modal')
@@ -25,6 +24,68 @@ throwingNoteTimeSelect.addEventListener("change", GetThrowingNotes);
 
 GetThrowingPlan();
 GetThrowingNotes();
+
+editTP_Btn.onclick = function () { //edit throwing plan
+    //did it this way first time to understand the routes, simplified in other modals
+    modalTP.style.display = "block";
+
+    //get modal text boxes to populate and update
+    const num_throwing_days_modal = document.getElementById("num-throwing-days");
+    const throwing_sessions_modal = document.getElementById("throwing-days");
+    const throwing_notes_modal = document.getElementById("throwing-notes");
+    const pitching_notes_modal = document.getElementById("pitching-notes");
+    const drill_notes_modal = document.getElementById("drill-notes");
+
+    //gets current table values displayed in html
+    const throwing_days = rowTP.children[2].innerText;
+    const throwing_sessions = rowTP.children[3].innerText;
+    const throwing_notes = rowTP.children[4].innerText;
+    const pitching_notes = rowTP.children[5].innerText;
+    const drill_notes = drill_row.children[0].innerText;
+
+    //populates modal fields for editing
+    num_throwing_days_modal.value = throwing_days;
+    throwing_sessions_modal.value = throwing_sessions;
+    throwing_notes_modal.value = throwing_notes;
+    pitching_notes_modal.value = pitching_notes;
+    drill_notes_modal.value = drill_notes;
+}
+
+
+saveTP_Btn.onclick = function () {
+    console.log(rowTP.id);
+    const updatedFormData = { //gets updated values, id for which db row to update
+        throwing_planID: Number(rowTP.id),
+        num_throwing_days: Number(document.getElementById("num-throwing-days").value),
+        throwing_sessions: document.getElementById("throwing-days").value,
+        throwing_notes: document.getElementById("throwing-notes").value,
+        pitching_notes: document.getElementById("pitching-notes").value,
+        drill_notes: document.getElementById("drill-notes").value
+    }
+
+    fetch('/api/updatedThrowingPlan',
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', },
+            body: JSON.stringify(updatedFormData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Update success:', data);
+            modalTP.style.display = "none";
+            window.location.reload();
+        })
+        .catch(error => {
+            console.error('Update failed:', error);
+            alert('Update failed. See console.');
+        });
+
+}
 
 async function GetThrowingPlan() {
     date = throwingPlanSelect.value;
@@ -61,6 +122,8 @@ function UpdateThrowingPlanTable(tp, dr, length) {
 
     const drillNotes_row = drillNotesTable.rows[0];
     const row = table.rows[0];
+
+    rowTP.setAttribute('id', tp.id); //updates id of throwing plan table row to the currently displayed throwing plan, so if you edit an old one, routes update to correct throwing plan
 
     row.cells[0].innerText = tp["date"];
     row.cells[1].innerText = tp["throwing_block"];
@@ -102,136 +165,7 @@ function UpdateThrowingPlanTable(tp, dr, length) {
 
 }
 
-async function GetThrowingNotes() {
-    const notes_data = {
-        date: throwingNoteSelect.value,
-        time: throwingNoteTimeSelect.value,
-    }
-
-    if (!notes_data.date || !notes_data.time) {
-        console.log("Enter both search criteria")
-        return;
-    }
-    else {
-        const response = await fetch('/api/getThrowingNotes',
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', },
-                body: JSON.stringify(notes_data)
-            });
-
-        // Check if response is ok before parsing, display to html
-        if (!response.ok) {
-            console.log('Update failed:', await response.text());
-            alert('Update failed. See console.');
-            return;
-        }
-
-        const data = await response.json();
-        UpdateThrowingNotes(data, data.length);
-
-    }
-}
-function UpdateThrowingNotes(data, length) {
-    const notesTable = document.getElementById('throwing_notes_body');
-    const table_rows = notesTable.rows.length;
-
-    for (let i = 0; i < table_rows; i++) { //empty's table values before repopulating 
-        for (let j = 0; j < 2; j++) {
-            notesTable.rows[i].cells[j].innerText = '';
-        }
-    }
-    if (length > table_rows) { //if length > amount of rows, add amount of difference
-        rows_needed = length - table_rows;
-
-        for (let i = 0; i < rows_needed; i++) {
-            var new_row = notesTable.insertRow();
-            var cell1 = new_row.insertCell(0);
-            var cell2 = new_row.insertCell(1);
-            var cell3 = new_row.insertCell(2);
-            var cell4 = new_row.insertCell(3);
-        }
-    }
-    else if (length < table_rows && length != 1) { //len < rows, remove difference 
-        for (let i = length; i <= table_rows; i++) { //when length was 1 was giving problem deleting rows,
-            console.log(i);
-            console.log(length);
-            console.log(table_rows);
-            notesTable.deleteRow(i);
-        }
-    }
-    else {
-        //equal amount, continue
-    }
-
-    for (let i = 0; i < length; i++) {
-        const notesRow = notesTable.rows[i];
-
-        notesRow.cells[0].innerText = data[i]['date'];
-        notesRow.cells[1].innerText = data[i]['notes'];
-    }
-
-}
-
-editTP_Btn.onclick = function () { //edit throwing plan
-    modalTP.style.display = "block";
-    //did it this way first time to understand the routes, simplified in other modals
-    //get modal text boxes to populate and update
-    const num_throwing_days_modal = document.getElementById("num-throwing-days");
-    const throwing_sessions_modal = document.getElementById("throwing-days");
-    const throwing_notes_modal = document.getElementById("throwing-notes");
-    const pitching_notes_modal = document.getElementById("pitching-notes");
-    const drill_notes_modal = document.getElementById("drill-notes");
-
-    //gets current table values displayed in html
-    const throwing_days = rowTP.children[2].innerText;
-    const throwing_sessions = rowTP.children[3].innerText;
-    const throwing_notes = rowTP.children[4].innerText;
-    const pitching_notes = rowTP.children[5].innerText;
-    const drill_notes = drill_row.children[0].innerText;
-
-    //populates modal fields for editing
-    num_throwing_days_modal.value = throwing_days;
-    throwing_sessions_modal.value = throwing_sessions;
-    throwing_notes_modal.value = throwing_notes;
-    pitching_notes_modal.value = pitching_notes;
-    drill_notes_modal.value = drill_notes;
-}
-
-
-saveTP_Btn.onclick = function () {
-    const updatedFormData = { //gets updated values, id for which db row to update
-        throwing_planID: Number(session_id),
-        num_throwing_days: Number(document.getElementById("num-throwing-days").value),
-        throwing_sessions: document.getElementById("throwing-days").value,
-        throwing_notes: document.getElementById("throwing-notes").value,
-        pitching_notes: document.getElementById("pitching-notes").value,
-        drill_notes: document.getElementById("drill-notes").value
-    }
-
-    fetch('/api/updatedThrowingPlan',
-        {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', },
-            body: JSON.stringify(updatedFormData)
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Update success:', data);
-            modalTP.style.display = "none";
-            window.location.reload();
-        })
-        .catch(error => {
-            console.error('Update failed:', error);
-            alert('Update failed. See console.');
-        });
-}
-
+//edit throwing notes
 //select all buttons by class, then populate modal based on which throwing notes row is clicked
 document.querySelectorAll(".editNotes").forEach(btn => {
     btn.onclick = function () {
@@ -275,7 +209,76 @@ saveNotesBtn.onclick = function () {
             alert('Update failed. See console.');
         });
 }
+async function GetThrowingNotes() {
+    const notes_data = {
+        date: throwingNoteSelect.value,
+        time: throwingNoteTimeSelect.value,
+    }
 
+    if (!notes_data.date || !notes_data.time) {
+        console.log("Enter both search criteria")
+        return;
+    }
+    else {
+        const response = await fetch('/api/getThrowingNotes',
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', },
+                body: JSON.stringify(notes_data)
+            });
+
+        // Check if response is ok before parsing, display to html
+        if (!response.ok) {
+            console.log('Update failed:', await response.text());
+            alert('Update failed. See console.');
+            return;
+        }
+
+        const data = await response.json();
+        UpdateThrowingNotesTable(data, data.length);
+
+    }
+}
+function UpdateThrowingNotesTable(data, length) {
+    const notesTable = document.getElementById('throwing_notes_body');
+    const table_rows = notesTable.rows.length;
+
+    for (let i = 0; i < table_rows; i++) { //empty's table values before repopulating 
+        for (let j = 0; j < 2; j++) {
+            notesTable.rows[i].cells[j].innerText = '';
+        }
+    }
+    if (length > table_rows) { //if length > amount of rows, add amount of difference
+        rows_needed = length - table_rows;
+
+        for (let i = 0; i < rows_needed; i++) {
+            var new_row = notesTable.insertRow();
+            var cell1 = new_row.insertCell(0);
+            var cell2 = new_row.insertCell(1);
+            var cell3 = new_row.insertCell(2);
+            var cell4 = new_row.insertCell(3);
+        }
+    }
+    else if (length < table_rows && length != 1) { //len < rows, remove difference 
+        for (let i = length; i <= table_rows; i++) { //when length was 1 was giving problem deleting rows,
+            console.log(i);
+            console.log(length);
+            console.log(table_rows);
+            notesTable.deleteRow(i);
+        }
+    }
+    else {
+        //equal amount, continue
+    }
+
+    for (let i = 0; i < length; i++) {
+        const notesRow = notesTable.rows[i];
+
+        notesRow.cells[0].innerText = data[i]['date'];
+        notesRow.cells[1].innerText = data[i]['notes'];
+    }
+
+}
 
 // When the user clicks anywhere outside of the modal, close it
 window.onclick = function (event) {
