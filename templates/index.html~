@@ -186,7 +186,7 @@
                     </th>
                 </tr>
             </thead>
-            <tbody id = "throwing_notes_body">
+            <tbody>
                	{% for data in throwing_notes %}
                 <tr id = "{{ data['id'] }}">
                 	  <td>{{ data["date"] }}</td> {#date#}

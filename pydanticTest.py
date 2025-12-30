@@ -10,6 +10,7 @@ import pathlib
 from typing import Annotated, Literal, Optional
 from pydantic import BaseModel, Field, ValidationError
 from datetime import date
+import sqlite3
 
 class DrillEntryThrowingPlan(BaseModel):
     drill_names: Optional[str]
@@ -146,10 +147,28 @@ def ThrowingLogTest():
         #proceed to insertion
     except ValidationError as e:
         print(e)
+        
+def test():
+    conn = sqlite3.connect('training_log.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+   
+    results = cursor.execute("Select * from throwing_plan Where date = '2025-12-23'").fetchall()
+    for x in results:
+        xd = dict(x)
+
+    drills = cursor.execute("Select * from throwing_plan_drills Where sessionId = ?", (xd["id"],)).fetchall()
+    xdr = {}
+    xdr["drills"] = [dict(row) for row in drills]
+        
+    print(xdr)
+    conn.close()
+        
+    
 
 if(__name__ == '__main__'):
         #main()
-        ThrowingPlanTest()
+        #ThrowingPlanTest()
         #ThrowingLogTest()
         #DashboardTest()
-    
+        test()

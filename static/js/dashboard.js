@@ -39,8 +39,8 @@ async function getData() {
 
     // Check if response is ok before parsing, display to html
     if (!response.ok) {
-      const errorText = await response.text(); // Use .text() to see raw response
-      console.error('Error response:', errorText);
+      console.log('Update failed:', await response.text());
+      alert('Update failed. See console.');
       return;
     }
 

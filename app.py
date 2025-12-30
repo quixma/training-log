@@ -7,8 +7,7 @@ from pydantic import BaseModel, Field, ValidationError
 from datetime import date
 
 #Next steps:
-#make throwing plan tables editable, run update statement to db on update
-#option to query specfic throwing notes by week or day - view throwing notes link, or on dashboard
+#editing old throwing notes, pushes update to most recent throwing plan, look into that, check it on notes as well.
 #in season forms: throwing log, data upload/post outing report page, stuff+/other metric page
 #any error handling redirects
 #style w css
@@ -31,7 +30,7 @@ class ThrowingLogModel(BaseModel):
     max_velo: Optional[Annotated[float, Field(gt= 0)]]
     one_day_workload: Optional[Annotated[float, Field(gt= 0)]]
     rpe: Optional[Annotated[float, Field(ge= 1, le=10)]]
-    arm_readiness: Optional[Annotated[int, Field(ge= 1, le=10)]]
+    arm_readiness: Optional[Annotated[float, Field(ge= 1, le=10)]]
     notes: Optional[str]
     drills: list[ThrowingLogDrillEntry]
     
@@ -50,6 +49,13 @@ class ThrowingPlanModel(BaseModel):
     pitching_notes: Optional[str]
     drill_notes: Optional[str]
     drills: list[DrillEntryThrowingPlan]
+
+class UpdateThrowingPlanModel(BaseModel):
+    num_throwing_days: Optional[Annotated[int, Field(ge = 1, le = 7)]]
+    throwing_sessions: Optional[str]
+    throwing_notes: Optional[str]
+    pitching_notes: Optional[str]
+    drill_notes: Optional[str]
     
 class DashboardMetrics(BaseModel):
     metric: Literal['body_weight', 'max_velo', 'total_throws', 'one_day_workload', 'rpe', 'arm_readiness']
@@ -59,7 +65,13 @@ class DashboardMetrics(BaseModel):
 def index():
     throwing_notes = get_throwing_notes()  
     throwing_plan, drills = get_throwing_plan()
-    return render_template('index.html', throwing_notes = throwing_notes, throwing_plan=throwing_plan, drills=drills)
+    plan_dates = get_throwing_plan_dates()
+    notes_dates = get_throwing_notes_dates()
+    #get id of throwing plan
+    for x in throwing_plan:
+        tableID = x['id']
+    
+    return render_template('index.html', throwing_notes = throwing_notes, throwing_plan=throwing_plan, drills=drills, tableID = tableID, plan_dates = plan_dates, notes_dates = notes_dates)
 
 @app.route('/offszn-throwing-form', methods=["GET","POST"])
 def offszn_throwing_form():
@@ -89,7 +101,7 @@ def get_chart_data():
         DashboardMetrics(**dict_data)
         #proceed to insertion
     except ValidationError as e:
-        return render_template('validation_error.html', error_details = e)
+        return jsonify(e)
     
     conn= get_db_connection()
     cursor = conn.cursor()
@@ -97,6 +109,91 @@ def get_chart_data():
     conn.close()
     return jsonify([dict(row) for row in results])
 
+@app.route('/api/updatedThrowingPlan', methods = ["POST"])
+def updateThrowingPlan():
+    #have to get drills and upadte that as well
+    data = request.get_json()
+    throwing_planID = data.get('throwing_planID')
+    
+    throwing_plan = {
+        "num_throwing_days": data.get('num_throwing_days'),
+        "throwing_sessions": data.get('throwing_sessions'),
+        "throwing_notes": data.get('throwing_notes'),
+        "pitching_notes": data.get('pitching_notes'),
+        "drill_notes": data.get('drill_notes')
+        }
+    try:
+        UpdateThrowingPlanModel(**throwing_plan)
+        #proceed to insertion
+    except ValidationError as e:
+        return jsonify(e)
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE throwing_plan SET num_throwing_days = ?, throwing_sessions = ?, throwing_notes = ?, pitching_notes = ?, drill_notes = ? WHERE id = ?",
+                   (throwing_plan['num_throwing_days'], throwing_plan['throwing_sessions'], throwing_plan['throwing_notes'], throwing_plan['pitching_notes'], throwing_plan['drill_notes'], throwing_planID))
+    conn.commit()
+    
+    if cursor.rowcount == 0:
+        conn.close()
+        return jsonify({"error": "No row updated"}), 404
+
+    conn.close()
+    return jsonify({"status": "update complete"}), 200
+
+@app.route("/api/updatedNotes", methods = ["POST"])
+def updateNotes():
+    data = request.get_json()
+    notesID = data.get('notesID')
+    throwing_notes= data.get("throwing_notes")
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE throwing_sessions SET notes = ? WHERE id = ?",
+                   (throwing_notes, notesID))
+    conn.commit()
+    
+    if cursor.rowcount == 0:
+        conn.close()
+        return jsonify({"error": "No row updated"}), 404
+
+    conn.close()
+    return jsonify({"status": "update complete"}), 200
+
+@app.route("/api/getThrowingPlan", methods = ["POST"])
+def getThrowingPlan():
+    date = request.get_json()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    results = cursor.execute("Select * from throwing_plan Where date = ?", (date,)).fetchall()
+    
+    for x in results: #converts sqlite objects into dictionary, since its only one "row" returned dont need to do it like drills where there is multiple
+        rdict = dict(x) #just have to add the one row to dict
+        
+    drills = cursor.execute("Select * from throwing_plan_drills Where sessionId = ?", (rdict["id"],)).fetchall() #gets drills based on id from first query
+    
+    drdict = {}
+    drdict["drills"] = [dict(row) for row in drills] #gets each individual drill and appends to dict.
+    allData = { #combines into one dict to pass back to javascript
+        "tp": rdict,
+        "drills": drdict
+        }
+    conn.close()
+    
+    return jsonify(allData)
+     
+
+@app.route("/api/getThrowingNotes", methods = ["POST"])
+def getThrowingNotes():
+    data = request.get_json()
+    date = data.get("date")
+    time = data.get("time")
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    results = cursor.execute('Select date, notes from throwing_sessions Where date <= ? Order by date desc LIMIT ?', (date,time,)).fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in results])
 
 @app.route("/submit_throw", methods=["POST"])
 def submit_throw():
@@ -214,7 +311,7 @@ def get_db_connection():
 def get_throwing_notes():
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('Select notes, date from throwing_sessions Where date >= datetime("now", "-8 days") ORDER BY  date DESC')
+    cursor.execute('Select notes, date, id from throwing_sessions Where date >= datetime("now", "-8 days") ORDER BY  date DESC')
     notes = cursor.fetchall()
     conn.close()
     
@@ -223,7 +320,8 @@ def get_throwing_notes():
         notes = row["notes"] or ""
         updated_notes.append({
             "date": row["date"],
-            "notes_html": notes.replace(".", ".<br>")
+            "notes_html": notes.replace(".", ".<br>"),
+            "id": row["id"],
     })
     return updated_notes
 
@@ -251,9 +349,27 @@ def get_throwing_plan():
             "th_notes_html": th_notes.replace(".", ".<br>"),
             "p_notes_html": p_notes.replace(".", ".<br>"),
             "d_notes_html": d_notes.replace(".", ".<br>"),
+            "id": row['id'],
             })
-        
+       
     return (updatedThrowing_plan, drills)
+
+def get_throwing_plan_dates():
+    #getting dates to populate view prior throwing plans select.
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('Select date from throwing_plan order by Id desc')
+    throwing_plan_dates = cursor.fetchall()
+    conn.close()
+    return throwing_plan_dates
+
+def get_throwing_notes_dates():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('Select date from throwing_sessions order by Id desc')
+    throwing_notes_dates = cursor.fetchall()
+    conn.close()
+    return throwing_notes_dates
 
 def get_summary_data():
     conn = get_db_connection()
