@@ -6,9 +6,15 @@ from typing import Annotated, Literal, Optional
 from pydantic import BaseModel, Field, ValidationError
 from datetime import date
 
+<<<<<<< Updated upstream
 #for pi: no longer making updates thru here, if want to submit thru computer, boot up pi and go thru there, not here and update
 #as db data here wont be updated to match the pi and be careful updating to github and making sure old db's dont overwrite what is on pi on cloning from git
 #there is also venv folder and cmd in app.run that is different in pi folders, so ensure cloning for updates doesnt affect that, maybe its a different git command.
+=======
+#upload to lp-branch when making updates daily, then when ready pull request them over to main to pull into pi.
+#for pi: no longer submitting data thru here, if want to submit thru computer, boot up pi and and then launch on browser, not here and update
+#as db data here wont be updated to match the pi and be careful updating to github and making sure old db's dont overwrite what is on pi on cloning from gi
+>>>>>>> Stashed changes
 
 
 #Next steps:
