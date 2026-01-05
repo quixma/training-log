@@ -55,7 +55,7 @@ editTP_Btn.onclick = function () { //edit throwing plan
 saveTP_Btn.onclick = function () {
     console.log(rowTP.id);
     const updatedFormData = { //gets updated values, id for which db row to update
-        throwing_planID: Number(rowTP.id),
+        throwing_planID: Number(rowTP.id), //html id of the throwing plan from db
         num_throwing_days: Number(document.getElementById("num-throwing-days").value),
         throwing_sessions: document.getElementById("throwing-days").value,
         throwing_notes: document.getElementById("throwing-notes").value,
@@ -111,7 +111,7 @@ async function GetThrowingPlan() {
         const data = await response.json();
         tp = data.tp;
         dr = data.drills;
-        length = Object.keys(dr.drills).length; //gets num of drills in drill array for loop
+        length = Object.keys(dr.drills).length; //gets num of drills in drill array 
         UpdateThrowingPlanTable(tp, dr.drills, length) //dr.drills subarray of actual drills inside object passed back from flask
     }
 }
@@ -271,7 +271,7 @@ function UpdateThrowingNotesTable(data, length) {
         //equal amount, continue
     }
 
-    for (let i = 0; i < length; i++) {
+    for (let i = 0; i < length; i++) { //update table
         const notesRow = notesTable.rows[i];
 
         notesRow.cells[0].innerText = data[i]['date'];

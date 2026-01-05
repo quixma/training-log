@@ -7,12 +7,11 @@ from pydantic import BaseModel, Field, ValidationError
 from datetime import date
 
 #Next steps:
-#check on editing prior thorwing notes, pushing update to most recent instead (save most recent thorwing note to kwrite first to avoid retyping it everytime.)
 #go thru and make sure all variable names, function names, casing all makes sense and is consistent
 #in season forms: throwing log, data upload/post outing report page, stuff+/other metric page
 #any error handling redirects
 #style w css
-
+#can begin to seperate into different script to call from this main one: pydantic, api calls, db gets, in season backend etc.
 
 app = Flask(__name__)
 
