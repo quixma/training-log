@@ -6,9 +6,15 @@ from typing import Annotated, Literal, Optional
 from pydantic import BaseModel, Field, ValidationError
 from datetime import date
 
+#for pi: no longer making updates thru here, if want to submit thru computer, boot up pi and go thru there, not here and update
+#as db data here wont be updated to match the pi and be careful updating to github and making sure old db's dont overwrite what is on pi on cloning from git
+#there is also venv folder and cmd in app.run that is different in pi folders, so ensure cloning for updates doesnt affect that, maybe its a different git command.
+
+
 #Next steps:
+#bullpen report page for offseason: upload tm create chart, optional video and overlay as well.
+#in season forms: throwing log, data upload/post outing report page, stuff+/other metric page, page with button to start web crawler to scrape most recent outing data from TM and create report.
 #go thru and make sure all variable names, function names, casing all makes sense and is consistent
-#in season forms: throwing log, data upload/post outing report page, stuff+/other metric page
 #any error handling redirects
 #style w css
 #can begin to seperate into different script to call from this main one: pydantic, api calls, db gets, in season backend etc.
@@ -383,4 +389,4 @@ def get_summary_data():
     return (peak_velo, avg_readiness, total_throws)
     
 if(__name__ == '__main__'):
-        app.run()
+        app.run() #for rpi host='0.0.0.0',port=5000,debug=True
