@@ -6,14 +6,12 @@ from typing import Annotated, Literal, Optional
 from pydantic import BaseModel, Field, ValidationError
 from datetime import date
 
-#upload to testing branch when making updates daily from lp, then when ready pull request them over to main branch and download onto pi
-#daily upload goes thru pi, if want to fill out forms/data thru laptop connect thru pi first, not launch spyder app to upload data.
-#careful cloning to github make sure old db files dont overwrite most updated ones in main/on pi when cloning/pull reqeusting
 
+#for pi: no longer making updates thru here, if want to submit thru computer, boot up pi and go thru there, not here and update
 
 #Next steps:
-#bullpen report page for offseason, upload tm, create chart, optional video overlay as well.
-#in season forms: throwing log, data upload/post outing report page, stuff+/other metric page, page with button for web crawler to scrape outing data from TM and create post outing report.
+#bullpen report page for offseason: upload tm create chart, optional video and overlay as well.
+#in season forms: throwing log, data upload/post outing report page, stuff+/other metric page, page with button to start web crawler to scrape most recent outing data from TM and create report.
 #go thru and make sure all variable names, function names, casing all makes sense and is consistent
 #any error handling redirects
 #style w css
@@ -389,4 +387,4 @@ def get_summary_data():
     return (peak_velo, avg_readiness, total_throws)
     
 if(__name__ == '__main__'):
-        app.run(host="0.0.0.0", port=5000, debug=True)
+        app.run() #for rpi host='0.0.0.0',port=5000,debug=True

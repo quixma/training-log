@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Training Dashboard</title>
-      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      <script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -100,7 +100,7 @@
         <!-- Summary Cards (optional, for stats) -->
         <div class="summary-cards">
             <div class="card">
-                <h3>Peak Velocity</h3>
+                <h3>Peak Velocity (5oz)</h3>
                  {% for data in peak_velo %}
                 	<p id="peak_velo">{{ data[0] }}</p>
                  {% endfor %}
