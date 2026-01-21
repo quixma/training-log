@@ -1,0 +1,17 @@
+disconnect device: sudo nmcli device disconnect wlan0
+bring down pi-ap connection: sudo nmcli device connection down pi-ap
+bring up pi-ap: sudo nmcli device connection up pi-ap
+change to training log cd: cd /home/quixma/training-log
+start venv: source venv/bin/activate
+(creates virtual python env to run app to keep dependencies seperate from other python running on system)
+start app: python app.py
+git clone: git clone git@github.com:quixma/training-log.git
+device status: nmcli device status
+wifi list: nmcli device wifi list
+stop training log service: sudo systemctl stop traininglog.service (enable just replace stop)
+edit systemmd startup script: sudo nano /etc/systemd/system/traininglog.service
+restart service file: sudo systemctl daemon-reload
+connect to wifi: nmcli device connect "<ssid>" password
+
+
+//right click show hidden files bash history for all prior commands in /home/quixma
