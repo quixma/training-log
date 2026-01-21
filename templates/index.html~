@@ -91,7 +91,7 @@
             </thead>
             <tbody id = "throwing_plan_body">
                 {% for data in throwing_plan %}
-                <tr id = "throwing_plan_row">
+                <tr id = "{{ tableID }}">
                 	  <td>{{ data["date"] }}</td> {#date#}
                     <td>{{ data["throwing_block"] }}</td> {#throwing block#}
                     <td>{{ data["num_throwing_days"] }}</td> {#num throwing days#}

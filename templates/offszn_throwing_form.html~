@@ -82,7 +82,7 @@
   <button type="button" onclick="addDrillRow()">Add Another Drill</button><br><br>
 
   <label for="notes">Throwing Notes:</label><br>
-  <textarea id="notes" name="notes" rows="6" cols="75"></textarea><br><br>
+  <textarea id="notes" name="notes" rows="4" cols="50"></textarea><br><br>
   
   <button type="submit">Save Throwing Session</button>
 </form>

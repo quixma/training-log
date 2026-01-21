@@ -1,5 +1,4 @@
 things to do:
--github auth key to be able to utilize command line git on lp
 -copy startup script into rpiscripts folder
 -add github push of db backups into shutdown script
 

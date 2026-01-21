@@ -1,21 +1,15 @@
 
 # -*- coding: utf-8 -*-
-from flask import Flask, render_template, request, jsonify
 import sqlite3
+import os
+from flask import Flask, render_template, request, jsonify
 from typing import Annotated, Literal, Optional
 from pydantic import BaseModel, Field, ValidationError
 from datetime import date
+from werkzeug.utils import secure_filename
 
-
-#for pi: no longer making updates thru here, if want to submit thru computer, boot up pi and go thru there, not here and update
-
-#Next steps:
-#bullpen report page for offseason: upload tm create chart, optional video and overlay as well.
-#in season forms: throwing log, data upload/post outing report page, stuff+/other metric page, page with button to start web crawler to scrape most recent outing data from TM and create report.
-#go thru and make sure all variable names, function names, casing all makes sense and is consistent
-#any error handling redirects
-#style w css
-#can begin to seperate into different script to call from this main one: pydantic, api calls, db gets, in season backend etc.
+#for pi: no longer making updates thru here, 
+    #if want to submit thru computer, boot up pi and go thru there, not launch here and update
 
 app = Flask(__name__)
 
@@ -89,6 +83,10 @@ def dashboard():
 @app.route('/throwing-plan', methods = ["GET", "POST"])
 def throwing_plan():
     return render_template('throwing_plan.html')
+
+@app.route('/bullpen-report', methods = ["GET", "POST"])
+def bullpen_report():
+    return render_template('bullpen_report.html')
 
 @app.route('/inszn-home', methods = ["GET", "POST"])
 def inszn_home():
@@ -198,6 +196,12 @@ def getThrowingNotes():
     results = cursor.execute('Select date, notes from throwing_sessions Where date <= ? Order by date desc LIMIT ?', (date,time,)).fetchall()
     conn.close()
     return jsonify([dict(row) for row in results])
+
+@app.route('/upload_bullpen_csv', methods = ["POST"])
+def file_upload():
+    UPLOAD_FOLDER = '/home/quixma/Desktop/CS/training-log/bullpen_report_uploads'
+    ALLOWED_EXTENSIONS = 'csv'
+    return
 
 @app.route("/submit_throw", methods=["POST"])
 def submit_throw():
