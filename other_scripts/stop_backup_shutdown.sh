@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DB_SRC="/home/quixma/training-log/training_log.db"
-BACKUP_DIR="/home/quixma/training-log/backup"
+BACKUP_DIR="/home/quixma/training-log/db_backup"
 TIMESTAMP=$(date +"%Y-%m-%d")
 DB_DEST="$BACKUP_DIR/db_$TIMESTAMP.db"
 
