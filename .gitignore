@@ -21,6 +21,9 @@ ENV/
 .venv/
 .env
 
+#ignore backup files
+*~
+
 # Node / frontend build artifacts (if you ever add npm)
 node_modules/
 dist/
