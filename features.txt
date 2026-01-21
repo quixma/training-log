@@ -1,0 +1,15 @@
+things to do:
+-github auth key to be able to utilize command line git on lp
+-copy startup script into rpiscripts folder
+-add github push of db backups into shutdown script
+
+features to add:
+-bullpen report page for offseason: upload tm create chart, optional video and overlay as well, video upload and storage.
+-in season forms: throwing log, data upload/post outing report page, stuff+/other metric page, page with button to start web crawler
+    to scrape most recent outing data from TM and create report.
+-go thru and make sure all variable names, function names, casing all makes sense and is consistent
+-any error handling redirects
+-style w css
+-can begin to seperate into different script to call from this main one: pydantic, api calls, db gets, in season backend etc.
+
+

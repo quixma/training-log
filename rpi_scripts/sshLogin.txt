@@ -1,0 +1,2 @@
+unset SSH_AUTH_SOCK
+ssh -S none pi
