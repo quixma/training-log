@@ -1,0 +1,10 @@
+Host pi
+ HostName 192.168.4.1
+ User quixma
+ ForwardAgent no
+ IdentityAgent none
+ IdentitiesOnly yes
+ ControlMaster no
+
+in ~/.ssh/config to allow ssh pi
+setup auth key to pi to allow it with no password
