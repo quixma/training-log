@@ -9,7 +9,7 @@ __pycache__/
 *.sqlite3
 *.sqbpro
 #except ones in backup folder
-!backup/*.db
+!db_backup/*.db
 
 # Flask instance folder (if used)
 instance/

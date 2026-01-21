@@ -1,0 +1,3 @@
+cd /home/quixma/Desktop/CS/training_log_restructured
+source venv/bin/activate
+flask run
