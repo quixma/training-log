@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from app import app
-from app.models import get_throwing_notes, get_throwing_plan, get_throwing_plan_dates, get_throwing_notes_dates, get_summary_data
+from app.models import get_throwing_notes, get_throwing_plan, get_throwing_plan_dates, get_throwing_notes_dates, get_summary_data, get_bullpen_report_files
 from flask import render_template
 
 
@@ -31,7 +31,8 @@ def throwing_plan():
 
 @app.route('/bullpen-report', methods = ["GET", "POST"])
 def bullpen_report():
-    return render_template('bullpen_report.html')
+    filenames = get_bullpen_report_files()
+    return render_template('bullpen_report.html', filenames=filenames)
 
 @app.route('/inszn-home', methods = ["GET", "POST"])
 def inszn_home():

@@ -1,4 +1,5 @@
 import sqlite3
+import os
 
 def get_db_connection():
     conn = sqlite3.connect('training_log.db')
@@ -52,7 +53,7 @@ def get_throwing_plan():
     return (updatedThrowing_plan, drills)
 
 def get_throwing_plan_dates():
-    #getting dates to populate view prior throwing plans select.
+    #getting dates to populate view prior throwing plans drop down, same with notes below.
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('Select date from throwing_plan order by Id desc')
@@ -67,6 +68,13 @@ def get_throwing_notes_dates():
     throwing_notes_dates = cursor.fetchall()
     conn.close()
     return throwing_notes_dates
+
+def get_bullpen_report_files():
+    folder_path = "/home/quixma/Desktop/CS/training-log/bullpen_report_uploads"
+    filenames = os.listdir(folder_path)
+    
+    return filenames
+
 
 def get_summary_data():
     conn = get_db_connection()
