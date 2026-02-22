@@ -95,11 +95,30 @@ def get_chart_data():
     except ValidationError as e:
         return jsonify(e)
     
-    conn= get_db_connection()
-    cursor = conn.cursor()
-    results = cursor.execute(f'select {dict_data["metric"]}, date from throwing_sessions Where date >= datetime("now", "-{dict_data["time"]} days")').fetchall()
-    conn.close()
-    return jsonify([dict(row) for row in results])
+    if(dict_data["metric"] == 'totalThrows7d'):
+        weeks = int(int(dict_data['time']) / 7)
+        conn= get_db_connection()
+        cursor = conn.cursor()
+        #groups dates as a whole week, listing in dict as the week starting on monday date, calc sum of total throws for that week
+        total_throws = cursor.execute("select DATE(date, 'weekday 1') AS week_start, sum(total_throws) from throwing_sessions GROUP By week_start ORDER By week_start DESC LIMIT ?",(weeks,)).fetchall()
+        conn.close()
+        throws_dict = {
+            "totalThrows7d": [],
+            "date": []
+            }
+        for row in total_throws:
+            throws_dict["totalThrows7d"].append(row[1])
+            throws_dict["date"].append(row[0])
+            
+        return jsonify(throws_dict) 
+    else:
+        conn= get_db_connection()
+        cursor = conn.cursor()
+        results = cursor.execute(f'select {dict_data["metric"]}, date from throwing_sessions Where date >= datetime("now", "-{dict_data["time"]} days")').fetchall()
+        conn.close()
+        return jsonify([dict(row) for row in results])
+    
+    
 
 @app.route('/api/updateThrowingPlan', methods = ["POST"])
 def updateThrowingPlan():

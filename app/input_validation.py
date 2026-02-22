@@ -45,5 +45,5 @@ class UpdateThrowingPlanModel(BaseModel):
     drill_notes: Optional[str]
     
 class DashboardMetrics(BaseModel):
-    metric: Literal['body_weight', 'max_velo', 'total_throws', 'one_day_workload', 'rpe', 'arm_readiness']
+    metric: Literal['body_weight', 'max_velo', 'total_throws', 'one_day_workload', 'rpe', 'arm_readiness', 'totalThrows7d']
     time: Literal['7', '14', '21', '30', '60', '90']
