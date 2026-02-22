@@ -130,7 +130,7 @@
         		<button id = "saveTP">Save Changes</button>
         	</div>
         </div>
-        
+       
       <div class = "table-container">
       <table class = "table" border="1">
             <thead>
@@ -153,6 +153,7 @@
                 {% endfor %}
             </tbody>
         </table>
+        
         <table class="table">
         <thead><tr><th>Drill Notes</th></tr></thead>
         <tbody id = "drill_notes_body"><tr id = "drill-row">
@@ -203,8 +204,9 @@
         	<div class="modal-header">
 				<h2>Edit Throwing Notes</h2>        
         	</div>
-        	<div class="modal-content"> 
-        		<label id = "modal-date"></label><br> 	
+        	<div class="modal-content">  	
+        		<label>Date: </label>
+        		<input type="date" id = "edit-modal-date"><br>
      			<label for="throwing_notes">Throwing Notes: </label><br>
      			<textarea id="throwing_notes" name="throwing_notes" rows="20" cols="100"></textarea><br><br>
      

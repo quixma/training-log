@@ -176,7 +176,7 @@ document.querySelectorAll(".editNotes").forEach(btn => {
         modalNotes.dataset.sessionID = session_id_notes; //saves sessionID for save btn to access
 
         //populate modal with values from get_throwing_notes(), based on id of throwing session
-        document.getElementById("modal-date").textContent = rowNotes.children[0].innerText;
+        document.getElementById("edit-modal-date").value = rowNotes.children[0].innerText;
         document.getElementById('throwing_notes').value = rowNotes.children[1].innerText;
     };
 });
@@ -184,6 +184,7 @@ document.querySelectorAll(".editNotes").forEach(btn => {
 saveNotesBtn.onclick = function () {
     const updatedNotes = {
         notesID: Number(modalNotes.dataset.sessionID),
+        date: document.getElementById("edit-modal-date").value,
         throwing_notes: document.getElementById("throwing_notes").value //get updated notes
     }
 

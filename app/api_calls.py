@@ -136,13 +136,15 @@ def updateThrowingPlan():
 @app.route("/api/updatedNotes", methods = ["POST"])
 def updateNotes():
     data = request.get_json()
+    updatedDate = data.get("date")
     notesID = data.get('notesID')
     throwing_notes= data.get("throwing_notes")
     
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE throwing_sessions SET notes = ? WHERE id = ?",
-                   (throwing_notes, notesID))
+    
+    cursor.execute("UPDATE throwing_sessions SET date = ?, notes = ? WHERE id = ?",
+                   (updatedDate, throwing_notes, notesID))
     conn.commit()
     
     if cursor.rowcount == 0:
@@ -150,6 +152,7 @@ def updateNotes():
         return jsonify({"error": "No row updated"}), 404
 
     conn.close()
+    
     return jsonify({"status": "update complete"}), 200
 
 @app.route("/api/getThrowingPlan", methods = ["POST"])

@@ -2,7 +2,6 @@ things to do:
 -fix db backup on shutdown script.
 -add throwing day to notes and filter to search for it
 -7 day notes search isnt functioning
--add edit notes date to modal
 -hyperlinks become base page for all html files: see flask reorg tutorial.
 -side bar with link to in and offszn home and blog.
 -add training log notes tab for gym work done that day: for in season.
@@ -16,5 +15,4 @@ features to add: see bayless mariners for in season ideas.
 -any error handling redirects
 -style w css
 -can begin to seperate into different script to call from this main one: pydantic, api calls, db gets, in season backend etc.
-
 
