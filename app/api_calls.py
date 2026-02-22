@@ -101,7 +101,7 @@ def get_chart_data():
     conn.close()
     return jsonify([dict(row) for row in results])
 
-@app.route('/api/updatedThrowingPlan', methods = ["POST"])
+@app.route('/api/updateThrowingPlan', methods = ["POST"])
 def updateThrowingPlan():
     #have to get drills and upadte that as well
     data = request.get_json()
@@ -133,7 +133,7 @@ def updateThrowingPlan():
     conn.close()
     return jsonify({"status": "update complete"}), 200
 
-@app.route("/api/updatedNotes", methods = ["POST"])
+@app.route("/api/updateNotes", methods = ["POST"])
 def updateNotes():
     data = request.get_json()
     updatedDate = data.get("date")
@@ -187,5 +187,17 @@ def getThrowingNotes():
     conn = get_db_connection()
     cursor = conn.cursor()
     results = cursor.execute('Select date, notes from throwing_sessions Where date <= ? Order by date desc LIMIT ?', (date,time,)).fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in results])
+
+@app.route("/api/getThrowingNotesByDay", methods = ["POST"])
+def getThrowingNotesByDay():
+    data = request.get_json()
+    throwing_day = data.get("day")
+    time = data.get("time")
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    results = cursor.execute('Select date, notes from throwing_sessions Where session_type = ? Order by date desc LIMIT ?', (throwing_day,time,)).fetchall()
     conn.close()
     return jsonify([dict(row) for row in results])

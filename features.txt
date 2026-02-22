@@ -1,7 +1,5 @@
 things to do:
 -fix db backup on shutdown script.
--add throwing day to notes and filter to search for it
--7 day notes search isnt functioning
 -hyperlinks become base page for all html files: see flask reorg tutorial.
 -side bar with link to in and offszn home and blog.
 -add training log notes tab for gym work done that day: for in season.

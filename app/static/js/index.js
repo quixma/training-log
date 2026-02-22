@@ -17,13 +17,19 @@ var saveNotesBtn = document.getElementById('saveNotes')
 const throwingPlanSelect = document.getElementById('retrieve-throwing-plan')
 const throwingNoteSelect = document.getElementById('retrieve-throwing-notes')
 const throwingNoteTimeSelect = document.getElementById('throwing-notes-time')
+const throwingDaySelect = document.getElementById('throwing-day-type')
+const throwingDayTimeSelect = document.getElementById('throwing-day-time')
+
 //add event listeners
 throwingPlanSelect.addEventListener("change", GetThrowingPlan);
 throwingNoteSelect.addEventListener("change", GetThrowingNotes);
 throwingNoteTimeSelect.addEventListener("change", GetThrowingNotes);
+throwingDaySelect.addEventListener("change", GetThrowingNotesByDay);
+throwingDayTimeSelect.addEventListener("change", GetThrowingNotesByDay);
 
 GetThrowingPlan();
 GetThrowingNotes();
+GetThrowingNotesByDay();
 
 editTP_Btn.onclick = function () { //edit throwing plan
     //did it this way first time to understand the routes, simplified in other modals
@@ -63,7 +69,7 @@ saveTP_Btn.onclick = function () {
         drill_notes: document.getElementById("drill-notes").value
     }
 
-    fetch('/api/updatedThrowingPlan',
+    fetch('/api/updateThrowingPlan',
         {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', },
@@ -188,7 +194,7 @@ saveNotesBtn.onclick = function () {
         throwing_notes: document.getElementById("throwing_notes").value //get updated notes
     }
 
-    fetch('/api/updatedNotes',
+    fetch('/api/updateNotes',
         {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', },
@@ -240,6 +246,37 @@ async function GetThrowingNotes() {
 
     }
 }
+
+async function GetThrowingNotesByDay() {
+    const notes_data = {
+        day: throwingDaySelect.value,
+        time: throwingDayTimeSelect.value,
+    }
+
+    if (!notes_data.day || !notes_data.time) {
+        console.log("Enter both search criteria")
+        return;
+    }
+    else {
+        const response = await fetch('/api/getThrowingNotesByDay',
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', },
+                body: JSON.stringify(notes_data)
+            });
+
+        // Check if response is ok before parsing, display to html
+        if (!response.ok) {
+            console.log('Update failed:', await response.text());
+            alert('Update failed. See console.');
+            return;
+        }
+
+        const data = await response.json();
+        UpdateThrowingNotesTable(data, data.length);
+
+    }
+}
 function UpdateThrowingNotesTable(data, length) {
     const notesTable = document.getElementById('throwing_notes_body');
     const table_rows = notesTable.rows.length;
@@ -260,12 +297,10 @@ function UpdateThrowingNotesTable(data, length) {
             var cell4 = new_row.insertCell(3);
         }
     }
-    else if (length < table_rows && length != 1) { //len < rows, remove difference 
-        for (let i = length; i <= table_rows; i++) { //when length was 1 was giving problem deleting rows,
-            console.log(i);
-            console.log(length);
-            console.log(table_rows);
-            notesTable.deleteRow(i);
+    else if (length < table_rows) { //len < rows, remove difference 
+        rows_to_del = table_rows - length;
+        for (let i = 0; i < rows_to_del; i++) {
+            notesTable.deleteRow(-1); //-1 is deleting the last row in the table 
         }
     }
     else {

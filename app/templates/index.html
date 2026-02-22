@@ -168,23 +168,34 @@
                 <tr>
 							<th>
 						  		<select id="retrieve-throwing-notes">
-    								<option value="">View Throwing Notes</option>
+    								<option value="">View Throwing Notes by Date</option>
 									{% for data in notes_dates %}
     								<option value='{{ data["date"] }}'>{{ data["date"] }}</option>
 									{% endfor %}
-  								</select>
-  						  </th>
-                    <th>Recent Throwing Notes</th>
-                    <th>
-								<select id="throwing-notes-time">
+  								</select> <br>
+  								<select id="throwing-notes-time">
                     			<option value="">Select range…</option>
-                    			<option value="1">Only date selected</option>
 						  			<option value="3">Last 3 days from selected</option>
                     			<option value="7">Last 7 days from selected</option>
                     			<option value="14">Last 14 days from selected</option>
-                    			<option value="21">Last 21 days from selected</option>
                     			<option value="30">Last 30 days from selected</option>
-                			</select>                    
+                			</select>  
+  						  </th>
+                    <th>Recent Throwing Notes</th>
+                    <th>
+								<select id ="throwing-day-type">
+									<option value="">View Throwing Notes by Throw Day</option>
+									{% for data in throwing_days %}
+										<option value="{{ data['session_type'] }}">{{ data["session_type"] }}</option>
+									{% endfor %}
+								</select> <br>
+								<select id="throwing-day-time">
+                    			<option value="">Select range…</option>
+						  			<option value="3">Last 3 Notes</option>
+                    			<option value="7">Last 7 Notes</option>
+                    			<option value="14">Last 14 Notes</option>
+                    			<option value="30">Last 30 Notes</option>
+                			</select>                     
                     </th>
                 </tr>
             </thead>

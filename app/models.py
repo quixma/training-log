@@ -75,6 +75,14 @@ def get_bullpen_report_files():
     
     return filenames
 
+def get_throwing_day_types():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('Select DISTINCT session_type from throwing_sessions')
+    throwing_days = cursor.fetchall()
+    conn.close()
+    return throwing_days
+
 
 def get_summary_data():
     conn = get_db_connection()
