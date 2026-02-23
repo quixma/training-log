@@ -14,4 +14,7 @@ restart service file: sudo systemctl daemon-reload
 connect to wifi: nmcli device connect "<ssid>" password
 
 
+upgrade requirements.txt: pip freeze > requirements.txt (venv active)
+download requirements: pip install -r requirements.txt (venv active)
+
 //right click show hidden files bash history for all prior commands in /home/quixma
