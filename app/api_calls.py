@@ -12,7 +12,7 @@ import numpy as np
 def report_data():
     data = request.get_json()
     file = data.get('file')
-    folder_path = "/home/quixma/Desktop/CS/training-log/bullpen_report_uploads"
+    folder_path = "/home/quixma/training-log/bullpen_report_uploads" #has to change for pi version
     file_path = os.path.join(folder_path, file)
     file_data = pd.read_csv(file_path)
     
@@ -217,6 +217,6 @@ def getThrowingNotesByDay():
     
     conn = get_db_connection()
     cursor = conn.cursor()
-    results = cursor.execute('Select date, notes from throwing_sessions Where session_type = ? Order by date desc LIMIT ?', (throwing_day,time,)).fetchall()
+    results = cursor.execute('Select date, notes from throwing_sessions Where session_type = ? Order by date asc LIMIT ?', (throwing_day,time,)).fetchall()
     conn.close()
     return jsonify([dict(row) for row in results])

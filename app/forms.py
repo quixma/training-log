@@ -18,7 +18,7 @@ def file_upload():
                 flash("Invalid file: Upload a .csv file.")
                 redirect(url_for('bullpen_report'))
             else:  #add try catch for file save      
-                file.save(f"/home/quixma/Desktop/CS/training-log/bullpen_report_uploads/{secure_filename(file.filename)}")
+                file.save(f"/home/quixma/Desktop/CS/training-log/bullpen_report_uploads/{secure_filename(file.filename)}") #has to change for pi version
                 flash(f"Success: {file.filename} uploaded.")
         else: 
             flash("No file uploaded: Try again.")
