@@ -1,16 +1,30 @@
 from app import app
 from app.input_validation import ThrowingLogModel, ThrowingPlanModel
-from app.views import index
 from app.models import get_db_connection
-from flask import render_template, request
+from flask import request, flash, redirect, url_for
 from pydantic import ValidationError
 from werkzeug.utils import secure_filename
+import os
 
-@app.route('/submit_bullpen_csv', methods = ["POST"])
+@app.route('/upload_bullpen_csv', methods = ["POST"])
 def file_upload():
-    UPLOAD_FOLDER = '/home/quixma/Desktop/CS/training-log/bullpen_report_uploads'
-    ALLOWED_EXTENSIONS = 'csv'
-    return
+    ALLOWED_EXTENSIONS = '.csv'
+    file = request.files['file']
+    
+    if request.method == "POST":
+        if file.filename != '':
+            file_ext = os.path.splitext(file.filename)[1]
+            if file_ext != ALLOWED_EXTENSIONS:
+                flash("Invalid file: Upload a .csv file.")
+                redirect(url_for('bullpen_report'))
+            else:  #add try catch for file save      
+                file.save(f"/home/quixma/Desktop/CS/training-log/bullpen_report_uploads/{secure_filename(file.filename)}")
+                flash(f"Success: {file.filename} uploaded.")
+        else: 
+            flash("No file uploaded: Try again.")
+            redirect(url_for('bullpen_report'))
+    
+    return redirect(url_for('bullpen_report'))
 
 @app.route("/submit_throw", methods=["POST"])
 def submit_throw():
@@ -53,7 +67,7 @@ def submit_throw():
             ThrowingLogModel(**form_data)
             #proceed to insertion
         except ValidationError as e:
-            return render_template('validation_error.html', error_details = e)
+            return redirect(url_for('validation_error.html', error_details = e))
 
         #insert data
         conn = get_db_connection()
@@ -67,7 +81,7 @@ def submit_throw():
                            (session_id, drills_list[x]['drill_name'], drills_list[x]['ball_weight'], drills_list[x]['max_velocity'], drills_list[x]['throw_count']))   
         conn.commit()
         conn.close()
-        return index()
+        return redirect(url_for('index'))
     
 @app.route('/submit_throwing_plan', methods = ["GET","POST"])
 def submit_throwing_plan():
@@ -105,7 +119,7 @@ def submit_throwing_plan():
             ThrowingPlanModel(**tp_data)
             #proceed to insertion
         except ValidationError as e:
-            return render_template('validation_error.html', error_details = e)
+            return redirect(url_for('validation_error.html', error_details = e))
             
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -118,5 +132,5 @@ def submit_throwing_plan():
                            (session_id, drillsTP[x]['drill_names'], drillsTP[x]['drill_types'], drillsTP[x]['drill_weights'], drillsTP[x]['drill_throws']))
         conn.commit()
         conn.close()
-        return index()
+        return redirect(url_for('index'))
     

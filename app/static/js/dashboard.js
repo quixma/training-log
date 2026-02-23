@@ -53,16 +53,24 @@ async function getData() {
 function updateChart(data) {
   clearCharts()
   metricMap = metricSelect.value;
+  if (metricMap == "totalThrows7d") {
+    label_dataX = data.date;
+    label_dataY = data.totalThrows7d;
+  }
+  else {
+    label_dataX = data.map(row => row.date);
+    label_dataY = data.map(row => row[metricMap]);
+  }
 
   const ctx = document.getElementById('chart').getContext('2d');
   updatedChart = new Chart(ctx, {
     type: "line",
     data: {
-      labels: data.map(row => row.date),
+      labels: label_dataX,
       datasets: [
         {
           label: metricMap,
-          data: data.map(row => row[metricMap]),
+          data: label_dataY,
           borderWidth: 2
         }
       ]

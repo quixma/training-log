@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from app import app
-from app.models import get_throwing_notes, get_throwing_plan, get_throwing_plan_dates, get_throwing_notes_dates, get_summary_data
+from app.models import get_throwing_notes, get_throwing_plan, get_throwing_plan_dates, get_throwing_notes_dates, get_summary_data, get_bullpen_report_files, get_throwing_day_types
 from flask import render_template
 
 
@@ -10,11 +10,12 @@ def index():
     throwing_plan, drills = get_throwing_plan()
     plan_dates = get_throwing_plan_dates()
     notes_dates = get_throwing_notes_dates()
+    throwing_days = get_throwing_day_types()
     
     for x in throwing_plan: #get id of throwing plan
         tableID = x['id']
     
-    return render_template('index.html', throwing_notes = throwing_notes, throwing_plan=throwing_plan, drills=drills, tableID = tableID, plan_dates = plan_dates, notes_dates = notes_dates)
+    return render_template('index.html', throwing_notes = throwing_notes, throwing_plan=throwing_plan, drills=drills, tableID = tableID, plan_dates = plan_dates, notes_dates = notes_dates, throwing_days = throwing_days)
 
 @app.route('/offszn-throwing-form', methods=["GET","POST"])
 def offszn_throwing_form():
@@ -31,7 +32,8 @@ def throwing_plan():
 
 @app.route('/bullpen-report', methods = ["GET", "POST"])
 def bullpen_report():
-    return render_template('bullpen_report.html')
+    filenames = get_bullpen_report_files()
+    return render_template('bullpen_report.html', filenames=filenames)
 
 @app.route('/inszn-home', methods = ["GET", "POST"])
 def inszn_home():

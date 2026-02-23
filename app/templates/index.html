@@ -105,9 +105,88 @@
                 
             </tbody>
         </table>
+       
+      <div class = "table-container">
+      <table class = "table" border="1">
+            <thead>
+                <tr>
+                    <th>Drill Name</th>
+                    <th>Drill Type</th>
+						  <th>Ball Weight</th>
+						  <th>Throw Count</th>
+						  
+                </tr>
+            </thead>
+            <tbody id = "drills_body">
+                {% for data in drills %}
+                <tr>
+                	  <td>{{ data[2] }}</td> {#Name#}
+                    <td>{{ data[3] }}</td> {#Type#}
+                    <td>{{ data[4] }}</td> {#Weight#}
+                    <td>{{ data[5] }}</td> {#throw_count#}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
         
+        <table class="table">
+        <thead><tr><th>Drill Notes</th></tr></thead>
+        <tbody id = "drill_notes_body"><tr id = "drill-row">
+        	{% for data in throwing_plan %}
+					 	<td>{{ data["d_notes_html"]  | safe }}</td> {#drill notes#}
+					 {% endfor %}
+        </tr></tbody>     
+         </table>    
+         </div>    
+		<table border="1">
+            <thead>
+                <tr>
+							<th>
+						  		<select id="retrieve-throwing-notes">
+    								<option value="">View Throwing Notes by Date</option>
+									{% for data in notes_dates %}
+    								<option value='{{ data["date"] }}'>{{ data["date"] }}</option>
+									{% endfor %}
+  								</select> <br>
+  								<select id="throwing-notes-time">
+                    			<option value="">Select range…</option>
+						  			<option value="3">Last 3 days from selected</option>
+                    			<option value="7">Last 7 days from selected</option>
+                    			<option value="14">Last 14 days from selected</option>
+                    			<option value="30">Last 30 days from selected</option>
+                			</select>  
+  						  </th>
+                    <th>Recent Throwing Notes</th>
+                    <th>
+								<select id ="throwing-day-type">
+									<option value="">View Throwing Notes by Throw Day</option>
+									{% for data in throwing_days %}
+										<option value="{{ data['session_type'] }}">{{ data["session_type"] }}</option>
+									{% endfor %}
+								</select> <br>
+								<select id="throwing-day-time">
+                    			<option value="">Select range…</option>
+						  			<option value="3">Last 3 Notes</option>
+                    			<option value="7">Last 7 Notes</option>
+                    			<option value="14">Last 14 Notes</option>
+                    			<option value="30">Last 30 Notes</option>
+                			</select>                     
+                    </th>
+                </tr>
+            </thead>
+            <tbody id = "throwing_notes_body">
+               	{% for data in throwing_notes %}
+                <tr id = "{{ data['id'] }}">
+                	  <td>{{ data["date"] }}</td> {#date#}
+                    <td>{{ data["notes_html"] | safe }}</td> {#notes#}
+                    <td><button class = 'editNotes'>Edit Throwing Notes</button></td>
+                </tr>
+                {% endfor %}
+          	
+            </tbody>
+        </table>
         
-        <div id ='editTP-modal' class = "modal">
+         <div id ='editTP-modal' class = "modal">
         	<div class="modal-header">
 				<h2>Edit Throwing Plan</h2>        
         	</div>
@@ -131,80 +210,13 @@
         	</div>
         </div>
         
-      <div class = "table-container">
-      <table class = "table" border="1">
-            <thead>
-                <tr>
-                    <th>Drill Name</th>
-                    <th>Drill Type</th>
-						  <th>Ball Weight</th>
-						  <th>Throw Count</th>
-						  
-                </tr>
-            </thead>
-            <tbody id = "drills_body">
-                {% for data in drills %}
-                <tr>
-                	  <td>{{ data[2] }}</td> {#Name#}
-                    <td>{{ data[3] }}</td> {#Type#}
-                    <td>{{ data[4] }}</td> {#Weight#}
-                    <td>{{ data[5] }}</td> {#throw_count#}
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <table class="table">
-        <thead><tr><th>Drill Notes</th></tr></thead>
-        <tbody id = "drill_notes_body"><tr id = "drill-row">
-        	{% for data in throwing_plan %}
-					 	<td>{{ data["d_notes_html"]  | safe }}</td> {#drill notes#}
-					 {% endfor %}
-        </tr></tbody>     
-         </table>    
-         </div>    
-		<table border="1">
-            <thead>
-                <tr>
-							<th>
-						  		<select id="retrieve-throwing-notes">
-    								<option value="">View Throwing Notes</option>
-									{% for data in notes_dates %}
-    								<option value='{{ data["date"] }}'>{{ data["date"] }}</option>
-									{% endfor %}
-  								</select>
-  						  </th>
-                    <th>Recent Throwing Notes</th>
-                    <th>
-								<select id="throwing-notes-time">
-                    			<option value="">Select range…</option>
-                    			<option value="1">Only date selected</option>
-						  			<option value="3">Last 3 days from selected</option>
-                    			<option value="7">Last 7 days from selected</option>
-                    			<option value="14">Last 14 days from selected</option>
-                    			<option value="21">Last 21 days from selected</option>
-                    			<option value="30">Last 30 days from selected</option>
-                			</select>                    
-                    </th>
-                </tr>
-            </thead>
-            <tbody id = "throwing_notes_body">
-               	{% for data in throwing_notes %}
-                <tr id = "{{ data['id'] }}">
-                	  <td>{{ data["date"] }}</td> {#date#}
-                    <td>{{ data["notes_html"] | safe }}</td> {#notes#}
-                    <td><button class = 'editNotes'>Edit Throwing Notes</button></td>
-                </tr>
-                {% endfor %}
-          	
-            </tbody>
-        </table>
-        
         <div id ='editNotes-modal' class = "modal">
         	<div class="modal-header">
 				<h2>Edit Throwing Notes</h2>        
         	</div>
-        	<div class="modal-content"> 
-        		<label id = "modal-date"></label><br> 	
+        	<div class="modal-content">  	
+        		<label>Date: </label>
+        		<input type="date" id = "edit-modal-date"><br>
      			<label for="throwing_notes">Throwing Notes: </label><br>
      			<textarea id="throwing_notes" name="throwing_notes" rows="20" cols="100"></textarea><br><br>
      
