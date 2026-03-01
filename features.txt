@@ -1,16 +1,18 @@
 things to do:
--fix db backup on shutdown script.
+-fix total throws query, asc to desc, check out throws by week query for summary card.
 -hyperlinks become base page for all html files: see flask reorg tutorial.
 -side bar with link to in and offszn home and blog.
--add training log notes tab for gym work done that day: for in season.
-    -page to display: recent throwing days: volume, velo, count, what was done, and what was done in gym.
+-add button on homepage to run bash shutdown script.
 
 features to add: see bayless mariners for in season ideas.
 -blog page
 -in season forms: throwing log, data upload/post outing report page, stuff+/other metric page, page with button to start web crawler
     to scrape most recent outing data from TM and create report.
+-add training log notes tab for gym work done that day: for in season.
+    -page to display: recent throwing days: volume, velo, count, what was done, and what was done in gym.
+arm care data tracking: https://www.instagram.com/reel/DU629HcEoWX/?igsh=MWQ5aTg1dHQ3NnFz
+weekly sched on inseason home page, throwing plan, notes, arm care, lifting sched, warmup + notes.
 -go thru and make sure all variable names, function names, casing all makes sense and is consistent
 -any error handling redirects
 -style w css
--can begin to seperate into different script to call from this main one: pydantic, api calls, db gets, in season backend etc.
 
