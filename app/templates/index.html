@@ -224,7 +224,15 @@
         	</div>
         </div>
     </main>
-    <footer></footer>
+    <footer>
+			<form action = "/shutdown" method="POST">
+        		<label>Shutdown Web App Server: </label>
+        		<input type="submit" value="Shutdown">
+        </form>
+        {% if message %}
+        		<p><strong>Status: </strong>{{ message }}</p>
+        {% endif %}    
+    </footer>
     <script src="{{ url_for('static', filename='js/index.js') }}"></script>
   </body>
 </html>

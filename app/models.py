@@ -9,7 +9,7 @@ def get_db_connection():
 def get_throwing_notes():
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('Select notes, date, id from throwing_sessions Where date >= datetime("now", "-8 days") ORDER BY  date DESC')
+    cursor.execute('Select notes, date, id from throwing_sessions Where date >= datetime("now", "-7 days") ORDER BY  date DESC')
     notes = cursor.fetchall()
     conn.close()
     
@@ -89,7 +89,7 @@ def get_summary_data():
     cursor = conn.cursor()
     
     peak_velo = cursor.execute('Select max(max_velo) from throwing_sessions').fetchall()
-    avg_readiness = cursor.execute('Select Round(avg(arm_readiness),1) from throwing_sessions where date >= datetime("now","-8 days")').fetchall()
+    avg_readiness = cursor.execute('Select Round(avg(arm_readiness),1) from throwing_sessions where date >= datetime("now","-7 days")').fetchall()
     total_throws = cursor.execute('select sum(total_throws) from throwing_sessions where date >= datetime("now","-7 days")').fetchall()
 
     conn.close()

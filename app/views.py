@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from app import app
 from app.models import get_throwing_notes, get_throwing_plan, get_throwing_plan_dates, get_throwing_notes_dates, get_summary_data, get_bullpen_report_files, get_throwing_day_types
-from flask import render_template
+from app.api_calls import shutdown
+from flask import render_template, request
 
 
 @app.route("/", methods=["GET"])
@@ -11,11 +12,12 @@ def index():
     plan_dates = get_throwing_plan_dates()
     notes_dates = get_throwing_notes_dates()
     throwing_days = get_throwing_day_types()
+    message = request.args.get('message')
     
     for x in throwing_plan: #get id of throwing plan
         tableID = x['id']
     
-    return render_template('index.html', throwing_notes = throwing_notes, throwing_plan=throwing_plan, drills=drills, tableID = tableID, plan_dates = plan_dates, notes_dates = notes_dates, throwing_days = throwing_days)
+    return render_template('index.html',throwing_notes = throwing_notes, throwing_plan=throwing_plan, drills=drills, tableID = tableID, plan_dates = plan_dates, notes_dates = notes_dates, throwing_days = throwing_days)
 
 @app.route('/offszn-throwing-form', methods=["GET","POST"])
 def offszn_throwing_form():

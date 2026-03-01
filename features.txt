@@ -1,8 +1,7 @@
 things to do:
--fix total throws query, asc to desc, check out throws by week query for summary card.
+-check out throws by week query for summary card.
 -hyperlinks become base page for all html files: see flask reorg tutorial.
 -side bar with link to in and offszn home and blog.
--add button on homepage to run bash shutdown script.
 
 features to add: see bayless mariners for in season ideas.
 -blog page

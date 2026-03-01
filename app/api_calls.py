@@ -2,11 +2,33 @@ from app import app
 from app.input_validation import DashboardMetrics, UpdateThrowingPlanModel
 from app.models import get_db_connection
 from pydantic import ValidationError
-from flask import jsonify, request
+from flask import jsonify, request, url_for, redirect, render_template
 import os
 import pandas as pd
 import math
 import numpy as np
+import subprocess #update requirements for pi
+
+@app.route('/shutdown', methods = ["POST"])
+def shutdown():
+    try: 
+        #make sure path is correct for pi
+        #Ensure your bash script is executable (run chmod +x your_script.sh in your terminal)
+        script = subprocess.run(['./other_scripts/stop_backup_shutdown.sh'], capture_output=True)
+        output = script.stdout
+        error = script.stderr
+        message = f"Script executed successfully. Output: {output}"
+        if error: 
+            message += f"Errors: {error}"
+            return render_template('index.html', message = message)
+    except subprocess.CalledProcessError as e:
+        message = f"Script execution failed! Error: {e.stderr}"
+        return render_template('index.html', message = message)
+    except Exception as e:
+        message = f"An error occured: {str(e)}"
+        return render_template('index.html', message = message)
+        
+    return redirect(url_for('index'))
 
 @app.route('/api/report_data', methods = ["POST"])
 def report_data():
@@ -100,7 +122,7 @@ def get_chart_data():
         conn= get_db_connection()
         cursor = conn.cursor()
         #groups dates as a whole week, listing in dict as the week starting on monday date, calc sum of total throws for that week
-        total_throws = cursor.execute("select DATE(date, 'weekday 1') AS week_start, sum(total_throws) from throwing_sessions GROUP By week_start ORDER By week_start DESC LIMIT ?",(weeks,)).fetchall()
+        total_throws = cursor.execute("select DATE(date, 'weekday 0') AS week_start, sum(total_throws) from throwing_sessions GROUP By week_start ORDER By week_start DESC LIMIT ?",(weeks,)).fetchall()
         conn.close()
         throws_dict = {
             "totalThrows7d": [],
