@@ -1,10 +1,8 @@
-<!DOCTYPE html>
-<html lang="">
-  <head>
-    <meta charset="utf-8">
-    <title></title>
-  </head>
-  <body>
+{% extends "base.html" %}
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/offszn_throwing_plan.css') }}">
+{% endblock %}
+{% block content %}
     <form id="throwing-plan" method="POST" action="/submit_throwing_plan">
     <h2>Update Throwing Plan</h2>
     
@@ -81,5 +79,4 @@
  </form>
  <script src="{{ url_for('static', filename='js/offszn_throwing_plan.js') }}"></script>   
  
-</body>
-</html>
+{% endblock %}

@@ -1,75 +1,10 @@
-<!DOCTYPE html>
-<html lang="">
-  <head>
-    <meta charset="utf-8">
-    <title>Baseball Web App</title>
-    <style>
-        .table-container {
-            display: flex;
-            justify-content: space-around; /* Distributes space between and around tables */
-            margin: 20px;
-            gap: 20px; /* Adds space between the tables */
-        }
-
-        .table {
-            border-collapse: collapse;
-            width: 35%; /* Adjust width as needed */
-        }
-
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f2f2f2;
-        }
-        header{
-				text-align: center;
-        }
-        p{
-			text-align: center;       
-       }
-       .modal {
-  			display: none; /* Hidden by default */
-  			position: fixed; /* Stay in place */
- 			 z-index: 1; /* Sit on top */
-  			left: 0;
-  			top: 0;
-  			width: 100%; /* Full width */
-  			height: 100%; /* Full height */
-  			overflow: auto; /* Enable scroll if needed */
-  			background-color: navy;
-				}	
-
-		/* Modal Content/Box */
-		.modal-content {
-  				position: relative;
-  				background-color: #fefefe;
-  				margin: auto;
-  				padding: 0;
-  				border: 1px solid #888;
-  				width: 90%;
-  				text-align: center;
-				}
-		.modal-header {
-  			padding: 2px 4px;
-  			background-color: navy;
-  			color: white;
-  			text-align: center;
-}
-
-    </style>
-  </head>
-  <body>
+{% extends "base.html" %}
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+{% endblock %}
+{% block content %}
     <header><h1>Baseball Web App Home</h1></header>
-    <main>
-     <p><a href="{{ url_for('offszn_throwing_form') }}">Offseason Throwing Log</a></p>
-     <p><a href = "{{ url_for('throwing_plan') }}">Update Throwing Plan </a></p>
-     <p><a href="{{ url_for('dashboard') }}">Data Dashboard</a></p>
-     <p><a href = "{{ url_for('inszn_home') }}">In Season Homepage</a></p>
-     <p><a href = "{{ url_for('bullpen_report') }}">Bullpen Reports</a></p>
+    
      <table border="1">
      			<caption><h3>Offseason Throwing Plan</h3></caption>
             <thead>
@@ -223,7 +158,6 @@
         		<button id = "saveNotes">Save Changes</button>
         	</div>
         </div>
-    </main>
     <footer>
 			<form action = "/shutdown" method="POST">
         		<label>Shutdown Web App Server: </label>
@@ -234,5 +168,5 @@
         {% endif %}    
     </footer>
     <script src="{{ url_for('static', filename='js/index.js') }}"></script>
-  </body>
-</html>
+{% endblock %}
+

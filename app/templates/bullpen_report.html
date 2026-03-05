@@ -1,34 +1,11 @@
-<!DOCTYPE html>
-<html lang="">
-  <head>
-    <meta charset="utf-8">
-    <title>Bullpen Report</title>
+{% extends "base.html" %}
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bullpen_report.css') }}">
     <script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/chartjs-plugin-annotation.min.js') }}"></script>
-	<style>
-			.chart-container {
-    			display: flex; 
-    			justify-content: space-between; 
-   			align-items: center;
-    			width: 150%; 
-				}
-			.report {
-				display: flex;
-  				justify-content: center; 
-  				align-items: center;
-			}
-
-			/* Style the individual chart containers */
-			#zone_chart, #mvmt_chart, #release_chart {
-    			width: 33.33%; /* Makes each chart take up one-third of the space */
-    			padding: 50px; /* Adds spacing around the charts */
-    			box-sizing: border-box; /* Ensures padding is included in the width calculation */
-				}
-	</style>  
-  </head>
-  <body>
-    <header><h1>Bullpen Report</h1></header>
-    <main>
+{% endblock %}
+{% block content %}
+<header><h1>Bullpen Report</h1></header>
     	<form id = "file_upload" method="POST" action="/upload_bullpen_csv" enctype="multipart/form-data">
     		<input type = "file" name = "file" accept=".csv">
     		<input type = "submit" value ="Upload">
@@ -98,10 +75,9 @@
             <canvas id="zone_chart"></canvas>
                
             <canvas id="mvmt_chart"></canvas>
-            
         </div>
-        
-    </main>
     <script src="{{ url_for('static', filename='js/bullpen_report.js') }}"></script>
-  </body>
-</html>
+
+{% endblock %}
+  
+    

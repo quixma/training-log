@@ -1,0 +1,49 @@
+			body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f4f4f4;
+        }
+
+        .dashboard-container {
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        select {
+            padding: 6px;
+            border-radius: 4px;
+        }
+
+        .chart-area {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 400px;
+        }
+
+        .summary-cards {
+            margin-top: 30px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .card {
+            flex: 1;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }

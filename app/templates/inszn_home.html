@@ -1,12 +1,7 @@
-<!DOCTYPE html>
-<html lang="">
-  <head>
-    <meta charset="utf-8">
-    <title>In Season Home Page</title>
-  </head>
-  <body>
+{% extends "inszn_base.html" %}
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/inszn_home.css') }}">
+{% endblock %}
+{% block content %}
     <header><h1>In Season Home Page</h1></header>
-    <main></main>
-    <footer></footer>
-  </body>
-</html>
+{% endblock %}
