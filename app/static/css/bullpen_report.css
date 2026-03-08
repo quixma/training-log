@@ -1,0 +1,19 @@
+
+			.chart-container {
+    			display: flex; 
+    			justify-content: space-between; 
+   			align-items: center;
+    			width: 150%; 
+				}
+			.report {
+				display: flex;
+  				justify-content: center; 
+  				align-items: center;
+			}
+
+			/* Style the individual chart containers */
+			#zone_chart, #mvmt_chart, #release_chart {
+    			width: 33.33%; /* Makes each chart take up one-third of the space */
+    			padding: 50px; /* Adds spacing around the charts */
+    			box-sizing: border-box; /* Ensures padding is included in the width calculation */
+				} 

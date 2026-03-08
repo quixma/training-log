@@ -1,11 +1,9 @@
-<!DOCTYPE html>
-<html lang="">
-  <head>
-    <meta charset="utf-8">
-    <title></title>
-  </head>
-  <body>
-   <form id="offszn-throwing-form" method="POST" action="/submit_throw">
+{% extends "base.html" %}
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/offszn_throwing_form.css') }}">
+{% endblock %}
+{% block content %}
+  <form id="offszn-throwing-form" method="POST" action="/submit_throw">
   <h2>Throwing Session Log</h2>
 
   <label for="date">Date:</label>
@@ -90,6 +88,4 @@
 
 <script src="{{ url_for('static', filename='js/offszn_throwing_form.js') }}"></script>
 
-
-</body>
-</html>
+{% endblock %}
