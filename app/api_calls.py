@@ -34,7 +34,7 @@ def shutdown():
 def report_data():
     data = request.get_json()
     file = data.get('file')
-    folder_path = "/home/quixma/training-log/bullpen_report_uploads" #has to change for pi version
+    folder_path = "/home/quixma/Desktop/CS/training-log/bullpen_report_uploads" #has to change for pi version
     file_path = os.path.join(folder_path, file)
     file_data = pd.read_csv(file_path)
     

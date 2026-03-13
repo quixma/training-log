@@ -1,4 +1,3 @@
-/* ── Root Variables ─────────────────────────── */
 :root {
   --bg-base:       #0d0f14;
   --bg-card:       #13161e;
@@ -18,14 +17,14 @@
   --shadow-card:   0 4px 32px rgba(0,0,0,0.45);
   --shadow-input:  0 2px 8px rgba(0,0,0,0.3);
 }
-
+ 
 /* ── Base Reset ─────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
-
+ 
 body {
   background-color: var(--bg-base);
   background-image:
@@ -36,9 +35,9 @@ body {
   min-height: 100vh;
   padding: 40px 20px 80px;
 }
-
+ 
 /* ── Form Card ──────────────────────────────── */
-#throwing-plan {
+#game-form {
   max-width: 680px;
   margin: 0 auto;
   background: var(--bg-card);
@@ -49,17 +48,17 @@ body {
   position: relative;
   overflow: hidden;
 }
-
-#throwing-plan::before {
+ 
+#game-form::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 3px;
   background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%);
 }
-
+ 
 /* ── Headings ───────────────────────────────── */
-#throwing-plan h2 {
+#game-form h2 {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 2.2rem;
   font-weight: 800;
@@ -68,8 +67,8 @@ body {
   color: var(--text-primary);
   margin-bottom: 8px;
 }
-
-#throwing-plan h2::after {
+ 
+#game-form h2::after {
   content: '';
   display: block;
   width: 40px;
@@ -77,10 +76,9 @@ body {
   background: var(--accent);
   margin-top: 8px;
   border-radius: 2px;
-  margin-bottom: 28px;
 }
-
-#throwing-plan h3 {
+ 
+#game-form h3 {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 1.05rem;
   font-weight: 700;
@@ -91,19 +89,19 @@ body {
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border);
 }
-
-/* ── Suppress <br> tags ─────────────────────── */
-#throwing-plan br {
+ 
+/* ── Suppress template <br> tags ────────────── */
+#game-form br {
   display: none;
 }
-
+ 
 /* ── Field Wrapper ──────────────────────────── */
 .field-group {
   margin-bottom: 20px;
 }
-
+ 
 /* ── Labels ─────────────────────────────────── */
-#throwing-plan label {
+#game-form label {
   display: block;
   font-size: 0.72rem;
   font-weight: 600;
@@ -112,13 +110,13 @@ body {
   color: var(--text-label);
   margin-bottom: 6px;
 }
-
+ 
 /* ── Inputs, Selects, Textareas ─────────────── */
-#throwing-plan input[type="text"],
-#throwing-plan input[type="number"],
-#throwing-plan input[type="date"],
-#throwing-plan select,
-#throwing-plan textarea {
+#game-form input[type="text"],
+#game-form input[type="number"],
+#game-form input[type="date"],
+#game-form select,
+#game-form textarea {
   width: 100%;
   background: var(--bg-input);
   border: 1px solid var(--border);
@@ -133,148 +131,171 @@ body {
   -webkit-appearance: none;
   appearance: none;
 }
-
-#throwing-plan input::placeholder,
-#throwing-plan textarea::placeholder {
+ 
+#game-form input::placeholder,
+#game-form textarea::placeholder {
   color: var(--text-secondary);
   opacity: 0.6;
 }
-
-#throwing-plan input:focus,
-#throwing-plan select:focus,
-#throwing-plan textarea:focus {
+ 
+#game-form input:focus,
+#game-form select:focus,
+#game-form textarea:focus {
   border-color: var(--border-focus);
   background: var(--bg-input-focus);
   box-shadow: 0 0 0 3px var(--accent-dim);
 }
-
-#throwing-plan input[type="date"]::-webkit-calendar-picker-indicator {
+ 
+#game-form input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(0.5) sepia(1) hue-rotate(300deg) saturate(3);
   cursor: pointer;
 }
-
-/* Select arrow */
-#throwing-plan select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237b82a0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 14px center;
-  padding-right: 38px;
-  cursor: pointer;
-}
-
-#throwing-plan select option {
-  background: #1a1e29;
-  color: var(--text-primary);
-}
-
-#throwing-plan textarea {
+ 
+#game-form textarea {
   resize: vertical;
-  min-height: 90px;
+  min-height: 110px;
   line-height: 1.6;
 }
-
-/* ── Top row: date + block ──────────────────── */
+ 
+/* Opponent — matches date input height */
+#opponent {
+  min-height: unset;
+  height: 41px;
+  resize: none;
+  overflow: hidden;
+  line-height: 1.4;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+ 
+/* ── Grid Layouts ───────────────────────────── */
 .row-2col {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
   margin-bottom: 20px;
 }
-
-/* ── Throwing breakdown: count + sessions row ─ */
-.row-count-sessions {
-  display: grid;
-  grid-template-columns: 140px 1fr;
-  gap: 16px;
-  margin-bottom: 20px;
-  align-items: start;
+ 
+/* ── Checkbox Fields ────────────────────────── */
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
 }
-
-/* ── Notes Stack ────────────────────────────── */
+ 
+.checkbox-field:hover {
+  border-color: var(--accent);
+  background: var(--bg-input-focus);
+}
+ 
+.checkbox-field label {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+ 
+#game-form input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+ 
+/* ── Warm-up row: checkbox + throws field ───── */
+.warmup-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: end;
+  margin-bottom: 20px;
+}
+ 
+.warmup-row .checkbox-field {
+  white-space: nowrap;
+  padding: 10px 12px;
+}
+ 
+.warmup-row .field-group {
+  margin-bottom: 0;
+}
+ 
+/* ── Game Line ──────────────────────────────── */
+#game-line-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+ 
+#game-line-grid label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-label);
+  margin-bottom: 6px;
+}
+ 
+#game-line-grid input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: 'Barlow', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 10px 8px;
+  text-align: center;
+  outline: none;
+  transition: border-color var(--transition), background var(--transition), box-shadow var(--transition);
+  box-shadow: var(--shadow-input);
+  -webkit-appearance: none;
+  appearance: none;
+}
+ 
+#game-line-grid input:focus {
+  border-color: var(--border-focus);
+  background: var(--bg-input-focus);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+ 
+/* stat cell wrapper for label + input together */
+.stat-cell {
+  display: flex;
+  flex-direction: column;
+}
+ 
+/* ── Notes Section ──────────────────────────── */
 .notes-stack {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  margin-bottom: 8px;
+  margin-bottom: 28px;
 }
-
+ 
 .notes-stack .field-group {
   margin-bottom: 0;
 }
-
-/* ── Drill Rows ─────────────────────────────── */
-#drills-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 14px;
+ 
+.notes-stack textarea {
+  min-height: 100px;
 }
-
-/* 4-col: name | drill type | ball weight | throws */
-.drill-row {
-  display: grid;
-  grid-template-columns: 2fr 1.2fr 1fr auto 80px;
-  gap: 10px;
-  padding: 12px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  transition: border-color var(--transition);
-  align-items: center;
-}
-
-.drill-row:hover {
-  border-color: rgba(232,56,59,0.3);
-}
-
-/* inline "Throws:" label inside drill row */
-.drill-row label {
-  font-size: 0.68rem;
-  margin-bottom: 0;
-  white-space: nowrap;
-  color: var(--text-secondary);
-}
-
-/* ── Button Group ───────────────────────────── */
-.btn-group {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 24px;
-}
-
-#throwing-plan button[type="button"] {
-  padding: 9px 18px;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--transition);
-  border: 1px solid var(--border);
-  background: var(--bg-input);
-  color: var(--text-secondary);
-}
-
-#throwing-plan button[type="button"]:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-dim);
-}
-
-#throwing-plan button[type="button"].btn-delete {
-  border-color: transparent;
-}
-
-#throwing-plan button[type="button"].btn-delete:hover {
-  border-color: #ef444480;
-  color: #f87171;
-  background: rgba(239,68,68,0.08);
-}
-
+ 
 /* ── Submit ─────────────────────────────────── */
-#throwing-plan button[type="submit"] {
+#game-form button[type="submit"] {
   width: 100%;
   padding: 15px;
   background: var(--accent);
@@ -291,28 +312,27 @@ body {
   box-shadow: 0 4px 20px rgba(232,56,59,0.35);
   margin-top: 8px;
 }
-
-#throwing-plan button[type="submit"]:hover {
+ 
+#game-form button[type="submit"]:hover {
   background: #f04044;
   box-shadow: 0 6px 28px rgba(232,56,59,0.5);
   transform: translateY(-1px);
 }
-
-#throwing-plan button[type="submit"]:active {
+ 
+#game-form button[type="submit"]:active {
   transform: translateY(0);
   box-shadow: 0 2px 12px rgba(232,56,59,0.3);
 }
-
-/* ── Scrollbar ──────────────────────────────── */
+ 
+/* ── Scrollbar (webkit) ─────────────────────── */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-base); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
-
+ 
 /* ── Responsive ─────────────────────────────── */
 @media (max-width: 600px) {
-  #throwing-plan { padding: 28px 22px; }
-  .row-2col, .row-count-sessions { grid-template-columns: 1fr; }
-  .drill-row { grid-template-columns: 1fr 1fr; }
-  .drill-row label { display: none; }
+  #game-form { padding: 28px 22px; }
+  .row-2col, .warmup-row { grid-template-columns: 1fr; }
+  #game-line-grid { grid-template-columns: repeat(3, 1fr); }
 }

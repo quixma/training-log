@@ -1,0 +1,95 @@
+{% extends "inszn_base.html" %}
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/inszn_throwing_form.css') }}">
+{% endblock %}
+{% block content %}
+<form id="inszn-throwing-form" method="POST" action="/submit_insznthrow">
+  <h2>Throwing Journal</h2>
+
+  <div class="row-2col">
+    <div class="field-group">
+      <label for="date">Date</label>
+      <input type="date" id="date" name="date" required>
+    </div>
+    <div class="field-group">
+      <label for="session-type">Session Type</label>
+      <select id="session-type" name="session_type" required>
+        <option value="">Select Type</option>
+        <option value="recovery">Recovery</option>
+        <option value="recovery+">Recovery+</option>
+        <option value="hybrid_a">Hybrid A</option>
+        <option value="hybrid_b">Hybrid B</option>
+        <option value="constraint_long_toss">Long Toss</option>
+        <option value="mound_work">Mound Work</option>
+        <option value="bullpen">Bullpen</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="row-3col">
+    <div class="field-group">
+      <label for="body-weight">Bodyweight</label>
+      <input type="number" step="0.01" id="body-weight" name="body_weight" placeholder="lbs">
+    </div>
+    <div class="field-group">
+      <label for="total-throws">Total Throws</label>
+      <input type="number" id="total-throws" name="total_throws" placeholder="0">
+    </div>
+    <div class="field-group">
+      <label for="max-velocity">Max Velocity</label>
+      <input type="number" step="0.01" id="max-velocity" name="max_velocity" placeholder="mph">
+    </div>
+  </div>
+
+  <div class="mound-row">
+    <div class="checkbox-field">
+      <input type="checkbox" id="mound-work" name="mound_work" value="yes">
+      <label for="mound-work">Mound Work?</label>
+    </div>
+    <div class="field-group">
+      <label for="mound_throws">Mound Throws</label>
+      <input type="number" id="mound_throws" name="mound_throws" placeholder="0">
+    </div>
+  </div>
+
+  <div class="row-3col">
+    <div class="field-group">
+      <label for="rpe">RPE (1–10)</label>
+      <input type="number" step="0.1" id="rpe" name="rpe" min="1" max="10" placeholder="—">
+    </div>
+    <div class="field-group">
+      <label for="arm-readiness">Arm Readiness (1–10)</label>
+      <input type="number" step="0.1" id="arm-readiness" name="arm_readiness" min="1" max="10" placeholder="—">
+    </div>
+    <div class="field-group">
+      <label for="days-from-last-game">Days Since Last Game</label>
+      <input type="number" step="1" id="days-from-last-game" name="days_from_last_game" min="1" max="10" placeholder="—">
+    </div>
+  </div>
+
+  <div class="checkbox-field">
+    <input type="checkbox" id="game-available" name="game_available" value="yes">
+    <label for="game-available">Available / Hot in game?</label>
+  </div>
+
+  <h3>Session Breakdown</h3>
+  <div id="drills-container">
+    <div class="drill-row">
+      <input type="text" name="drill_name[]" placeholder="Drill Name">
+      <input type="number" step="0.01" name="drill_velocity[]" placeholder="Max Velo">
+    </div>
+  </div>
+  <div class="btn-group">
+    <button type="button" onclick="addDrillRow()">+ Add Drill</button>
+    <button type="button" class="btn-delete" onclick="deleteDrillRow()">Remove Drill Row</button>
+  </div>
+
+  <div class="field-group">
+    <label for="notes">Notes</label>
+    <textarea id="notes" name="notes" rows="5"></textarea>
+  </div>
+
+  <button type="submit">Save Throwing Session</button>
+</form>
+    <script src="{{ url_for('static', filename='js/inszn_throwing_form.js') }}"></script>
+{% endblock %}

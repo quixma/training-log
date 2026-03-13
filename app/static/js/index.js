@@ -27,13 +27,32 @@ throwingNoteTimeSelect.addEventListener("change", GetThrowingNotes);
 throwingDaySelect.addEventListener("change", GetThrowingNotesByDay);
 throwingDayTimeSelect.addEventListener("change", GetThrowingNotesByDay);
 
+// Close buttons
+document.querySelectorAll('.modal-close').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.getElementById(btn.dataset.modal).classList.remove('active');
+    });
+});
+// Click outside to close
+document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('click', e => {
+        if (e.target === modal) modal.classList.remove('active');
+    });
+});
+
 GetThrowingPlan();
 GetThrowingNotes();
 GetThrowingNotesByDay();
 
+// Open helpers — call these from index.js or inline
+// openModal('editTP-modal') / openModal('editNotes-modal')
+function openModal(id) {
+    document.getElementById(id).classList.add('active');
+}
+
 editTP_Btn.onclick = function () { //edit throwing plan
     //did it this way first time to understand the routes, simplified in other modals
-    modalTP.style.display = "block";
+    openModal('editTP-modal');
 
     //get modal text boxes to populate and update
     const num_throwing_days_modal = document.getElementById("num-throwing-days");
@@ -175,7 +194,8 @@ function UpdateThrowingPlanTable(tp, dr, length) {
 //select all buttons by class, then populate modal based on which throwing notes row is clicked
 document.querySelectorAll(".editNotes").forEach(btn => {
     btn.onclick = function () {
-        modalNotes.style.display = "block";
+
+        openModal('editNotes-modal')
 
         const rowNotes = btn.closest("tr"); //gets id (of throwing session notes) of closest row to button clicked
         const session_id_notes = rowNotes.id;

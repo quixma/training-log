@@ -70,7 +70,7 @@ def get_throwing_notes_dates():
     return throwing_notes_dates
 
 def get_bullpen_report_files():
-    folder_path = "/home/quixma/Desktop/CS/training-log/bullpen_report_uploads"
+    folder_path = "/home/quixma/Desktop/CS/training-log/bullpen_report_uploads" #this has to change for pi as well.
     filenames = os.listdir(folder_path)
     
     return filenames

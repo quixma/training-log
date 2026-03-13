@@ -1,13 +1,15 @@
 things to do:
--check out throws by week query for summary card.
--time for inszn side: create base with links and pages, then write functionality for each page.
--style offseason side with claude.
+inszn home page display
+sync everything to pi: send updated db with it once.
+-fix link to bullpen report page pi.
+-for calc total throws for in season, need to get and add session, game and bullpen throws for dashboard.
 
 features to add: see bayless mariners for in season ideas.
 -blog page
 -in season forms: throwing log, data upload/post outing report page, stuff+/other metric page, page with button to start web crawler
     to scrape most recent outing data from TM and create report.
 -add training log notes tab for gym work done that day: for in season.
+-show recent outings/trends page, micro and macro, one week, 2 weeks, 30 days.
     -page to display: recent throwing days: volume, velo, count, what was done, and what was done in gym.
 arm care data tracking: https://www.instagram.com/reel/DU629HcEoWX/?igsh=MWQ5aTg1dHQ3NnFz
 weekly sched on inseason home page, throwing plan, notes, arm care, lifting sched, warmup + notes.

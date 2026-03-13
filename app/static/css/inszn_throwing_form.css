@@ -1,3 +1,4 @@
+
 /* ── Root Variables ─────────────────────────── */
 :root {
   --bg-base:       #0d0f14;
@@ -12,7 +13,9 @@
   --text-primary:  #eef0f6;
   --text-secondary:#7b82a0;
   --text-label:    #a0a8c4;
+  --success:       #22c55e;
   --radius-sm:     6px;
+  --radius-md:     10px;
   --radius-lg:     16px;
   --transition:    0.18s ease;
   --shadow-card:   0 4px 32px rgba(0,0,0,0.45);
@@ -38,7 +41,7 @@ body {
 }
 
 /* ── Form Card ──────────────────────────────── */
-#throwing-plan {
+#inszn-throwing-form {
   max-width: 680px;
   margin: 0 auto;
   background: var(--bg-card);
@@ -50,7 +53,7 @@ body {
   overflow: hidden;
 }
 
-#throwing-plan::before {
+#inszn-throwing-form::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
@@ -59,7 +62,7 @@ body {
 }
 
 /* ── Headings ───────────────────────────────── */
-#throwing-plan h2 {
+#inszn-throwing-form h2 {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 2.2rem;
   font-weight: 800;
@@ -69,7 +72,7 @@ body {
   margin-bottom: 8px;
 }
 
-#throwing-plan h2::after {
+#inszn-throwing-form h2::after {
   content: '';
   display: block;
   width: 40px;
@@ -77,12 +80,11 @@ body {
   background: var(--accent);
   margin-top: 8px;
   border-radius: 2px;
-  margin-bottom: 28px;
 }
 
-#throwing-plan h3 {
+#inszn-throwing-form h3 {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -92,9 +94,11 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
-/* ── Suppress <br> tags ─────────────────────── */
-#throwing-plan br {
-  display: none;
+/* ── Section Divider ────────────────────────── */
+.form-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 28px 0;
 }
 
 /* ── Field Wrapper ──────────────────────────── */
@@ -102,8 +106,13 @@ body {
   margin-bottom: 20px;
 }
 
+/* Override bare <br> spacing from template */
+#inszn-throwing-form br {
+  display: none;
+}
+
 /* ── Labels ─────────────────────────────────── */
-#throwing-plan label {
+#inszn-throwing-form label {
   display: block;
   font-size: 0.72rem;
   font-weight: 600;
@@ -114,11 +123,11 @@ body {
 }
 
 /* ── Inputs, Selects, Textareas ─────────────── */
-#throwing-plan input[type="text"],
-#throwing-plan input[type="number"],
-#throwing-plan input[type="date"],
-#throwing-plan select,
-#throwing-plan textarea {
+#inszn-throwing-form input[type="text"],
+#inszn-throwing-form input[type="number"],
+#inszn-throwing-form input[type="date"],
+#inszn-throwing-form select,
+#inszn-throwing-form textarea {
   width: 100%;
   background: var(--bg-input);
   border: 1px solid var(--border);
@@ -126,6 +135,7 @@ body {
   color: var(--text-primary);
   font-family: 'Barlow', sans-serif;
   font-size: 0.95rem;
+  font-weight: 400;
   padding: 10px 14px;
   outline: none;
   transition: border-color var(--transition), background var(--transition), box-shadow var(--transition);
@@ -134,75 +144,121 @@ body {
   appearance: none;
 }
 
-#throwing-plan input::placeholder,
-#throwing-plan textarea::placeholder {
+#inszn-throwing-form input[type="text"]::placeholder,
+#inszn-throwing-form input[type="number"]::placeholder {
   color: var(--text-secondary);
   opacity: 0.6;
 }
 
-#throwing-plan input:focus,
-#throwing-plan select:focus,
-#throwing-plan textarea:focus {
+#inszn-throwing-form input:focus,
+#inszn-throwing-form select:focus,
+#inszn-throwing-form textarea:focus {
   border-color: var(--border-focus);
   background: var(--bg-input-focus);
   box-shadow: 0 0 0 3px var(--accent-dim);
 }
 
-#throwing-plan input[type="date"]::-webkit-calendar-picker-indicator {
+/* Date input calendar icon tint */
+#inszn-throwing-form input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(0.5) sepia(1) hue-rotate(300deg) saturate(3);
   cursor: pointer;
 }
 
 /* Select arrow */
-#throwing-plan select {
+#inszn-throwing-form select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237b82a0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 14px center;
   padding-right: 38px;
-  cursor: pointer;
 }
 
-#throwing-plan select option {
+#inszn-throwing-form select option {
   background: #1a1e29;
   color: var(--text-primary);
 }
 
-#throwing-plan textarea {
+/* Textarea */
+#inszn-throwing-form textarea {
   resize: vertical;
-  min-height: 90px;
+  min-height: 110px;
   line-height: 1.6;
 }
 
-/* ── Top row: date + block ──────────────────── */
+/* ── Two-column Row ─────────────────────────── */
 .row-2col {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  margin-bottom: 20px;
 }
 
-/* ── Throwing breakdown: count + sessions row ─ */
-.row-count-sessions {
+.row-3col {
   display: grid;
-  grid-template-columns: 140px 1fr;
-  gap: 16px;
-  margin-bottom: 20px;
-  align-items: start;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
 }
 
-/* ── Notes Stack ────────────────────────────── */
-.notes-stack {
+/* ── Checkbox Fields ────────────────────────── */
+.checkbox-field {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 8px;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+  margin-bottom: 20px;
 }
 
-.notes-stack .field-group {
+.checkbox-field:hover {
+  border-color: var(--accent);
+  background: var(--bg-input-focus);
+}
+
+.checkbox-field label {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+
+#inszn-throwing-form input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+/* ── Mound row (inline checkbox + 2 fields) ── */
+.mound-row {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr;
+  gap: 14px;
+  align-items: end;
+  margin-bottom: 20px;
+}
+
+.mound-row .checkbox-field {
   margin-bottom: 0;
+  white-space: nowrap;
+  padding: 10px 12px;
 }
 
-/* ── Drill Rows ─────────────────────────────── */
+/* ── RPE + Readiness + Days Row ─────────────── */
+.metrics-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+/* ── Drills Container ───────────────────────── */
 #drills-container {
   display: flex;
   flex-direction: column;
@@ -210,39 +266,33 @@ body {
   margin-bottom: 14px;
 }
 
-/* 4-col: name | drill type | ball weight | throws */
 .drill-row {
   display: grid;
-  grid-template-columns: 2fr 1.2fr 1fr auto 80px;
+  grid-template-columns: 2fr 1fr;
   gap: 10px;
   padding: 12px;
   background: rgba(255,255,255,0.02);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   transition: border-color var(--transition);
-  align-items: center;
 }
 
 .drill-row:hover {
   border-color: rgba(232,56,59,0.3);
 }
 
-/* inline "Throws:" label inside drill row */
-.drill-row label {
-  font-size: 0.68rem;
-  margin-bottom: 0;
-  white-space: nowrap;
-  color: var(--text-secondary);
+.drill-row input {
+  margin-bottom: 0 !important;
 }
 
-/* ── Button Group ───────────────────────────── */
+/* ── Buttons ────────────────────────────────── */
 .btn-group {
   display: flex;
   gap: 10px;
   margin-bottom: 24px;
 }
 
-#throwing-plan button[type="button"] {
+#inszn-throwing-form button[type="button"] {
   padding: 9px 18px;
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 0.85rem;
@@ -257,24 +307,26 @@ body {
   color: var(--text-secondary);
 }
 
-#throwing-plan button[type="button"]:hover {
+#inszn-throwing-form button[type="button"]:hover {
   border-color: var(--accent);
   color: var(--accent);
   background: var(--accent-dim);
 }
 
-#throwing-plan button[type="button"].btn-delete {
+/* Delete button variant */
+#inszn-throwing-form button[type="button"]:last-of-type {
   border-color: transparent;
+  color: var(--text-secondary);
 }
 
-#throwing-plan button[type="button"].btn-delete:hover {
+#inszn-throwing-form button[type="button"]:last-of-type:hover {
   border-color: #ef444480;
   color: #f87171;
   background: rgba(239,68,68,0.08);
 }
 
-/* ── Submit ─────────────────────────────────── */
-#throwing-plan button[type="submit"] {
+/* Submit */
+#inszn-throwing-form button[type="submit"] {
   width: 100%;
   padding: 15px;
   background: var(--accent);
@@ -292,18 +344,23 @@ body {
   margin-top: 8px;
 }
 
-#throwing-plan button[type="submit"]:hover {
+#inszn-throwing-form button[type="submit"]:hover {
   background: #f04044;
   box-shadow: 0 6px 28px rgba(232,56,59,0.5);
   transform: translateY(-1px);
 }
 
-#throwing-plan button[type="submit"]:active {
+#inszn-throwing-form button[type="submit"]:active {
   transform: translateY(0);
   box-shadow: 0 2px 12px rgba(232,56,59,0.3);
 }
 
-/* ── Scrollbar ──────────────────────────────── */
+/* ── Notes label bold ───────────────────────── */
+#inszn-throwing-form label[for="notes"] {
+  font-size: 0.72rem;
+}
+
+/* ── Scrollbar (webkit) ─────────────────────── */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-base); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
@@ -311,8 +368,18 @@ body {
 
 /* ── Responsive ─────────────────────────────── */
 @media (max-width: 600px) {
-  #throwing-plan { padding: 28px 22px; }
-  .row-2col, .row-count-sessions { grid-template-columns: 1fr; }
-  .drill-row { grid-template-columns: 1fr 1fr; }
-  .drill-row label { display: none; }
+  #inszn-throwing-form {
+    padding: 28px 22px;
+  }
+
+  .row-2col,
+  .row-3col,
+  .metrics-row,
+  .mound-row {
+    grid-template-columns: 1fr;
+  }
+
+  .mound-row .checkbox-field {
+    grid-column: 1;
+  }
 }

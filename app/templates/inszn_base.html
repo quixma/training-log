@@ -1,12 +1,58 @@
 <!DOCTYPE html>
-<html lang="">
-  <head>
-    <meta charset="utf-8">
-    <title></title>
-  </head>
-  <body>
-    <header></header>
-    <main></main>
-    <footer></footer>
-  </body>
+<html>
+<head>
+	 <title>Baseball Web App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/inszn_base.css') }}">
+    {% block styles %}{% endblock %}
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <button id="sb-btn" title="Toggle Sidebar">&#9776;</button>
+        <a href="{{ url_for('inszn_home') }}">
+            <span class="icon">🏠</span>
+            <span class="link-text">Home</span>
+        </a>
+        <a href="{{ url_for('inszn_throwing_form') }}">
+            <span class="icon">&#128211;</span>
+            <span class="link-text">Throwing Journal</span>
+        </a>
+        <a href="{{ url_for('game_form') }}">
+            <span class="icon">&#128210;</span>
+            <span class="link-text">Game Journal</span>
+        </a>
+         <a href="{{ url_for('outing_report') }}">
+            <span class="icon">&#128202;</span>
+            <span class="link-text">Outing Report</span>
+        </a>
+        <a href=" {{ url_for('game_data_dashboard') }}">
+        		<span class="icon">&#128225;</span>
+        		<span class="link-text">Game Data Dashboard</span>
+        </a>
+        <a href="{{ url_for('inszn_throwing_plan') }}">
+            <span class="icon">📅</span>
+            <span class="link-text">Throwing Plan</span>
+        </a>
+        <a href="{{ url_for('workout_dashboard') }}">
+            <span class="icon">📊</span>
+            <span class="link-text">Workout Dashboard</span>
+        </a>
+         <a href="{{ url_for('workout_form') }}">
+            <span class="icon">&#127947;</span>
+            <span class="link-text">Workout Form</span>
+        </a>
+         <a href="{{ url_for('armcare_form') }}">
+            <span class="icon">&#9917;</span>
+            <span class="link-text">Armcare Form</span>
+        </a>
+        <a href="{{ url_for('index') }}">
+            <span class="icon">👥</span>
+            <span class="link-text">Offszn Home</span>
+        </a>
+        
+    </div>
+    <div class="content" id="content">
+        {% block content %}{% endblock %}
+    </div>
+    <script src="{{ url_for('static', filename='js/inszn_base.js') }}"></script>
+</body>
 </html>

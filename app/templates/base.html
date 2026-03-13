@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+	 <title>Baseball Web App</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     {% block styles %}{% endblock %}
 </head>
@@ -12,12 +13,12 @@
             <span class="link-text">Home</span>
         </a>
         <a href="{{ url_for('offszn_throwing_form') }}">
-            <span class="icon">⚙️</span>
-            <span class="link-text">Offszn Throwing Form</span>
+            <span class="icon">&#128211;</span>
+            <span class="link-text">Throwing Journal</span>
         </a>
         <a href="{{ url_for('throwing_plan') }}">
             <span class="icon">📅</span>
-            <span class="link-text">Offszn Throwing Plan</span>
+            <span class="link-text">Throwing Plan</span>
         </a>
         <a href="{{ url_for('dashboard') }}">
             <span class="icon">📊</span>

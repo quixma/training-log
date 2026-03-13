@@ -3,60 +3,83 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/offszn_throwing_form.css') }}">
 {% endblock %}
 {% block content %}
-  <form id="offszn-throwing-form" method="POST" action="/submit_throw">
+<form id="offszn-throwing-form" method="POST" action="/submit_throw">
   <h2>Throwing Session Log</h2>
 
-  <label for="date">Date:</label>
-  <input type="date" id="date" name="date" required><br><br>
+  <!-- Date + Throwing Block -->
+  <div class="row-2col">
+    <div class="field-group">
+      <label for="date">Date</label>
+      <input type="date" id="date" name="date" required>
+    </div>
+    <div class="field-group">
+      <label for="throwing-block">Throwing Block</label>
+      <select id="throwing-block" name="throwing_block" required>
+        <option value="">Select Block</option>
+        <option value="deload">Deload</option>
+        <option value="on_ramp">On Ramp</option>
+        <option value="velo_phase">Velo Phase</option>
+        <option value="pre_season">Pre-season</option>
+        <option value="return_to_throw">Return to Throw</option>
+      </select>
+    </div>
+  </div>
 
-  <label for="throwing-block">Throwing Block:</label>
-  <select id="throwing-block" name="throwing_block" required>
-    <option value="">Select Block</option>
-    <option value="deload">Deload</option>
-    <option value="on_ramp">On Ramp</option>
-    <option value="velo_phase">Velo Phase</option>
-    <option value="pre_season">Pre-season</option>
-    <option value="in_season">In-season</option>
-    <option value="return_to_throw">Return to Throw</option>
-  </select><br><br>
+  <!-- Session Type -->
+  <div class="field-group">
+    <label for="session-type">Session Type</label>
+    <select id="session-type" name="session_type" required>
+      <option value="">Select Type</option>
+      <option value="recovery">Recovery</option>
+      <option value="hybrid_a">Hybrid A</option>
+      <option value="hybrid_b">Hybrid B</option>
+      <option value="constraint_long_toss">Constraint Long Toss</option>
+      <option value="mound_blend">Mound Blend</option>
+      <option value="plyo_velo">Plyo Velo</option>
+      <option value="pitch_design">Pitch Design</option>
+      <option value="command_training">Command Training</option>
+      <option value="bullpen">Bullpen</option>
+      <option value="live_abs">Live ABs</option>
+    </select>
+  </div>
 
-  <label for="session-type">Session Type:</label>
-  <select id="session-type" name="session_type" required>
-    <option value="">Select Type</option>
-    <option value="recovery">Recovery</option>
-    <option value="hybrid_a">Hybrid A</option>
-    <option value="hybrid_b">Hybrid B</option>
-    <option value="constraint_long_toss">Constraint Long Toss</option>
-    <option value="mound_blend">Mound Blend</option>
-    <option value="plyo_velo">Plyo Velo</option>
-    <option value="pitch_design">Pitch Design</option>
-    <option value="command_training">Command Training</option>
-    <option value="bullpen">Bullpen</option>
-    <option value="live_abs">Live ABs</option>
-  </select><br><br>
+  <!-- Total Throws + Bodyweight + Max Velo -->
+  <div class="row-3col">
+    <div class="field-group">
+      <label for="total-throws">Total Throws</label>
+      <input type="number" id="total-throws" name="total_throws" placeholder="0">
+    </div>
+    <div class="field-group">
+      <label for="body-weight">Bodyweight</label>
+      <input type="number" step="0.01" id="body-weight" name="body_weight" placeholder="lbs">
+    </div>
+    <div class="field-group">
+      <label for="max-velocity">Max Velocity</label>
+      <input type="number" step="0.01" id="max-velocity" name="max_velocity" placeholder="mph">
+    </div>
+  </div>
 
-  <label for="total-throws">Total Throws:</label>
-  <input type="number" id="total-throws" name="total_throws"><br><br>
-  
-  <label for="body-weight">Bodyweight:</label>
-  <input type="number" step="0.01" id="body-weight" name="body_weight"><br><br>
-  
-  <label for="Max Velocity">Max Velocity:</label>
-  <input type="number" id="max-velocity" step="0.01" name="max_velocity"><br><br>
+  <!-- 1-Day Workload + RPE + Arm Readiness -->
+  <div class="row-3col">
+    <div class="field-group">
+      <label for="one-day-workload">1-Day Workload</label>
+      <input type="number" step="0.01" id="one-day-workload" name="one_day_workload" placeholder="—">
+    </div>
+    <div class="field-group">
+      <label for="rpe">RPE (1–10)</label>
+      <input type="number" step="0.1" id="rpe" name="rpe" min="1" max="10" placeholder="—">
+    </div>
+    <div class="field-group">
+      <label for="arm-readiness">Arm Readiness (1–10)</label>
+      <input type="number" step="0.1" id="arm-readiness" name="arm_readiness" min="1" max="10" placeholder="—">
+    </div>
+  </div>
 
-  <label for="one-day-workload">1-Day Workload:</label>
-  <input type="number" step="0.01" id="one-day-workload" name="one_day_workload"><br><br>
-  
-  <label for="rpe">RPE (1-10):</label>
-  <input type="number" step="0.1" id="rpe" name="rpe" min="1" max="10"><br><br>
-
-  <label for="arm-readiness">Arm Readiness (1-10):</label>
-  <input type="number" step="0.1" id="arm-readiness" name="arm_readiness" min="1" max="10"><br><br>
-
+  <!-- Session Breakdown -->
   <h3>Session Breakdown</h3>
   <div id="drills-container">
     <div class="drill-row">
-      <input type="text" name="drill_name[]" placeholder="Throw Type">
+      <input type="text" name="drill_name[]" placeholder="Drill Name">
       <select name="drill_ball_weight[]">
         <option value="">Ball Weight</option>
         <option>3</option>
@@ -73,16 +96,21 @@
         <option>48</option>
         <option>64</option>
       </select>
-      <input type="number" step="0.01" name="drill_velocity[]" placeholder="Max Velocity">
+      <input type="number" step="0.01" name="drill_velocity[]" placeholder="Max Velo">
       <input type="number" name="throw_count[]" placeholder="Throw Count">
     </div>
   </div>
-  <button type="button" onclick="addDrillRow()">Add Another Drill</button>
-  <button type="button" onclick="deleteDrillRow()">Delete Drill Row</button><br><br>
-  
-  <label for="notes">Throwing Notes:</label><br>
-  <textarea id="notes" name="notes" rows="6" cols="75"></textarea><br><br>
-  
+  <div class="btn-group">
+    <button type="button" onclick="addDrillRow()">+ Add Drill</button>
+    <button type="button" class="btn-delete" onclick="deleteDrillRow()">Remove Last</button>
+  </div>
+
+  <!-- Notes -->
+  <div class="field-group">
+    <label for="notes">Throwing Notes</label>
+    <textarea id="notes" name="notes"></textarea>
+  </div>
+
   <button type="submit">Save Throwing Session</button>
 </form>
 

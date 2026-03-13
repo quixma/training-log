@@ -1,0 +1,84 @@
+{% extends "inszn_base.html" %}
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/inszn_throwing_plan.css') }}">
+{% endblock %}
+{% block content %}
+<form id="inszn_throwing_plan" method="POST" action="/submit_inszn_throwing_plan">
+	  <h2>Update Throwing Plan</h2>
+ 
+  <!-- Date -->
+  <div class="date-row">
+    <label for="date">Date</label>
+    <input type="date" id="date" name="date" required>
+  </div>
+ 
+  <!-- Plan Notes -->
+  <div class="notes-stack">
+    <div class="field-group">
+      <label for="throwing-days">Throwing Sessions</label>
+      <textarea id="throwing-days" name="throwing_days" placeholder="Types of throwing days and session breakdown"></textarea>
+    </div>
+    <div class="field-group">
+      <label for="throwing-notes">Throwing Notes</label>
+      <textarea id="throwing-notes" name="throwing_notes" placeholder="Focuses / Goals"></textarea>
+    </div>
+    <div class="field-group">
+      <label for="pitching-notes">Pitching Notes</label>
+      <textarea id="pitching-notes" name="pitching_notes" placeholder="Pitching Work / Focuses / Constraints"></textarea>
+    </div>
+  </div>
+ 
+  <!-- Pre Throw Work -->
+  <h3>Pre Throw Work</h3>
+  <div id="prethrow-container">
+    <div class="prethrow-row">
+      <input type="text" name="prethrow_name[]" placeholder="Drill Name">
+      <select name="prethrow_drill_type[]">
+        <option value="">Drill Type</option>
+        <option value="Medball">Medball</option>
+        <option value="CVB">CVB</option>
+        <option value="AB">AB</option>
+        <option value="Club">Club</option>
+      </select>
+    </div>
+  </div>
+  <div class="btn-group">
+    <button type="button" onclick="addPreThrowDrillRow()">+ Add Drill</button>
+    <button type="button" class="btn-delete" onclick="deletePreThrowDrillRow()">Remove Last</button>
+  </div>
+ 
+  <div class="field-group">
+    <label for="prethrow-notes">Pre Throw Notes</label>
+    <textarea id="prethrow-notes" name="prethrow_notes"></textarea>
+  </div>
+ 
+  <!-- Drill Work -->
+  <h3>Drill Work</h3>
+  <div id="drills-container">
+    <div class="drill-row">
+      <input type="text" name="drill_name[]" placeholder="Drill Name">
+      <select name="drill_type[]">
+        <option value="">Drill Type</option>
+        <option value="Plyo">Plyo</option>
+        <option value="Mound_Plyo">Mound Plyo</option>
+        <option value="Throwing">Throwing</option>
+      </select>
+      <label for="drill_throw_count[]">Throws</label>
+      <input type="text" id="drill_throw_count[]" name="drill_throw_count[]" placeholder="0">
+    </div>
+  </div>
+  <div class="btn-group">
+    <button type="button" onclick="addDrillRow()">+ Add Drill</button>
+    <button type="button" class="btn-delete" onclick="deleteDrillRow()">Remove Last</button>
+  </div>
+ 
+  <div class="field-group">
+    <label for="drill-notes">Drill Notes</label>
+    <textarea id="drill-notes" name="drill_notes"></textarea>
+  </div>
+ 
+  <button type="submit">Update Throwing Plan</button>
+
+</form>
+	<script src="{{ url_for('static', filename='js/inszn_throwing_plan.js') }}"></script>
+{% endblock %}

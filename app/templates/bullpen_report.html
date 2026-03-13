@@ -5,79 +5,89 @@
     <script type="module" src="{{ url_for('static', filename='js/chartjs-plugin-annotation.min.js') }}"></script>
 {% endblock %}
 {% block content %}
-<header><h1>Bullpen Report</h1></header>
-    	<form id = "file_upload" method="POST" action="/upload_bullpen_csv" enctype="multipart/form-data">
-    		<input type = "file" name = "file" accept=".csv">
-    		<input type = "submit" value ="Upload">
-    	</form> 
-    	{% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">
-                        {{ message }}
-                    </div> 
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        
-        <br><br><br>
-        
-        <select id = "file">
-        	<option>Select file for report</option>
-        		{% for filename in filenames %}
-					<option value ="{{ filename }}"> {{ filename }}  </option>     
-				{% endfor %}
-        	</select>
-        	<button id = "create_report">Generate Report</button>
-        	
-        	
-       <div class="report">
-        <table border="1">
-     			<caption><h3>Bullpen Report</h3></caption>
-            <thead>
-                <tr>
-                	  <th>Pitch Type</th>
-						  <th>Avg Velo</th>
-						  <th>Max Velo</th>
-						  <th>Min Velo</th>
-						  <th>Avg IVB</th>
-						  <th>Avg HB</th>
-						  <th>Spin Axis</th>
-						  <th>Spin Rate</th>
-						  <th>Spin Efficiency</th>
-						  <th>Rel Height</th>
-						  <th>Rel Side</th>
-						  <th>Extension</th>
-						  <th>Usage</th>
-                </tr>
-            </thead>
-            <tbody id = "report_body">
-                <tr>
-                	<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <tr>
-                	<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <tr>
-                	<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-					 <tr>
-					 	<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-					 </tr>
-            </tbody>
-        </table>
-		</div>
-		
-        	<!-- Chart Container -->
-        <div class="chart-container" style="position: relative; width: 500px; height: 500px;">
-            <canvas id="release_chart" ></canvas>
-            
-            <canvas id="zone_chart"></canvas>
-               
-            <canvas id="mvmt_chart"></canvas>
-        </div>
-    <script src="{{ url_for('static', filename='js/bullpen_report.js') }}"></script>
+
+<header>
+  <h1>Bullpen Report</h1>
+</header>
+
+<div class="page-content">
+
+  <!-- Upload + Generate Bar -->
+  <div class="upload-bar">
+    <div class="upload-group">
+      <label>Upload CSV</label>
+      <form id="file_upload" method="POST" action="/upload_bullpen_csv" enctype="multipart/form-data"
+            style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <input type="file" name="file" accept=".csv">
+        <input type="submit" value="Upload">
+      </form>
+    </div>
+
+    <div class="select-group">
+      <label for="file">Report File</label>
+      <select id="file">
+        <option>Select file for report</option>
+        {% for filename in filenames %}
+        <option value="{{ filename }}">{{ filename }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <button id="create_report">Generate Report</button>
+  </div>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- Report Table -->
+  <div class="report">
+    <div class="report-header">
+      <h3>Pitch Summary</h3>
+    </div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Pitch Type</th>
+            <th>Avg Velo</th>
+            <th>Max Velo</th>
+            <th>Min Velo</th>
+            <th>Avg IVB</th>
+            <th>Avg HB</th>
+            <th>Spin Axis</th>
+            <th>Spin Rate</th>
+            <th>Spin Eff.</th>
+            <th>Rel Height</th>
+            <th>Rel Side</th>
+            <th>Extension</th>
+            <th>Usage</th>
+          </tr>
+        </thead>
+        <tbody id="report_body">
+          <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="chart-container">
+    <div class="chart-wrap"><canvas id="release_chart"></canvas></div>
+    <div class="chart-wrap"><canvas id="zone_chart"></canvas></div>
+    <div class="chart-wrap"><canvas id="mvmt_chart"></canvas></div>
+  </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/bullpen_report.js') }}"></script>
 
 {% endblock %}
-  
-    

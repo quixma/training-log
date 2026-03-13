@@ -1,0 +1,84 @@
+/* Sidebar Container */
+#sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 250px;
+    background: #333;
+    color: white;
+    transition: width 0.3s ease;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+}
+
+/* Toggle Button */
+#sb-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 22px;
+    padding: 18px 15px;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    border-bottom: 1px solid #444;
+    transition: background 0.2s;
+}
+#sb-btn:hover {
+    background: #444;
+}
+
+/* Link Styling */
+#sidebar a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px;
+    color: white;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.2s;
+}
+#sidebar a:hover {
+    background: #444;
+}
+
+/* Icon always visible */
+#sidebar .icon {
+    font-size: 18px;
+    min-width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+/* Link text fades out when collapsed */
+#sidebar .link-text {
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
+
+/* Collapsed State */
+#sidebar.collapsed {
+    width: 60px;
+}
+#sidebar.collapsed .link-text {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Main content — THIS was the bug: class="content" had no margin */
+#content {
+    margin-left: 250px;
+    transition: margin-left 0.3s ease;
+    padding: 20px;
+}
+#content.expanded {
+    margin-left: 60px !important;
+
+}
+header{
+				text-align: center;
+        }

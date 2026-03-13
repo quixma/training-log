@@ -40,3 +40,35 @@ def bullpen_report():
 @app.route('/inszn-home', methods = ["GET", "POST"])
 def inszn_home():
     return render_template('inszn_home.html')
+
+@app.route('/inszn_throwing_form', methods=["GET", "POST"])
+def inszn_throwing_form():
+    return render_template('inszn_throwing_form.html')
+
+@app.route('/game_form', methods=["GET", "POST"])
+def game_form():
+    return render_template('game_form.html')
+
+@app.route('/outing_report', methods=["GET", "POST"])
+def outing_report():
+    return render_template('outing_report.html')
+
+@app.route('/inszn_throwing_plan', methods=["GET", "POST"])
+def inszn_throwing_plan():
+    return render_template('inszn_throwing_plan.html')
+
+@app.route('/game_data_dashboard', methods=["GET", "POST"])
+def game_data_dashboard():
+    return render_template('game_data_dashboard.html')
+
+@app.route('/workout_dashboard', methods=["GET", "POST"])
+def workout_dashboard():
+    return render_template('workout_dashboard.html')
+
+@app.route('/workout_form', methods=["GET", "POST"])
+def workout_form():
+    return render_template('workout_form.html')
+
+@app.route('/armcare_form', methods=["GET", "POST"])
+def armcare_form():
+    return render_template('armcare_form.html')
