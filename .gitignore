@@ -20,6 +20,7 @@ env/
 ENV/
 .venv/
 .env
+.flaskenv
 
 #ignore backup files
 *~
@@ -43,5 +44,3 @@ features.txt
 # folder
 /bullpen_report_uploads/
 
-# files
-features.txt
