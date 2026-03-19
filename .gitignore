@@ -39,3 +39,9 @@ Thumbs.db
 # Logs
 *.log
 features.txt
+
+# folder
+/bullpen_report_uploads/
+
+# files
+features.txt
