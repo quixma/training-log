@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from app import app
-from app.models import get_throwing_notes, get_throwing_plan, get_throwing_plan_dates, get_throwing_notes_dates, get_summary_data, get_bullpen_report_files, get_throwing_day_types
+from app.models import inszn_dash_data, get_inszn_throwing_plan_dates, get_game_notes, get_throwing_notes, get_throwing_plan, get_throwing_plan_prethrow, get_throwing_plan_dates, get_totalthrows4wk, get_throwing_notes_dates, get_summary_data, get_bullpen_report_files, get_throwing_day_types
 from app.api_calls import shutdown
 from flask import render_template, request
 
 
 @app.route("/", methods=["GET"])
-def index():
-    throwing_notes = get_throwing_notes()  
+def index(): 
+    throwing_notes = get_throwing_notes() 
     throwing_plan, drills = get_throwing_plan()
     plan_dates = get_throwing_plan_dates()
     notes_dates = get_throwing_notes_dates()
@@ -39,7 +39,24 @@ def bullpen_report():
 
 @app.route('/inszn-home', methods = ["GET", "POST"])
 def inszn_home():
-    return render_template('inszn_home.html')
+    throwing_notes = get_throwing_notes()  
+    throwing_plan, drills = get_throwing_plan()
+    tp_prethrow = get_throwing_plan_prethrow()
+    plan_dates = get_inszn_throwing_plan_dates()
+    notes_dates = get_throwing_notes_dates()
+    throwing_days = get_throwing_day_types()
+    peak_velo, avg_readiness, acr, total_throws7d, prev_throw_day, days_last_game, avg_velos = inszn_dash_data()
+    throws4wk = get_totalthrows4wk()
+    game_notes, game_dates = get_game_notes()
+    
+    for x in throwing_plan: #get id of throwing plan
+        tableID = x['id']
+    
+    return render_template('inszn_home.html',throwing_notes = throwing_notes, throwing_plan=throwing_plan, drills=drills, tp_prethrow = tp_prethrow, 
+                           tableID = tableID, plan_dates = plan_dates, notes_dates = notes_dates, throwing_days = throwing_days,
+                           peak_velo = peak_velo, avg_readiness = avg_readiness, acr = acr, total_throws7d = total_throws7d, 
+                           prev_throw_day = prev_throw_day, days_last_game = days_last_game, throws4wk = throws4wk, avg_velos = avg_velos,
+                           game_notes = game_notes, game_dates = game_dates)
 
 @app.route('/inszn_throwing_form', methods=["GET", "POST"])
 def inszn_throwing_form():

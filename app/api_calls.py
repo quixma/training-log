@@ -122,7 +122,7 @@ def get_chart_data():
         conn= get_db_connection()
         cursor = conn.cursor()
         #groups dates as a whole week, listing in dict as the week starting on monday date, calc sum of total throws for that week
-        total_throws = cursor.execute("select DATE(date, 'weekday 0') AS week_start, sum(total_throws) from throwing_sessions GROUP By week_start ORDER By week_start DESC LIMIT ?",(weeks,)).fetchall()
+        total_throws = cursor.execute("select DATE(date, 'weekday 0', '-7 days') AS week_start, sum(total_throws) from throwing_sessions GROUP By week_start ORDER By week_start DESC LIMIT ?",(weeks,)).fetchall()
         conn.close()
         throws_dict = {
             "totalThrows7d": [],
@@ -137,6 +137,43 @@ def get_chart_data():
         conn= get_db_connection()
         cursor = conn.cursor()
         results = cursor.execute(f'select {dict_data["metric"]}, date from throwing_sessions Where date >= datetime("now", "-{dict_data["time"]} days")').fetchall()
+        conn.close()
+        return jsonify([dict(row) for row in results])
+    
+@app.route('/api/inszn_chart_data', methods = ["POST"])
+def inszn_chart_data():
+    data = request.get_json()
+    dict_data = {
+        'metric': data.get('metric'),
+        'time': data.get('time')
+        }
+    conn= get_db_connection()
+    cursor = conn.cursor()
+    
+    #input validation here
+    
+    if(dict_data["metric"] == 'totalThrows7d'):
+        weeks = int(int(dict_data['time']) / 7)
+        #groups dates as a whole week, listing in dict as the week starting on monday date, calc sum of total throws for that week
+        total_throws = cursor.execute("select DATE(date, 'weekday 0', '-7 days') AS week_start, sum(total_throws) from throwing_sessions GROUP By week_start ORDER By week_start DESC LIMIT ?",(weeks,)).fetchall()
+        conn.close()
+        throws_dict = {
+            "totalThrows7d": [],
+            "date": []
+            }
+        for row in total_throws:
+            throws_dict["totalThrows7d"].append(row[1])
+            throws_dict["date"].append(row[0])
+            
+        return jsonify(throws_dict) 
+    
+    elif(dict_data["metric"] == "body_weight" or dict_data["metric"] == "total_throws"): #query for throwing session table
+        results = cursor.execute(f'select {dict_data["metric"]}, date from throwing_sessions Where date >= datetime("now", "-{dict_data["time"]} days") and {dict_data["metric"]} IS NOT NULL').fetchall()
+        conn.close()
+        return jsonify([dict(row) for row in results])
+    
+    else: #query for game journal table
+        results = cursor.execute(f'select {dict_data["metric"]}, date from game_journal Where date >= datetime("now", "-{dict_data["time"]} days") and {dict_data["metric"]} IS NOT NULL').fetchall()
         conn.close()
         return jsonify([dict(row) for row in results])
     
@@ -163,8 +200,8 @@ def updateThrowingPlan():
     
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE throwing_plan SET num_throwing_days = ?, throwing_sessions = ?, throwing_notes = ?, pitching_notes = ?, drill_notes = ? WHERE id = ?",
-                   (throwing_plan['num_throwing_days'], throwing_plan['throwing_sessions'], throwing_plan['throwing_notes'], throwing_plan['pitching_notes'], throwing_plan['drill_notes'], throwing_planID))
+    cursor.execute("UPDATE throwing_plan SET throwing_sessions = ?, throwing_notes = ?, pitching_notes = ?, drill_notes = ? WHERE id = ?",
+                   ( throwing_plan['throwing_sessions'], throwing_plan['throwing_notes'], throwing_plan['pitching_notes'], throwing_plan['drill_notes'], throwing_planID))
     conn.commit()
     
     if cursor.rowcount == 0:
@@ -239,6 +276,43 @@ def getThrowingNotesByDay():
     
     conn = get_db_connection()
     cursor = conn.cursor()
-    results = cursor.execute('Select date, notes from throwing_sessions Where session_type = ? Order by date asc LIMIT ?', (throwing_day,time,)).fetchall()
+    results = cursor.execute('Select date, notes from throwing_sessions Where session_type = ? Order by date desc LIMIT ?', (throwing_day,time,)).fetchall()
     conn.close()
     return jsonify([dict(row) for row in results])
+
+@app.route("/api/getGameNotes", methods = ["POST"])
+def getGameNotes():
+    date = request.get_json()
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    results = cursor.execute('select id, date, opponent, subjective_notes, feel_notes, mental_notes, good_bad_notes, post_outing_notes from game_journal Where date = ?', (date,)).fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in results])
+
+@app.route("/api/getInsznThrowingPlan", methods = ["POST"])
+def getInsznThrowingPlan():
+    date = request.get_json()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    results = cursor.execute("Select * from throwing_plan Where date = ?", (date,)).fetchall()
+    
+    for x in results: #converts sqlite objects into dictionary, since its only one "row" returned dont need to do it like drills where there is multiple
+        rdict = dict(x) #just have to add the one row to dict
+        
+    drills = cursor.execute("Select * from throwing_plan_drills Where sessionId = ?", (rdict["id"],)).fetchall() #gets drills based on id from first query
+    pre = cursor.execute("Select * from throwing_plan_prethrow Where sessionID = ?", (rdict["id"],)).fetchall()
+    
+    drdict = {}
+    drdict["drills"] = [dict(row) for row in drills] #gets each individual drill and appends to dict.
+    predict = {}
+    predict["drills"] = [dict(row) for row in pre]
+    
+    allData = { #combines into one dict to pass back to javascript
+        "tp": rdict,
+        "drills": drdict,
+        "prethrow": predict
+        }
+    conn.close()
+    
+    return jsonify(allData)

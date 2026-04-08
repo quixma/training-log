@@ -69,26 +69,60 @@
       <label for="hr">HR</label>
       <input type="number" step="1" id="hr" name="hr" min="0" max="10" placeholder="0">
     </div>
+  </div> 
+  
+  <!-- Grades tab: stuff, execution, reco/prepardness, mental: focus/present-->
+  <h3>Outing Grades</h3>
+  <div id="grades-grid">
+    <div class="grade-cell">
+      <label for="stuff-grade">Stuff:</label>
+      <input type="text" id="stuff-grade" name="stuff_grade" placeholder="A-F">
+    </div>
+    <div class="grade-cell">
+      <label for="execution-grade">Execution:</label>
+      <input type="text" id="execution-grade" name="execution_grade" placeholder="A-F">
+    </div>
+    <div class="grade-cell">
+      <label for="recovery-grade">Recovery/Preparedness:</label>
+      <input type="text" id="recovery-grade" name="recovery_grade" placeholder="A-F">
+    </div>
+    <div class="grade-cell">
+      <label for="mental-grade">Mentality Grade:</label>
+      <input type="text" id="mentality-grade" name="mentality_grade" placeholder="A-F">
+    </div>
+    <div class="grade-cell">
+      <label for="avg-velo">Avg Velo:</label>
+      <input type="number" step=".01" min="0" max="100" id="avg-velo" name="avg_velo" placeholder="0">
+    </div>
+    <div class="grade-cell">
+      <label for="max-velo">Max Velo:</label>
+      <input type="number" step=".01" min="0" max="100" id="max-velo" name="max_velo" placeholder="0">
+    </div>
   </div>
+  
 
   <!-- Notes -->
   <h3>Notes</h3>
   <div class="notes-stack">
     <div class="field-group">
-      <label for="subjective-notes">Subjective</label>
+      <label for="subjective-notes">Outing Notes</label>
       <textarea id="subjective-notes" name="subjective_notes" placeholder="How did you think it went / feel?"></textarea>
     </div>
     <div class="field-group">
-      <label for="objective-notes">Objective</label>
-      <textarea id="objective-notes" name="objective_notes" placeholder="What actually happened / data?"></textarea>
+      <label for="feel-notes">Stuff/Execution/Delivery Notes</label>
+      <textarea id="feel-notes" name="feel_notes" placeholder="Stuff/Execution/Delivery notes"></textarea>
     </div>
     <div class="field-group">
-      <label for="feel-notes">Feel</label>
-      <textarea id="feel-notes" name="feel_notes" placeholder="Mech / Feel / Cmd / Pitches notes"></textarea>
+      <label for="mental-notes">Mental Notes</label>
+      <textarea id="mental-notes" name="mental_notes" placeholder="Mental Performance Notes"></textarea>
+    </div>
+    <div class="field-group">
+      <label for="good-bad-notes">What was working best/Needed to be better?</label>
+      <textarea id="good-bad-notes" name="good_bad_notes" placeholder="What was working best/needed to be better?"></textarea>
     </div>
     <div class="field-group">
       <label for="post-outing-notes">Post Outing</label>
-      <textarea id="post-outing-notes" name="post_outing_notes" placeholder="What was working? What needs to be better? Adjustments / things to maximize?"></textarea>
+      <textarea id="post-outing-notes" name="post_outing_notes" placeholder="Adjustments / things to maximize before next outing?"></textarea>
     </div>
   </div>
 

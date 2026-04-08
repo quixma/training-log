@@ -27,6 +27,7 @@ throwingNoteTimeSelect.addEventListener("change", GetThrowingNotes);
 throwingDaySelect.addEventListener("change", GetThrowingNotesByDay);
 throwingDayTimeSelect.addEventListener("change", GetThrowingNotesByDay);
 
+
 // Close buttons
 document.querySelectorAll('.modal-close').forEach(btn => {
     btn.addEventListener('click', () => {

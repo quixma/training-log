@@ -1,6 +1,6 @@
 from app import app
 from app.input_validation import ThrowingLogModel, ThrowingPlanModel
-from app.models import get_db_connection
+from app.models import get_db_connection, updateThrowCount
 from flask import request, flash, redirect, url_for
 from pydantic import ValidationError
 from werkzeug.utils import secure_filename
@@ -9,11 +9,11 @@ import os
 @app.route('/submit_insznthrow', methods = ["POST"])
 def submit_insznthrow():
     if request.method ==  "POST":
-        drill_names = request.form.get("drill_name[]")
-        drill_velos = request.form.get("drill_velocity[]")
+        drill_names = request.form.getlist("drill_name[]")
+        drill_velos = request.form.getlist("drill_velocity[]")
         drill_list = []
         
-        if(len(drill_names) == len(drill_velos)): #making sure entry values match, add each indvidual drill velo pair to drill list for db.
+        if(len(drill_names) == len(drill_velos)): #making sure entry lengths match, add each indvidual drill, velo pair to drill list for db.
             for x in range(len(drill_names)):
                 drill_entry = {
                     "drill_name": drill_names[x],
@@ -21,11 +21,12 @@ def submit_insznthrow():
                     }
                 drill_entry = {key: None if value == "" else value for key, value in drill_entry.items()} # if empty value replace with null
                 drill_list.append(drill_entry) 
+                
         form_data = {
             "date": request.form.get("date"),
             "throwing_block": "in_season",
             "session_type": request.form.get("session_type"),
-            "body_weight": request.form.get("bodyweight"),
+            "body_weight": request.form.get("body_weight"),
             "total_throws": request.form.get("total_throws"),
             "max_velo": request.form.get("max_velocity"),
             "mound_work": request.form.get("mound_work"),
@@ -39,6 +40,14 @@ def submit_insznthrow():
             }
         #converts unentered field values to None
         form_data = {key: None if value == "" else value for key, value in form_data.items()}
+        
+        #if game available not checked converted to no for db
+        if(form_data["mound_work"] == None):
+            form_data["mound_work"] = "no"
+        if(form_data["mound_throws"] == None):
+            form_data["mound_throws"] = 0 
+        if(form_data["game_available"] == None):
+            form_data["game_available"] = "no"
         
         #input validation here
         
@@ -73,29 +82,47 @@ def submit_game_journal():
             "walks": request.form.get('bb'),
             "strikeouts": request.form.get('so'),
             "hr": request.form.get('hr'),
+            "stuff_grade": request.form.get('stuff_grade'),
+            "execution_grade": request.form.get('execution_grade'),
+            "recovery_grade": request.form.get('recovery_grade'),
+            "mentality_grade": request.form.get('mentality_grade'),
+            "avg_velo": request.form.get('avg_velo'),
+            "max_velo": request.form.get('max_velo'),
             "subjective_notes": request.form.get('subjective_notes'),
-            "objective_notes": request.form.get('objective_notes'),
             "feel_notes": request.form.get('feel_notes'),
+            "mental_notes": request.form.get('mental_notes'),
+            "good_bad_notes": request.form.get('good_bad_notes'),
             "post_outing_notes": request.form.get('post_outing_notes')
             }
+        form_data = {key: None if value == "" else value for key, value in form_data.items()} #empty values to null
         
-        form_data = {key: None if value == "" else value for key, value in form_data.items()}
+        #if get hot/in game not checked converted to no for db
+        if(form_data["get_hot"] == None):
+            form_data["get_hot"] = "no"
+        if(form_data["in_game"] == None):
+            form_data["in_game"] = "no"
+        if(form_data["game_throws"] == None):
+            form_data["game_throws"] = 0  
+        
         #input validation here
         
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO game_journal (id, date, opponent, get_hot, bullpen_throws, in_game, game_throws, ip, hits, er, walks, strikeouts, hr, subjective_notes, objective_notes, feel_notes, post_outing_notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                       (form_data["id"], form_data["date"], form_data["opponent"], form_data["get_hot"], form_data["bullpen_throws"], form_data["in_game"],form_data["game_throws"],form_data["ip"], form_data["hits"], form_data["er"],form_data["walks"],form_data["strikeouts"],form_data["hr"],form_data["subjective_notes"],form_data["objective_notes"],form_data["feel_notes"],form_data["post_outing_notes"],))
+        #get session id based on throwing session with same date
+        session_id = cursor.execute("select id from throwing_sessions where date = ?", (form_data["date"],)).fetchone()
+        cursor.execute("INSERT INTO game_journal (id, session_id, date, opponent, get_hot, bullpen_throws, in_game, game_throws, avg_velo, max_velo, ip, hits, er, walks, strikeouts, hr, stuff_grade, execution_grade, recovery_grade, mentality_grade, subjective_notes, feel_notes, mental_notes, good_bad_notes, post_outing_notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                       (form_data["id"], session_id[0], form_data["date"], form_data["opponent"], form_data["get_hot"], form_data["bullpen_throws"], form_data["in_game"],form_data["game_throws"], form_data["avg_velo"], form_data["max_velo"], form_data["ip"], form_data["hits"], form_data["er"],form_data["walks"],form_data["strikeouts"],form_data["hr"], form_data["stuff_grade"], form_data["execution_grade"], form_data["recovery_grade"], form_data["mentality_grade"], form_data["subjective_notes"],form_data["feel_notes"],form_data["mental_notes"], form_data["good_bad_notes"],form_data["post_outing_notes"]))
         
         conn.commit()
         conn.close()
+        updateThrowCount(session_id)
         return redirect(url_for('inszn_home'))
     
 @app.route('/submit_inszn_throwing_plan', methods = ["POST"])
 def submit_inszn_throwing_plan():
     if request.method == "POST":
-        prethrow_drill = request.form.get("prethrow_name[]")
-        prethrow_drilltype = request.form.get("prethrow_drill_type[]")
+        prethrow_drill = request.form.getlist("prethrow_name[]")
+        prethrow_drilltype = request.form.getlist("prethrow_drill_type[]")
         prethrow_drill_list = []
         
         if(len(prethrow_drill) == len(prethrow_drilltype)):
@@ -104,12 +131,12 @@ def submit_inszn_throwing_plan():
                     "drill_name": prethrow_drill[x],
                     "drill_type": prethrow_drilltype[x]
                     }
-            prethrow_drill_entry = {key: None if value == "" else value for key, value in prethrow_drill_entry.items()} # if empty value replace with null
-            prethrow_drill_list.append(prethrow_drill_entry) #list of each drill as a name and type pair as one entry
+                prethrow_drill_entry = {key: None if value == "" else value for key, value in prethrow_drill_entry.items()} # if empty value replace with null
+                prethrow_drill_list.append(prethrow_drill_entry) #list of each drill as a name and type pair as one entry
         
-        drill_names = request.form.get("drill_name[]")
-        drill_types = request.form.get("drill_type[]")
-        drill_throw_counts = request.form.get("drill_throw_count[]")
+        drill_names = request.form.getlist("drill_name[]")
+        drill_types = request.form.getlist("drill_type[]")
+        drill_throw_counts = request.form.getlist("drill_throw_count[]")
         drill_list = []
         
         if(len(drill_names) == len(drill_types) == len(drill_throw_counts)): #making sure entry values match, add each indvidual drill velo pair to drill list for db.
@@ -117,7 +144,7 @@ def submit_inszn_throwing_plan():
                 drill_entry = {
                     "drill_name": drill_names[x],
                     "drill_type": drill_types[x],
-                    "throw_count": drill_types[x]
+                    "throw_count": drill_throw_counts[x]
                     }
                 drill_entry = {key: None if value == "" else value for key, value in drill_entry.items()} # if empty value replace with null
                 drill_list.append(drill_entry) 
@@ -141,13 +168,13 @@ def submit_inszn_throwing_plan():
         
         session_id = cursor.lastrowid
         for x in range(len(drill_names)):
-            cursor.execute("INSERT INTO throwing_plan_drills (sessionId, drill_name, drill_type) VALUES (?,?,?)",
-                           (session_id, drill_list[x]['drill_name'], drill_list[x]['drill_type']))
+            cursor.execute("INSERT INTO throwing_plan_drills (sessionId, drill_name, drill_type, throw_count) VALUES (?,?,?,?)",
+                           (session_id,drill_list[x]['drill_name'], drill_list[x]['drill_type'], drill_list[x]['throw_count']))
         
         for x in range(len(prethrow_drill)):
-            cursor.execute("INSERT INTO throwing_plan_prethrow (sessionId, drill_name, drill_type) VALUES (?,?,?)",
+            cursor.execute("INSERT INTO throwing_plan_prethrow (sessionID, drill_name, drill_type) VALUES (?,?,?)",
                            (session_id, prethrow_drill_list[x]['drill_name'], prethrow_drill_list[x]['drill_type']))
-        
+            
         conn.commit()
         conn.close()
     

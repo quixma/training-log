@@ -1,16 +1,11 @@
-
 //once html is loaded, get inital chart
 document.addEventListener("DOMContentLoaded", () => {
   initializeChart();
-  //initializeSummaryCards();
 });
 
 //get form elements
 const metricSelect = document.getElementById('metric-select')
 const timeframeSelect = document.getElementById('time-select')
-const peakVelo = document.getElementById('peak-velo')
-const avgReadiness = document.getElementById('avg-readiness')
-const totalThrows = document.getElementById('total-throws')
 
 //event listeners
 metricSelect.addEventListener("change", getData);

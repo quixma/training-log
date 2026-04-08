@@ -1,7 +1,409 @@
 {% extends "inszn_base.html" %}
 {% block styles %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/inszn_home.css') }}">
+    <script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
 {% endblock %}
 {% block content %}
-    <header><h1>Baseball Web App Home: In Season</h1></header>
+
+<header>
+  <h1>INSZN <span>//</span> In-Season</h1>
+</header>
+
+<!-- Tab Nav -->
+<div class="tab">
+  <button class="tablinks active" onclick="openTab(event, 'Plan')">Throwing Plan</button>
+  <button class="tablinks" onclick="openTab(event, 'Dashboard')">Dashboard</button>
+  <button class="tablinks" onclick="openTab(event, 'GameNotes')">Game Notes</button>
+  <button class="tablinks" onclick="openTab(event, 'Notes')">Throwing Notes</button>
+</div>
+
+<!-- ══ PLAN TAB ══════════════════════════════ -->
+<div id="Plan" class="tabcontent active">
+
+  <!-- Throwing Plan -->
+  <div class="section-card">
+    <div class="section-card-header">
+      <h3>Throwing Plan</h3>
+      <select id="retrieve-throwing-plan">
+        <option value="">View Prior Throwing Plans</option>
+        {% for data in plan_dates %}
+        <option value='{{ data["date"] }}'>{{ data["date"] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Session Breakdown</th>
+            <th>Throwing Notes</th>
+            <th>Pitching Notes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="throwing_plan_body">
+          {% for data in throwing_plan %}
+          <tr id="{{ tableID }}">
+            <td>{{ data["date"] }}</td>
+            <td>{{ data["sessions_html"] | safe }}</td>
+            <td>{{ data["th_notes_html"] | safe }}</td>
+            <td>{{ data["p_notes_html"] | safe }}</td>
+            <td><button id="editTP">Edit Plan</button></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pre Throw Drills + Notes -->
+  <div class="table-container">
+    <div class="section-card">
+      <div class="section-card-header">
+        <h3>Pre Throw Drill Work</h3>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Drill Name</th>
+              <th>Drill Type</th>
+            </tr>
+          </thead>
+          <tbody id="prethrowdrills_body">
+            {% for data in tp_prethrow %}
+            <tr id="prethrowdrill-row">
+              <td>{{ data[2] }}</td>
+              <td>{{ data[3] }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="section-card">
+      <div class="section-card-header">
+        <h3>Pre Throw Notes</h3>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th>Notes</th></tr>
+          </thead>
+          <tbody id="prethrow_notes_body">
+            <tr>
+              {% for data in throwing_plan %}
+              <td>{{ data["pt_notes_html"] | safe }}</td>
+              {% endfor %}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drill Work + Drill Notes -->
+  <div class="table-container">
+    <div class="section-card">
+      <div class="section-card-header">
+        <h3>Drill Work</h3>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Drill Name</th>
+              <th>Drill Type</th>
+              <th>Throw Count</th>
+            </tr>
+          </thead>
+          <tbody id="drills_body">
+            {% for data in drills %}
+            <tr>
+              <td>{{ data[2] }}</td>
+              <td>{{ data[3] }}</td>
+              <td>{{ data[5] }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="section-card">
+      <div class="section-card-header">
+        <h3>Drill Notes</h3>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th>Notes</th></tr>
+          </thead>
+          <tbody id="drill_notes_body">
+            <tr id="drill-row">
+              {% for data in throwing_plan %}
+              <td>{{ data["d_notes_html"] | safe }}</td>
+              {% endfor %}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end #Plan -->
+
+
+<!-- ══ DASHBOARD TAB ═════════════════════════ -->
+<div id="Dashboard" class="tabcontent">
+
+  <div class="summary-cards">
+	<div class="summary-col">
+    <div class="summary-col-label">Recent Activity</div>
+    <div class="card">
+      <h3>Days Since Last Game</h3>
+      <p>{{ days_last_game[0] }}</p>
+    </div>
+    <div class="card">
+      <h3>Last Throwing Session</h3>
+      {% for data in prev_throw_day %}
+      <div class="card-row">
+        <span class="card-row-label">Throwing Session</span>
+        <span class="card-row-value">{{ data[0] }}</span>
+      </div>
+      <div class="card-row">
+        <span class="card-row-label">Total throws</span>
+        <span class="card-row-value">{{ data[1] }}</span>
+      </div>
+      <div class="card-row">
+        <span class="card-row-label">Max Velo:</span>
+        <span class="card-row-value">{{ data[2] }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+   <div class="summary-col">
+    <div class="summary-col-label">Workload</div>
+    <div class="card">
+      <h3>Acute:Chronic Workload Ratio</h3>
+      <p>{{ acr }}</p>
+    </div>
+    <div class="card">
+      <h3>Weekly Throws (Last 4 Wks)</h3>
+      {% for data in throws4wk %}
+      <div class="card-row">
+        <span class="card-row-label">{{ data[0] }}</span>
+        <span class="card-row-value">{{ data[1] }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="card">
+      <h3>Total Throws (Last 7d)</h3>
+      <p>{{ total_throws7d[0] }}</p>
+    </div>
+  </div>
+  
+  <div class="summary-col">
+    <div class="summary-col-label">Avg Readiness</div>
+    <div class="card">
+      <h3>Avg Readiness (3d)</h3>
+      {% for data in avg_readiness %}<p>{{ data[0] }}</p>{% endfor %}
+    </div>
+    <div class="card">
+      <h3>Avg Readiness (7d)</h3>
+      {% for data in avg_readiness %}<p>{{ data[1] }}</p>{% endfor %}
+    </div>
+    <div class="card">
+      <h3>Avg Readiness (14d)</h3>
+      {% for data in avg_readiness %}<p>{{ data[2] }}</p>{% endfor %}
+    </div>
+  </div>
+  
+   <div class="summary-col">
+    <div class="summary-col-label">Avg Velocity</div>
+    <div class="card">
+      <h3>Avg Velocity (7d)</h3>
+      {% for data in avg_velos %}<p>{{ data[0] }}</p>{% endfor %}
+    </div>
+    <div class="card">
+      <h3>Avg Velocity (14d)</h3>
+      {% for data in avg_velos %}<p>{{ data[1] }}</p>{% endfor %}
+    </div>
+    <div class="card">
+      <h3>Avg Velocity (30d)</h3>
+      {% for data in avg_velos %}<p>{{ data[2] }}</p>{% endfor %}
+    </div>
+    <div class="card">
+      <h3>Avg Velocity (szn)</h3>
+      {% for data in avg_velos %}<p>{{ data[3] }}</p>{% endfor %}
+    </div>
+  </div>
+  
+  <div class="summary-col">
+    <div class="summary-col-label">Peak Velocity</div>
+    <div class="card">
+      <h3>Peak Velocity (7d)</h3>
+      {% for data in peak_velo %}<p>{{ data[0] }}</p>{% endfor %}
+    </div>
+    <div class="card">
+      <h3>Peak Velocity (14d)</h3>
+      {% for data in peak_velo %}<p>{{ data[1] }}</p>{% endfor %}
+    </div>
+    <div class="card">
+      <h3>Peak Velocity (30d)</h3>
+      {% for data in peak_velo %}<p>{{ data[2] }}</p>{% endfor %}
+    </div>
+    <div class="card">
+      <h3>Peak Velocity (All Time)</h3>
+      {% for data in peak_velo %}<p>{{ data[3] }}</p>{% endfor %}
+    </div>
+  </div>
+</div>
+
+	<!-- Controls -->
+  <div class="controls">
+    <div>
+      <label for="metric-select">Metric</label>
+      <select id="metric-select">
+        <option value="">Select metric…</option>
+        <option value="body_weight">Bodyweight</option>
+        <option value="total_throws">Total Throws</option>
+        <option value="totalThrows7d">Total Throws by Week</option>
+        <option value="avg_velo">Avg Velo</option>
+        <option value="max_velo">Max Velo</option>
+		  <option value="ip">Innings Pitched</option> 
+      </select>
+    </div>
+    <div>
+      <label for="time-select">Time Range</label>
+      <select id="time-select">
+        <option value="">Select range…</option>
+        <option value="7">Last 7 days</option>
+        <option value="14">Last 14 days</option>
+        <option value="21">Last 21 days</option>
+        <option value="30">Last 30 days</option>
+        <option value="60">Last 60 days</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="chart-area">
+    <canvas id="chart"></canvas>
+  </div>
+
+</div><!-- end #Dashboard -->
+
+
+<!-- ══ GAME NOTES TAB ════════════════════════ -->
+<div id="GameNotes" class="tabcontent">
+
+  <div class="section-card">
+    <div class="section-card-header">
+      <h3>Game Notes</h3>
+      <select id="retrieve-game-notes">
+        <option value="">View Game Notes by Date</option>
+        {% for data in game_dates %}
+        <option value='{{ data["date"] }}'>{{ data["date"] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Opponent</th>
+            <th>Subjective Notes</th>
+            <th>Feel Notes</th>
+            <th>Mental Notes</th>
+            <th>Good/Bad</th>
+            <th>Post Outing</th>
+          </tr>
+        </thead>
+        <tbody id="game_notes_body">
+          {% for data in game_notes %}
+          <tr id="{{ data['id'] }}">
+            <td>{{ data["date"] }}</td>
+            <td>{{ data["opponent"] | safe }}</td>
+            <td>{{ data["subjective_notes"] | safe }}</td>
+            <td>{{ data["feel_notes"] | safe }}</td>
+            <td>{{ data["mental_notes"] | safe }}</td>
+            <td>{{ data["good_bad_notes"] | safe }}</td>
+            <td>{{ data["post_outing_notes"] | safe }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- end #GameNotes -->
+
+
+<!-- ══ THROWING NOTES TAB ════════════════════ -->
+<div id="Notes" class="tabcontent">
+
+  <div class="section-card">
+    <div class="section-card-header">
+      <h3>Throwing Notes</h3>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <div class="select-stack" style="display:flex; flex-direction:column; gap:6px;">
+          <select id="retrieve-throwing-notes">
+            <option value="">View Notes by Date</option>
+            {% for data in notes_dates %}
+            <option value='{{ data["date"] }}'>{{ data["date"] }}</option>
+            {% endfor %}
+          </select>
+          <select id="throwing-notes-time">
+            <option value="">Select range…</option>
+            <option value="3">Last 3 days</option>
+            <option value="7">Last 7 days</option>
+            <option value="14">Last 14 days</option>
+            <option value="30">Last 30 days</option>
+          </select>
+        </div>
+        <div class="select-stack" style="display:flex; flex-direction:column; gap:6px;">
+          <select id="throwing-day-type">
+            <option value="">View Notes by Session Type</option>
+            {% for data in throwing_days %}
+            <option value="{{ data['session_type'] }}">{{ data["session_type"] }}</option>
+            {% endfor %}
+          </select>
+          <select id="throwing-day-time">
+            <option value="">Select range…</option>
+            <option value="3">Last 3 Notes</option>
+            <option value="7">Last 7 Notes</option>
+            <option value="14">Last 14 Notes</option>
+            <option value="30">Last 30 Notes</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Notes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="throwing_notes_body">
+          {% for data in throwing_notes %}
+          <tr id="{{ data['id'] }}">
+            <td>{{ data["date"] }}</td>
+            <td>{{ data["notes_html"] | safe }}</td>
+            <td><button class="editNotes">Edit Notes</button></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- end #Notes -->
+
+<script src="{{ url_for('static', filename='js/inszn_home.js') }}"></script>
+
 {% endblock %}

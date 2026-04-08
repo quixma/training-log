@@ -38,7 +38,7 @@ body {
  
 /* ── Form Card ──────────────────────────────── */
 #game-form {
-  max-width: 680px;
+  max-width: 750px;
   margin: 0 auto;
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -153,14 +153,12 @@ body {
  
 #game-form textarea {
   resize: vertical;
-  min-height: 110px;
   line-height: 1.6;
 }
  
-/* Opponent — matches date input height */
 #opponent {
   min-height: unset;
-  height: 41px;
+  height: 40px;
   resize: none;
   overflow: hidden;
   line-height: 1.4;
@@ -291,7 +289,7 @@ body {
 }
  
 .notes-stack textarea {
-  min-height: 100px;
+  min-height: 150px;
 }
  
 /* ── Submit ─────────────────────────────────── */

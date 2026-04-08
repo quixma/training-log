@@ -38,7 +38,7 @@ class ThrowingPlanModel(BaseModel):
     drills: list[ThrowingPlanDrillEntry]
 
 class UpdateThrowingPlanModel(BaseModel):
-    num_throwing_days: Optional[Annotated[int, Field(ge = 1, le = 7)]]
+    #num_throwing_days: Optional[Annotated[int, Field(ge = 1, le = 7)]]
     throwing_sessions: Optional[str]
     throwing_notes: Optional[str]
     pitching_notes: Optional[str]
