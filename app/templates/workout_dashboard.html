@@ -1,12 +1,21 @@
-<!DOCTYPE html>
-<html lang="">
-  <head>
-    <meta charset="utf-8">
-    <title></title>
-  </head>
-  <body>
-    <header></header>
-    <main></main>
-    <footer></footer>
-  </body>
-</html>
+{% extends "inszn_base.html" %}
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/workout_dashboard.css') }}">
+{% endblock %}
+{% block content %}
+<header>
+  <h1>INSZN <span>//</span> Workout Dashboard</h1>
+</header>
+
+<!-- Tab Nav -->
+<div class="tab">
+  <button class="tablinks active" onclick="openTab(event, 'workout_survey')">Workout + Survey View</button>
+  <button class="tablinks" onclick="openTab(event, 'warmup_options')">Warmup Options</button>
+  <button class="tablinks" onclick="openTab(event, 'armcare_days')">Arm Care Days</button>
+  <button class="tablinks" onclick="window.location.href='{{ url_for('workout_form') }}'">Workout Log</button>
+</div>
+
+
+<script src="{{ url_for('static', filename='js/workout_dashboard.js') }}"></script>
+
+{% endblock %}

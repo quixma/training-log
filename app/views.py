@@ -86,6 +86,6 @@ def workout_dashboard():
 def workout_form():
     return render_template('workout_form.html')
 
-@app.route('/armcare_form', methods=["GET", "POST"])
-def armcare_form():
-    return render_template('armcare_form.html')
+@app.route('/lifting_forms', methods=["GET", "POST"])
+def lifting_forms():
+    return render_template('lifting_forms.html')

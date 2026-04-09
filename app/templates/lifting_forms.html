@@ -1,0 +1,21 @@
+{% extends "inszn_base.html" %}
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/lifting_forms.css') }}">
+{% endblock %}
+{% block content %}
+<header>
+  <h1>INSZN <span>//</span> Lifting Forms</h1>
+</header>
+
+<!-- Tab Nav -->
+<div class="tab">
+  <button class="tablinks active" onclick="openTab(event, 'warmup_form')">Warmup Form</button>
+  <button class="tablinks" onclick="openTab(event, 'armcare_form')">Arm Care Form</button>
+  <button class="tablinks" onclick="openTab(event, 'back_form')">Back Routine Form</button>
+  
+</div>
+
+
+<script src="{{ url_for('static', filename='js/lifting_forms.js') }}"></script>
+
+{% endblock %}

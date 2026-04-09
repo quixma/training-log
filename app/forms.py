@@ -65,6 +65,34 @@ def submit_insznthrow():
         conn.close()
         return redirect(url_for('inszn_home'))
     
+@app.route('/submit_workout_form', methods = ["POST"])
+def submit_workout_form():
+    if request.method == "POST":
+        form_data = {
+            "date": request.form.get("date"),
+            "energy_value": request.form.get("energy_rating"),
+            "fatigue_value": request.form.get("fatigue_rating"),
+            "motivation_value": request.form.get('motivation_rating'),
+            "focus_value": request.form.get('focus_rating'),
+            "explosiveness_value": request.form.get('explosivess_survey'),
+            "body_notes": request.form.get('body_notes'),
+            "workout_completed": request.form.get('workout_completed'),
+            "armcare_completed": request.form.get('armcare_completed'),
+            "conditioning_completed": request.form.get('conditioning_completed'),
+            "workout_notes": request.form.get("workout_notes")
+            }
+        form_data = {key: None if value == "" else value for key, value in form_data.items()}
+        #input validation here
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO workout_log (date, energy_value, fatigue_value, motivation_value, focus_value, explosiveness_value, body_notes, workout_completed, armcare_completed, conditioning_completed, workout_notes) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+                       (form_data["date"], form_data["energy_value"], form_data["fatigue_value"], form_data["motivation_value"], form_data["focus_value"], form_data["explosiveness_value"], form_data["body_notes"], form_data["workout_completed"], form_data["armcare_completed"], form_data["conditioning_completed"], form_data["workout_notes"]))
+        conn.commit()
+        conn.close()
+    
+    return redirect(url_for('workout_dashboard'))
+    
 @app.route('/submit_game_journal', methods = ["POST"])
 def submit_game_journal():
     if request.method == "POST":

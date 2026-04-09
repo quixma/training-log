@@ -1,12 +1,102 @@
-<!DOCTYPE html>
-<html lang="">
-  <head>
-    <meta charset="utf-8">
-    <title></title>
-  </head>
-  <body>
-    <header></header>
-    <main></main>
-    <footer></footer>
-  </body>
-</html>
+{% extends "inszn_base.html" %}
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/workout_form.css') }}">
+{% endblock %}
+{% block content %}
+
+<h1>Workout Log</h1>
+ 
+<form id="workout-form" method="POST" action="/submit_workout_form">
+ 
+  <!-- Date -->
+  <div class="field-group">
+    <label for="date">Date</label>
+    <input type="date" id="date" name="date" required>
+  </div>
+ 
+  <!-- Readiness Sliders -->
+  <div class="form-section-title">Readiness</div>
+  <div class="sliders-grid">
+ 
+    <div class="slider-field">
+      <label for="energy-rating">Energy</label>
+      <div class="slider-row">
+        <input type="range" id="energy-rating" name="energy_rating" min="1" max="5" step="1" value="3">
+        <span class="slider-value" id="energy-slider-value">3</span>
+      </div>
+    </div>
+ 
+    <div class="slider-field">
+      <label for="fatigue-rating">Fatigue</label>
+      <div class="slider-row">
+        <input type="range" id="fatigue-rating" name="fatigue_rating" min="1" max="5" step="1" value="3">
+        <span class="slider-value" id="fatigue-slider-value">3</span>
+      </div>
+    </div>
+ 
+    <div class="slider-field">
+      <label for="motivation-rating">Motivation</label>
+      <div class="slider-row">
+        <input type="range" id="motivation-rating" name="motivation_rating" min="1" max="5" step="1" value="3">
+        <span class="slider-value" id="motivation-slider-value">3</span>
+      </div>
+    </div>
+ 
+    <div class="slider-field">
+      <label for="focus-rating">Focus</label>
+      <div class="slider-row">
+        <input type="range" id="focus-rating" name="focus_rating" min="1" max="5" step="1" value="3">
+        <span class="slider-value" id="focus-slider-value">3</span>
+      </div>
+    </div>
+ 
+  </div>
+ 
+  <!-- Explosiveness + Body Notes -->
+  <div class="row-2col">
+    <div class="field-group">
+      <label for="explosiveness-survey">Explosiveness</label>
+      <select id="explosiveness-survey" name="explosivenss_survey" required>
+        <option value="stable">Stable</option>
+        <option value="trending_up">Trending Up</option>
+        <option value="trending_down">Trending Down</option>
+        <option value="pr">PR</option>
+        <option value="fatigued">Fatigued</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <label for="body-notes">Body Notes</label>
+      <textarea id="body-notes" name="body_notes" rows="3"
+        placeholder="Specific fatigue, soreness, tightness, or tissue feedback"></textarea>
+    </div>
+  </div>
+ 
+  <!-- Session Completed -->
+  <div class="form-section-title">Session Completed</div>
+ 
+  <div class="field-group">
+    <label for="workout-completed">Workout</label>
+    <textarea id="workout-completed" name="workout_completed" rows="1"></textarea>
+  </div>
+  <div class="field-group">
+    <label for="armcare-completed">Arm Care</label>
+    <textarea id="armcare-completed" name="armcare_completed" rows="1"></textarea>
+  </div>
+  <div class="field-group">
+    <label for="conditioning-completed">Conditioning</label>
+    <textarea id="conditioning-completed" name="conditioning_completed" rows="1"></textarea>
+  </div>
+ 
+  <!-- Workout Notes -->
+  <div class="field-group">
+    <label for="workout-notes">Workout Notes</label>
+    <textarea id="workout-notes" name="workout_notes" rows="4" placeholder="Workout notes"></textarea>
+  </div>
+ 
+  <button type="submit">Save Workout Log</button>
+</form>
+ 
+
+<script src="{{ url_for('static', filename='js/workout_form.js') }}"></script>
+
+{% endblock %}
