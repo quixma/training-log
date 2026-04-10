@@ -15,6 +15,99 @@
   
 </div>
 
+<!-- ══ WARMUP FORM TAB ══════════════════════════════ -->
+<div id="warmup_form" class="tabcontent active">
+<form id="warmup-form" method="POST" action="/submit_warmup">
+	 <label for="date">Date</label>
+    <input type="date" id="date" name="date" required>
+    
+    <label for="warmup-name">Warmup Name</label>
+    <textarea id="warmup-name" name="warmup_name" rows="1"></textarea>
+    
+    <label for="rollout-ex">Rollout/Soft Tissue</label>
+    <textarea id="rollout-ex" name="rollout_ex"></textarea>
+    
+    <label for="spine-ex">Spine</label>
+    <textarea id="spine-ex" name="spine_ex"></textarea>
+    
+    <label for="hip-ex">Hips/Lower Leg</label>
+    <textarea id="hip-ex" name="hip_ex"></textarea>
+    
+    <label for="shoulder-ex">Shoulder</label>
+    <textarea id="shoulder-ex" name="shoulder_ex"></textarea>
+    
+	 <label for="arm-ex">Arm</label>
+    <textarea id="arm-ex" name="arm_ex"></textarea>
+    
+    <label for="hip-ex">Dynamic/Misc</label>
+    <textarea id="dynamic-ex" name="dynamic_ex"></textarea>
+    
+    <div class="field-group">
+    <label for="notes">Notes</label>
+    <textarea id="notes" name="notes" rows="5"></textarea>
+  	 </div>
+
+	<button type="submit">Save Warmup</button>
+</form>
+</div>
+
+<!-- ══ ARM CARE FORM TAB ══════════════════════════════ -->
+<div id="armcare_form" class="tabcontent">
+<form id="armcare-form" method="POST" action="/submit_armcare">
+	 <label for="date">Date</label>
+    <input type="date" id="date" name="date" required>
+    
+    <label for="armcare-name">Armcare Name</label>
+    <textarea id="armcare-name" name="armcare_name" rows="1"></textarea>
+    
+    <div id="ex-container">
+    <div class="ex-row">
+      <input type="text" name="ex_name[]" placeholder="Exercise Name">
+      <input type="text" name="sets_reps[]" placeholder="Sets/Reps">
+    </div>
+  	</div>
+  <div class="btn-group">
+    <button type="button" onclick="addExRow()">+ Add Exercise </button>
+    <button type="button" class="btn-delete" onclick="deleteExRow()">Remove Exercise</button>
+  </div>
+
+  <div class="field-group">
+    <label for="notes">Notes</label>
+    <textarea id="notes" name="notes" rows="5"></textarea>
+  </div>
+    
+	<button type="submit">Save Armcare Day</button>
+</form>
+</div>
+
+<!-- ══ BACK ROUTINE FORM TAB ══════════════════════════════ -->
+<div id="back_form" class="tabcontent">
+<form id="back-form" method="POST" action="/submit_back">
+	 <label for="date">Date</label>
+    <input type="date" id="date" name="date" required>
+    
+    <label for="back-name">Back Routine Name</label>
+    <textarea id="back-name" name="back_name" rows="1"></textarea>
+    
+    <div id="ex-container-back">
+    <div class="ex-row-back">
+      <input type="text" name="ex_name[]" placeholder="Exercise Name">
+      <input type="text" name="sets_reps[]" placeholder="Sets/Reps">
+    </div>
+  	</div>
+  <div class="btn-group">
+    <button type="button" onclick="addBackExRow()">+ Add Exercise </button>
+    <button type="button" class="btn-delete" onclick="deleteBackExRow()">Remove Exercise</button>
+  </div>
+
+  <div class="field-group">
+    <label for="notes">Notes</label>
+    <textarea id="notes" name="notes" rows="5"></textarea>
+  </div>
+
+	<button type="submit">Save Back Routine</button>
+</form>
+</div>
 
 <script src="{{ url_for('static', filename='js/lifting_forms.js') }}"></script>
 
