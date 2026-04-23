@@ -136,7 +136,9 @@ def get_chart_data():
     else:
         conn= get_db_connection()
         cursor = conn.cursor()
-        results = cursor.execute(f'select {dict_data["metric"]}, date from throwing_sessions Where date >= datetime("now", "-{dict_data["time"]} days")').fetchall()
+        #get last date for query 
+        date = cursor.execute('select date from throwing_sessions order by date desc limit 1').fetchone()
+        results = cursor.execute(f'select {dict_data["metric"]}, date from throwing_sessions Where date >= datetime(?, "-{dict_data["time"]} days")', (date[0],)).fetchall()
         conn.close()
         return jsonify([dict(row) for row in results])
     
@@ -149,7 +151,8 @@ def inszn_chart_data():
         }
     conn= get_db_connection()
     cursor = conn.cursor()
-    
+    #get last date for queries
+    date = cursor.execute('select date from throwing_sessions order by date desc limit 1').fetchone()
     #input validation here
     
     if(dict_data["metric"] == 'totalThrows7d'):
@@ -167,13 +170,13 @@ def inszn_chart_data():
             
         return jsonify(throws_dict) 
     
-    elif(dict_data["metric"] == "body_weight" or dict_data["metric"] == "total_throws"): #query for throwing session table
-        results = cursor.execute(f'select {dict_data["metric"]}, date from throwing_sessions Where date >= datetime("now", "-{dict_data["time"]} days") and {dict_data["metric"]} IS NOT NULL').fetchall()
+    elif(dict_data["metric"] == "body_weight" or dict_data["metric"] == "total_throws" or dict_data["metric"] == "acr"): #query for throwing session table
+        results = cursor.execute(f'select {dict_data["metric"]}, date from throwing_sessions Where date >= datetime(?, "-{dict_data["time"]} days") and {dict_data["metric"]} IS NOT NULL', (date[0],)).fetchall()
         conn.close()
         return jsonify([dict(row) for row in results])
     
     else: #query for game journal table
-        results = cursor.execute(f'select {dict_data["metric"]}, date from game_journal Where date >= datetime("now", "-{dict_data["time"]} days") and {dict_data["metric"]} IS NOT NULL').fetchall()
+        results = cursor.execute(f'select {dict_data["metric"]}, date from game_journal Where date >= datetime(?, "-{dict_data["time"]} days") and {dict_data["metric"]} IS NOT NULL', (date[0],)).fetchall()
         conn.close()
         return jsonify([dict(row) for row in results])
     
@@ -266,7 +269,15 @@ def getThrowingNotes():
     cursor = conn.cursor()
     results = cursor.execute('Select date, notes from throwing_sessions Where date <= ? Order by date desc LIMIT ?', (date,time,)).fetchall()
     conn.close()
-    return jsonify([dict(row) for row in results])
+    
+    updated_notes = [] #adds linebreak after every .
+    for row in results:
+        notes = row["notes"] or ""
+        updated_notes.append({
+            "date": row["date"],
+            "notes_html": notes.replace(".", ".<br>"),
+    })
+    return jsonify([dict(row) for row in updated_notes])
 
 @app.route("/api/getThrowingNotesByDay", methods = ["POST"])
 def getThrowingNotesByDay():
@@ -278,7 +289,15 @@ def getThrowingNotesByDay():
     cursor = conn.cursor()
     results = cursor.execute('Select date, notes from throwing_sessions Where session_type = ? Order by date desc LIMIT ?', (throwing_day,time,)).fetchall()
     conn.close()
-    return jsonify([dict(row) for row in results])
+    
+    updated_notes = [] #adds linebreak after every .
+    for row in results:
+        notes = row["notes"] or ""
+        updated_notes.append({
+            "date": row["date"],
+            "notes_html": notes.replace(".", ".<br>"),
+    })
+    return jsonify([dict(row) for row in updated_notes])
 
 @app.route("/api/getGameNotes", methods = ["POST"])
 def getGameNotes():
@@ -288,7 +307,26 @@ def getGameNotes():
     cursor = conn.cursor()
     results = cursor.execute('select id, date, opponent, subjective_notes, feel_notes, mental_notes, good_bad_notes, post_outing_notes from game_journal Where date = ?', (date,)).fetchall()
     conn.close()
-    return jsonify([dict(row) for row in results])
+    
+    updated_game_notes = [] #adds line break after every .
+    for row in results:
+        s_notes = row['subjective_notes'] or ""
+        f_notes = row['feel_notes'] or ""
+        m_notes = row['mental_notes'] or ""
+        gb_notes = row['good_bad_notes'] or ""
+        po_notes = row['post_outing_notes'] or ""
+        
+        updated_game_notes.append({
+            "date": row["date"],
+            "opponent": row["opponent"],
+            "subjective_notes": s_notes.replace(".", ".<br>"),
+            "feel_notes": f_notes.replace(".", ".<br>"),
+            "mental_notes": m_notes.replace(".", ".<br>"),
+            "good_bad_notes": gb_notes.replace(".", ".<br>"),
+            "post_outing_notes": po_notes.replace(".", ".<br>"),
+            "id": row['id'],
+            })
+    return jsonify([dict(row) for row in updated_game_notes])
 
 @app.route("/api/getInsznThrowingPlan", methods = ["POST"])
 def getInsznThrowingPlan():

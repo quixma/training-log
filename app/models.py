@@ -102,14 +102,42 @@ def get_throwing_day_types():
     conn.close()
     return throwing_days
 
+def get_game_notes():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    game_dates = cursor.execute('select date from game_journal where in_game = "yes" order by date DESC').fetchall()
+    game_notes = cursor.execute('select id, date, opponent, subjective_notes, feel_notes, mental_notes, good_bad_notes, post_outing_notes from game_journal where in_game = "yes" order by date DESC LIMIT 1').fetchall()
+    conn.close()
+    
+    updated_game_notes = [] #adds line break after every .
+    for row in game_notes:
+        s_notes = row['subjective_notes'] or ""
+        f_notes = row['feel_notes'] or ""
+        m_notes = row['mental_notes'] or ""
+        gb_notes = row['good_bad_notes'] or ""
+        po_notes = row['post_outing_notes'] or ""
+        
+        updated_game_notes.append({
+            "date": row["date"],
+            "opponent": row["opponent"],
+            "subjective_notes": s_notes.replace(".", ".<br>"),
+            "feel_notes": f_notes.replace(".", ".<br>"),
+            "mental_notes": m_notes.replace(".", ".<br>"),
+            "good_bad_notes": gb_notes.replace(".", ".<br>"),
+            "post_outing_notes": po_notes.replace(".", ".<br>"),
+            "id": row['id'],
+            })
+        
+    return (updated_game_notes, game_dates)
 
 def get_summary_data():
     conn = get_db_connection()
     cursor = conn.cursor()
-    
+    #get last date for last 7 days throwing
+    date = cursor.execute('select date from throwing_sessions order by date desc limit 1').fetchone()
     peak_velo = cursor.execute('Select max(max_velo) from throwing_sessions').fetchall()
-    avg_readiness = cursor.execute('Select Round(avg(arm_readiness),1) from throwing_sessions where date >= datetime("now","-7 days")').fetchall()
-    total_throws = cursor.execute('select sum(total_throws) from throwing_sessions where date >= datetime("now","-7 days")').fetchall()
+    avg_readiness = cursor.execute('SELECT Round(avg(arm_readiness),1) FROM (Select arm_readiness from throwing_sessions order by date desc limit 7)').fetchall()
+    total_throws = cursor.execute("SELECT sum(total_throws) FROM (Select total_throws from throwing_sessions WHERE date >= datetime(?, '-7 days') order by date desc)", (date[0],)).fetchone()
     
     conn.close()
     return (peak_velo, avg_readiness, total_throws)
@@ -117,19 +145,19 @@ def get_summary_data():
 def inszn_dash_data():
     conn = get_db_connection()
     cursor = conn.cursor()
+    #get last date for last 7 days throwing
+    date = cursor.execute('select date from throwing_sessions order by date desc limit 1').fetchone()
     
-    peak_velos = cursor.execute("SELECT max(CASE WHEN date >= datetime('now', '-7 days') THEN max_velo ELSE 0 END) AS pv_last_7_days, max(CASE WHEN date >= datetime('now', '-14 days') THEN max_velo ELSE 0 END) AS pv_last_14_days, max(CASE WHEN date >= datetime('now', '-30 days') THEN max_velo ELSE 0 END) AS pv_last_30_days, max(max_velo) as pv_all_time FROM game_journal").fetchall()
-    avg_readiness = cursor.execute("SELECT round(avg(CASE WHEN date >= datetime('now', '-3 days') THEN arm_readiness END),1) AS ar_last_3_days, round(avg(CASE WHEN date >= datetime('now', '-7 days') THEN arm_readiness END),1) AS ar_last_7_days, round(avg(CASE WHEN date >= datetime('now', '-14 days') THEN arm_readiness END),1) AS ar_last_14_days FROM throwing_sessions").fetchall()
-    total_throws7d = cursor.execute('select sum(total_throws) from throwing_sessions where date >= datetime("now","-7 days")').fetchone()
-    total_throws28d = cursor.execute('select sum(total_throws) from throwing_sessions where date >= datetime("now","-28 days")').fetchone()
+    peak_velos = cursor.execute("SELECT max(CASE WHEN date >= datetime(?, '-7 days') THEN max_velo ELSE 0 END) AS pv_last_7_days, max(CASE WHEN date >= datetime(?, '-14 days') THEN max_velo ELSE 0 END) AS pv_last_14_days, max(CASE WHEN date >= datetime(?, '-30 days') THEN max_velo ELSE 0 END) AS pv_last_30_days, max(max_velo) as pv_all_time FROM game_journal", (date[0],date[0],date[0])).fetchall()
+    avg_readiness = cursor.execute("SELECT round(avg(CASE WHEN date >= datetime(?, '-3 days') THEN arm_readiness END),1) AS ar_last_3_days, round(avg(CASE WHEN date >= datetime(?, '-7 days') THEN arm_readiness END),1) AS ar_last_7_days, round(avg(CASE WHEN date >= datetime(?, '-14 days') THEN arm_readiness END),1) AS ar_last_14_days FROM throwing_sessions", (date[0],date[0],date[0])).fetchall()
+    total_throws7d = cursor.execute("SELECT sum(total_throws) FROM (Select total_throws from throwing_sessions WHERE date >= datetime(?, '-7 days') order by date desc)", (date[0],)).fetchone()
+    acr = cursor.execute("select acr from throwing_sessions order by date desc limit 1").fetchone()
     prev_throw_day = cursor.execute("select session_type, total_throws, max_velo from throwing_sessions order by rowid desc LIMIT 1").fetchall()
     days_last_game = cursor.execute("select days_since_last_game from throwing_sessions order by ROWID desc limit 1").fetchone()
-    avg_velos = cursor.execute("SELECT round(avg(CASE WHEN date >= datetime('now', '-7 days') THEN avg_velo END),1) AS avg_last_7_days, round(avg(CASE WHEN date >= datetime('now', '-14 days') THEN avg_velo END),1) AS avg_last_14_days, round(avg(CASE WHEN date >= datetime('now', '-30 days') THEN avg_velo END),1) AS avg_last_30_days, round(avg(avg_velo),1) as pv_all_time FROM game_journal").fetchall()
+    avg_velos = cursor.execute("SELECT round(avg(CASE WHEN date >= datetime(?, '-7 days') THEN avg_velo END),1) AS avg_last_7_days, round(avg(CASE WHEN date >= datetime(?, '-14 days') THEN avg_velo END),1) AS avg_last_14_days, round(avg(CASE WHEN date >= datetime(?, '-30 days') THEN avg_velo END),1) AS avg_last_30_days, round(avg(avg_velo),1) as pv_all_time FROM game_journal", (date[0],date[0],date[0])).fetchall()
     
-    aw = total_throws7d[0]
-    cw = round(total_throws28d[0] / 4, 0)
-    acr = round(aw / cw,2)
     return (peak_velos, avg_readiness, acr, total_throws7d, prev_throw_day, days_last_game, avg_velos)
+
 
 def updateThrowCount(session_id): #updating daily throw count in db after a game is logged: adds game throws to daily throws and updates
     conn = get_db_connection()
@@ -156,30 +184,18 @@ def get_totalthrows4wk():
      
     return total_throws 
 
-def get_game_notes():
+def calcACR(date, session_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    game_dates = cursor.execute('select date from game_journal where in_game = "yes" order by date DESC').fetchall()
-    game_notes = cursor.execute('select id, date, opponent, subjective_notes, feel_notes, mental_notes, good_bad_notes, post_outing_notes from game_journal where date >= datetime("now", "-10 days") and in_game = "yes" order by date DESC').fetchall()
-    conn.close()
+    #sends date of form submission, use that for date time function and -7 days instead of date now for pi
+    throws7d = cursor.execute("SELECT sum(total_throws) FROM (Select total_throws from throwing_sessions WHERE date >= datetime(?, '-7 days') order by date desc)", (date,)).fetchone()
+    throws28d = cursor.execute("SELECT sum(total_throws) FROM (Select total_throws from throwing_sessions WHERE date >= datetime(?, '-28 days') order by date desc)", (date,)).fetchone()
+       
+    aw = throws7d[0]
+    cw = round(throws28d[0] / 4, 0)
+    acr = round(aw / cw,2)
     
-    updated_game_notes = [] #adds line break after every .
-    for row in game_notes:
-        s_notes = row['subjective_notes'] or ""
-        f_notes = row['feel_notes'] or ""
-        m_notes = row['mental_notes'] or ""
-        gb_notes = row['good_bad_notes'] or ""
-        po_notes = row['post_outing_notes'] or ""
-        
-        updated_game_notes.append({
-            "date": row["date"],
-            "opponent": row["opponent"],
-            "subjective_notes": s_notes.replace(".", ".<br>"),
-            "feel_notes": f_notes.replace(".", ".<br>"),
-            "mental_notes": m_notes.replace(".", ".<br>"),
-            "good_bad_notes": gb_notes.replace(".", ".<br>"),
-            "post_outing_notes": po_notes.replace(".", ".<br>"),
-            "id": row['id'],
-            })
-        
-    return (updated_game_notes, game_dates)
+    cursor.execute("UPDATE throwing_sessions set acr = ? Where id = ?", (acr, session_id,))
+    conn.commit()
+    conn.close()
+    return 

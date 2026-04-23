@@ -1,6 +1,6 @@
 from app import app
 from app.input_validation import ThrowingLogModel, ThrowingPlanModel
-from app.models import get_db_connection, updateThrowCount
+from app.models import get_db_connection, updateThrowCount, calcACR
 from flask import request, flash, redirect, url_for
 from pydantic import ValidationError
 from werkzeug.utils import secure_filename
@@ -31,6 +31,7 @@ def submit_insznthrow():
             "max_velo": request.form.get("max_velocity"),
             "mound_work": request.form.get("mound_work"),
             "mound_throws": request.form.get("mound_throws"),
+            "acr": 0,
             "rpe": request.form.get('rpe'),
             "arm_readiness": request.form.get('arm_readiness'),
             "days_since_last_game": request.form.get('days_from_last_game'),
@@ -54,8 +55,8 @@ def submit_insznthrow():
         #insert data
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO throwing_sessions (date, throwing_block, session_type, body_weight, total_throws, max_velo, mound_work, mound_throws, rpe, arm_readiness, days_since_last_game, game_available, notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                       (form_data["date"], form_data["throwing_block"], form_data["session_type"], form_data["body_weight"], form_data["total_throws"], form_data["max_velo"], form_data["mound_work"],form_data["mound_throws"],form_data["rpe"], form_data["arm_readiness"], form_data["days_since_last_game"],form_data["game_available"],form_data["notes"]))
+        cursor.execute("INSERT INTO throwing_sessions (date, throwing_block, session_type, body_weight, total_throws, max_velo, mound_work, mound_throws, acr, rpe, arm_readiness, days_since_last_game, game_available, notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                       (form_data["date"], form_data["throwing_block"], form_data["session_type"], form_data["body_weight"], form_data["total_throws"], form_data["max_velo"], form_data["mound_work"],form_data["mound_throws"], form_data["acr"], form_data["rpe"], form_data["arm_readiness"], form_data["days_since_last_game"],form_data["game_available"],form_data["notes"]))
         
         session_id = cursor.lastrowid
         for x in range(len(drill_names)):
@@ -63,36 +64,10 @@ def submit_insznthrow():
                            (session_id, drill_list[x]['drill_name'], drill_list[x]['drill_velo']))   
         conn.commit()
         conn.close()
+        calcACR(form_data["date"], session_id)
         return redirect(url_for('inszn_home'))
     
-@app.route('/submit_workout_form', methods = ["POST"])
-def submit_workout_form():
-    if request.method == "POST":
-        form_data = {
-            "date": request.form.get("date"),
-            "energy_value": request.form.get("energy_rating"),
-            "fatigue_value": request.form.get("fatigue_rating"),
-            "motivation_value": request.form.get('motivation_rating'),
-            "focus_value": request.form.get('focus_rating'),
-            "explosiveness_value": request.form.get('explosivess_survey'),
-            "body_notes": request.form.get('body_notes'),
-            "workout_completed": request.form.get('workout_completed'),
-            "armcare_completed": request.form.get('armcare_completed'),
-            "conditioning_completed": request.form.get('conditioning_completed'),
-            "workout_notes": request.form.get("workout_notes")
-            }
-        form_data = {key: None if value == "" else value for key, value in form_data.items()}
-        #input validation here
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('INSERT INTO workout_log (date, energy_value, fatigue_value, motivation_value, focus_value, explosiveness_value, body_notes, workout_completed, armcare_completed, conditioning_completed, workout_notes) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
-                       (form_data["date"], form_data["energy_value"], form_data["fatigue_value"], form_data["motivation_value"], form_data["focus_value"], form_data["explosiveness_value"], form_data["body_notes"], form_data["workout_completed"], form_data["armcare_completed"], form_data["conditioning_completed"], form_data["workout_notes"]))
-        conn.commit()
-        conn.close()
-    
-    return redirect(url_for('workout_dashboard'))
-    
+
 @app.route('/submit_game_journal', methods = ["POST"])
 def submit_game_journal():
     if request.method == "POST":
@@ -144,7 +119,36 @@ def submit_game_journal():
         conn.commit()
         conn.close()
         updateThrowCount(session_id)
+        calcACR(form_data["date"], session_id)
         return redirect(url_for('inszn_home'))
+
+@app.route('/submit_workout_form', methods = ["POST"])
+def submit_workout_form():
+    if request.method == "POST":
+        form_data = {
+            "date": request.form.get("date"),
+            "energy_value": request.form.get("energy_rating"),
+            "fatigue_value": request.form.get("fatigue_rating"),
+            "motivation_value": request.form.get('motivation_rating'),
+            "focus_value": request.form.get('focus_rating'),
+            "explosiveness_value": request.form.get('explosivess_survey'),
+            "body_notes": request.form.get('body_notes'),
+            "workout_completed": request.form.get('workout_completed'),
+            "armcare_completed": request.form.get('armcare_completed'),
+            "conditioning_completed": request.form.get('conditioning_completed'),
+            "workout_notes": request.form.get("workout_notes")
+            }
+        form_data = {key: None if value == "" else value for key, value in form_data.items()}
+        #input validation here
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO workout_log (date, energy_value, fatigue_value, motivation_value, focus_value, explosiveness_value, body_notes, workout_completed, armcare_completed, conditioning_completed, workout_notes) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+                       (form_data["date"], form_data["energy_value"], form_data["fatigue_value"], form_data["motivation_value"], form_data["focus_value"], form_data["explosiveness_value"], form_data["body_notes"], form_data["workout_completed"], form_data["armcare_completed"], form_data["conditioning_completed"], form_data["workout_notes"]))
+        conn.commit()
+        conn.close()
+    
+    return redirect(url_for('workout_dashboard'))
     
 @app.route('/submit_inszn_throwing_plan', methods = ["POST"])
 def submit_inszn_throwing_plan():
