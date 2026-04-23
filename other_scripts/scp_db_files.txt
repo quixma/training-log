@@ -1,0 +1,1 @@
+scp quixma@pi:/home/quixma/training-log/backup/db_2026-04-21.db /home/quixma/training-log/backup
