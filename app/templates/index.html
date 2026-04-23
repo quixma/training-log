@@ -37,12 +37,12 @@
         <tbody id="throwing_plan_body">
           {% for data in throwing_plan %}
           <tr id="{{ tableID }}">
-            <td>{{ data["date"] }}</td>
-            <td>{{ data["throwing_block"] }}</td>
-            <td>{{ data["num_throwing_days"] }}</td>
-            <td>{{ data["sessions_html"] | safe }}</td>
-            <td>{{ data["th_notes_html"] | safe }}</td>
-            <td>{{ data["p_notes_html"] | safe }}</td>
+            <td data-label="Date">{{ data["date"] }}</td>
+            <td data-label="Throwing Block">{{ data["throwing_block"] }}</td>
+            <td data-label="# Throwing Days">{{ data["num_throwing_days"] }}</td>
+            <td data-label="Throwing Sessions">{{ data["sessions_html"] | safe }}</td>
+            <td data-label="Throwing Notes">{{ data["th_notes_html"] | safe }}</td>
+            <td data-label="Pitching Notes">{{ data["p_notes_html"] | safe }}</td>
             <td><button id="editTP">Edit Plan</button></td>
           </tr>
           {% endfor %}
@@ -151,8 +151,8 @@
         <tbody id="throwing_notes_body">
           {% for data in throwing_notes %}
           <tr id="{{ data['id'] }}">
-            <td>{{ data["date"] }}</td>
-            <td>{{ data["notes_html"] | safe }}</td>
+            <td data-label="Date">{{ data["date"] }}</td>
+            <td data-label="Notes">{{ data["notes_html"] | safe }}</td>
             <td><button class="editNotes">Edit Notes</button></td>
           </tr>
           {% endfor %}

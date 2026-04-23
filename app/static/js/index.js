@@ -331,8 +331,8 @@ function UpdateThrowingNotesTable(data, length) {
     for (let i = 0; i < length; i++) { //update table
         const notesRow = notesTable.rows[i];
 
-        notesRow.cells[0].innerText = data[i]['date'];
-        notesRow.cells[1].innerText = data[i]['notes'];
+        notesRow.cells[0].innerHTML = data[i]['date'];
+        notesRow.cells[1].innerHTML = data[i]['notes_html'];
     }
 
 }

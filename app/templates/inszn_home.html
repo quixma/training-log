@@ -46,10 +46,10 @@
         <tbody id="throwing_plan_body">
           {% for data in throwing_plan %}
           <tr id="{{ tableID }}">
-            <td>{{ data["date"] }}</td>
-            <td>{{ data["sessions_html"] | safe }}</td>
-            <td>{{ data["th_notes_html"] | safe }}</td>
-            <td>{{ data["p_notes_html"] | safe }}</td>
+            <td data-label="Date">{{ data["date"] }}</td>
+				<td data-label="Session breakdown">{{ data["sessions_html"] | safe }}</td>
+				<td data-label="Throwing notes">{{ data["th_notes_html"] | safe }}</td>
+				<td data-label="Pitching notes">{{ data["p_notes_html"] | safe }}</td>
             <td><button id="editTP">Edit Plan</button></td>
           </tr>
           {% endfor %}
@@ -187,7 +187,7 @@
     <div class="summary-col-label">Workload</div>
     <div class="card">
       <h3>Acute:Chronic Workload Ratio</h3>
-      <p>{{ acr }}</p>
+      <p>{{ acr[0] }}</p>
     </div>
     <div class="card">
       <h3>Weekly Throws (Last 4 Wks)</h3>
@@ -273,6 +273,7 @@
         <option value="avg_velo">Avg Velo</option>
         <option value="max_velo">Max Velo</option>
 		  <option value="ip">Innings Pitched</option> 
+		  <option value="acr">Acute Chronic Ratio</option>
       </select>
     </div>
     <div>
@@ -325,13 +326,13 @@
         <tbody id="game_notes_body">
           {% for data in game_notes %}
           <tr id="{{ data['id'] }}">
-            <td>{{ data["date"] }}</td>
-            <td>{{ data["opponent"] | safe }}</td>
-            <td>{{ data["subjective_notes"] | safe }}</td>
-            <td>{{ data["feel_notes"] | safe }}</td>
-            <td>{{ data["mental_notes"] | safe }}</td>
-            <td>{{ data["good_bad_notes"] | safe }}</td>
-            <td>{{ data["post_outing_notes"] | safe }}</td>
+            <td data-label="Date">{{ data["date"] }}</td>
+            <td data-label="Opponent">{{ data["opponent"] | safe }}</td>
+            <td data-label="Subjective Notes">{{ data["subjective_notes"] | safe }}</td>
+            <td data-label="Feel Notes">{{ data["feel_notes"] | safe }}</td>
+            <td data-label="Mental Notes">{{ data["mental_notes"] | safe }}</td>
+            <td data-label="Good Bad Notes">{{ data["good_bad_notes"] | safe }}</td>
+            <td data-label="Post Outing Notes">{{ data["post_outing_notes"] | safe }}</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -393,8 +394,8 @@
         <tbody id="throwing_notes_body">
           {% for data in throwing_notes %}
           <tr id="{{ data['id'] }}">
-            <td>{{ data["date"] }}</td>
-            <td>{{ data["notes_html"] | safe }}</td>
+            <td data-label="Date">{{ data["date"] }}</td>
+            <td data-label="Notes">{{ data["notes_html"] | safe }}</td>
             <td><button class="editNotes">Edit Notes</button></td>
           </tr>
           {% endfor %}

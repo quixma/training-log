@@ -80,13 +80,13 @@ function UpdateGameNotesTable(data) {
 
     row.setAttribute("id", data[0]['id'])
 
-    row.cells[0].innerText = data[0]['date'];
-    row.cells[1].innerText = data[0]["opponent"];
-    row.cells[2].innerText = data[0]["subjective_notes"];
-    row.cells[3].innerText = data[0]["feel_notes"];
-    row.cells[4].innerText = data[0]['mental_notes'];
-    row.cells[5].innerText = data[0]['good_bad_notes'];
-    row.cells[6].innerText = data[0]["post_outing_notes"];
+    row.cells[0].innerHTML = data[0]['date'];
+    row.cells[1].innerHTML = data[0]["opponent"];
+    row.cells[2].innerHTML = data[0]["subjective_notes"];
+    row.cells[3].innerHTML = data[0]["feel_notes"];
+    row.cells[4].innerHTML = data[0]['mental_notes'];
+    row.cells[5].innerHTML = data[0]['good_bad_notes'];
+    row.cells[6].innerHTML = data[0]["post_outing_notes"];
 
 }
 
@@ -262,8 +262,9 @@ function UpdateThrowingNotesTable(data, length) {
     for (let i = 0; i < length; i++) { //update table
         const notesRow = notesTable.rows[i];
 
-        notesRow.cells[0].innerText = data[i]['date'];
-        notesRow.cells[1].innerText = data[i]['notes'];
+        notesRow.cells[0].innerHTML = data[i]['date'];
+        notesRow.cells[1].innerHTML = data[i]['notes_html'];
+
     }
 
 }

@@ -492,3 +492,75 @@ footer strong {
     border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   }
 }
+/* Mobile: hide table, show cards */
+@media (max-width: 768px) { 
+  #throwing_plan_body tr {
+    display: block;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 12px;
+    background: var(--bg-card);
+  }
+
+  /* Hide the thead on mobile */
+  .section-card thead {
+    display: none;
+  }
+
+  /* Each cell becomes a block with a label */
+  #throwing_plan_body td {
+    display: block;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    white-space: normal; /* critical — overrides your first-child rule */
+  }
+
+  #throwing_plan_body td:last-child {
+    border-bottom: none;
+  }
+
+  #throwing_plan_body td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+  /* same as above, but for game notes */
+  #throwing_notes_body tr {
+    display: block;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 12px;
+    background: var(--bg-card);
+  }
+
+  .section-card thead {
+    display: none;
+  }
+
+  #throwing_notes_body td {
+    display: block;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    white-space: normal; 
+  }
+
+  #throwing_notes_body td:last-child {
+    border-bottom: none;
+  }
+
+  #throwing_notes_body td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+}
