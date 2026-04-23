@@ -288,7 +288,7 @@ def submit_throw():
                            (session_id, drills_list[x]['drill_name'], drills_list[x]['ball_weight'], drills_list[x]['max_velocity'], drills_list[x]['throw_count']))   
         conn.commit()
         conn.close()
-        return redirect(url_for('index'))
+        return redirect(url_for('offszn_home'))
     
 @app.route('/submit_throwing_plan', methods = ["GET","POST"])
 def submit_throwing_plan():
@@ -339,7 +339,7 @@ def submit_throwing_plan():
                            (session_id, drillsTP[x]['drill_names'], drillsTP[x]['drill_types'], drillsTP[x]['drill_weights'], drillsTP[x]['drill_throws']))
         conn.commit()
         conn.close()
-        return redirect(url_for('index'))
+        return redirect(url_for('offszn_home'))
     
 @app.route('/submit_warmup', methods = ["POST"])
 def submit_warmup():

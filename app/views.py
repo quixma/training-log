@@ -2,11 +2,14 @@
 from app import app
 from app.models import inszn_dash_data, get_inszn_throwing_plan_dates, get_game_notes, get_throwing_notes, get_throwing_plan, get_throwing_plan_prethrow, get_throwing_plan_dates, get_totalthrows4wk, get_throwing_notes_dates, get_summary_data, get_bullpen_report_files, get_throwing_day_types
 from app.api_calls import shutdown
-from flask import render_template, request
-
+from flask import render_template, request, redirect, url_for
 
 @app.route("/", methods=["GET"])
-def index(): 
+def index():
+    return redirect(url_for('inszn_home'))
+
+@app.route("/offszn_home", methods=["GET"])
+def offszn_home(): 
     throwing_notes = get_throwing_notes() 
     throwing_plan, drills = get_throwing_plan()
     plan_dates = get_throwing_plan_dates()
@@ -17,7 +20,7 @@ def index():
     for x in throwing_plan: #get id of throwing plan
         tableID = x['id']
     
-    return render_template('index.html',throwing_notes = throwing_notes, throwing_plan=throwing_plan, drills=drills, tableID = tableID, plan_dates = plan_dates, notes_dates = notes_dates, throwing_days = throwing_days)
+    return render_template('offszn_home.html',throwing_notes = throwing_notes, throwing_plan=throwing_plan, drills=drills, tableID = tableID, plan_dates = plan_dates, notes_dates = notes_dates, throwing_days = throwing_days)
 
 @app.route('/offszn-throwing-form', methods=["GET","POST"])
 def offszn_throwing_form():
