@@ -28,9 +28,9 @@ def submit_insznthrow():
             "session_type": request.form.get("session_type"),
             "body_weight": request.form.get("body_weight"),
             "total_throws": request.form.get("total_throws"),
+            "working_set_throws": request.form.get("working_set_throws"),
             "max_velo": request.form.get("max_velocity"),
             "mound_work": request.form.get("mound_work"),
-            "mound_throws": request.form.get("mound_throws"),
             "acr": 0,
             "rpe": request.form.get('rpe'),
             "arm_readiness": request.form.get('arm_readiness'),
@@ -45,8 +45,6 @@ def submit_insznthrow():
         #if game available not checked converted to no for db
         if(form_data["mound_work"] == None):
             form_data["mound_work"] = "no"
-        if(form_data["mound_throws"] == None):
-            form_data["mound_throws"] = 0 
         if(form_data["game_available"] == None):
             form_data["game_available"] = "no"
         
@@ -55,8 +53,8 @@ def submit_insznthrow():
         #insert data
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO throwing_sessions (date, throwing_block, session_type, body_weight, total_throws, max_velo, mound_work, mound_throws, acr, rpe, arm_readiness, days_since_last_game, game_available, notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                       (form_data["date"], form_data["throwing_block"], form_data["session_type"], form_data["body_weight"], form_data["total_throws"], form_data["max_velo"], form_data["mound_work"],form_data["mound_throws"], form_data["acr"], form_data["rpe"], form_data["arm_readiness"], form_data["days_since_last_game"],form_data["game_available"],form_data["notes"]))
+        cursor.execute("INSERT INTO throwing_sessions (date, throwing_block, session_type, body_weight, total_throws, working_set_throws, max_velo, mound_work, acr, rpe, arm_readiness, days_since_last_game, game_available, notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                       (form_data["date"], form_data["throwing_block"], form_data["session_type"], form_data["body_weight"], form_data["total_throws"], form_data["working_set_throws"], form_data["max_velo"], form_data["mound_work"], form_data["acr"], form_data["rpe"], form_data["arm_readiness"], form_data["days_since_last_game"],form_data["game_available"],form_data["notes"]))
         
         session_id = cursor.lastrowid
         for x in range(len(drill_names)):
@@ -119,7 +117,7 @@ def submit_game_journal():
         conn.commit()
         conn.close()
         updateThrowCount(session_id)
-        calcACR(form_data["date"], session_id)
+        calcACR(form_data["date"], session_id[0])
         return redirect(url_for('inszn_home'))
 
 @app.route('/submit_workout_form', methods = ["POST"])
@@ -361,7 +359,7 @@ def submit_warmup():
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("INSERT INTO warmups (date, name, rollout_ex, spine_ex, hip_ex, shoulder_ex, arm_ex, dynamic_ex, notes) VALUES (?,?,?,?,?,?,?,?,?)",
-                       form_data["date"], form_data["name"], form_data["rollout_ex"], form_data["spine_ex"], form_data["hip_ex"], form_data["shoulder_ex"], form_data["arm_ex"], form_data["dynamic_ex"], form_data["notes"])
+                       (form_data["date"], form_data["name"], form_data["rollout_ex"], form_data["spine_ex"], form_data["hip_ex"], form_data["shoulder_ex"], form_data["arm_ex"], form_data["dynamic_ex"], form_data["notes"]))
         
         conn.commit()
         conn.close()
@@ -393,12 +391,12 @@ def submit_armcare():
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("INSERT INTO armcare_workouts (date, workout_name, notes) VALUES (?,?,?)", 
-                       form_data["date"], form_data["workout_name"], form_data["notes"])
+                       (form_data["date"], form_data["workout_name"], form_data["notes"]))
         
         session_id = cursor.lastrowid
         for x in range(len(ex_names)):
             cursor.execute("INSERT INTO armcare_workouts_ex (session_id, ex_name, sets_reps) VALUES (?,?,?)",
-                           session_id, ex_list[x]["ex_name"], ex_list["set_rep"])
+                           (session_id, ex_list[x]["ex_name"], ex_list["set_rep"]))
         conn.commit()
         conn.close()
         return redirect(url_for('workout_dashboard'))
@@ -429,12 +427,12 @@ def submit_back():
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("INSERT INTO back_workouts (date, workout_name, notes) VALUES (?,?,?)", 
-                       form_data["date"], form_data["workout_name"], form_data["notes"])
+                       (form_data["date"], form_data["workout_name"], form_data["notes"]))
         
         session_id = cursor.lastrowid
         for x in range(len(ex_names)):
             cursor.execute("INSERT INTO back_workouts_ex (session_id, ex_name, sets_reps) VALUES (?,?,?)",
-                           session_id, ex_list[x]["ex_name"], ex_list["set_rep"])
+                           (session_id, ex_list[x]["ex_name"], ex_list["set_rep"]))
         conn.commit()
         conn.close()
         return redirect(url_for('workout_dashboard'))

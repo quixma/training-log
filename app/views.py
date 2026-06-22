@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 from app import app
-from app.models import inszn_dash_data, get_inszn_throwing_plan_dates, get_game_notes, get_throwing_notes, get_throwing_plan, get_throwing_plan_prethrow, get_throwing_plan_dates, get_totalthrows4wk, get_throwing_notes_dates, get_summary_data, get_bullpen_report_files, get_throwing_day_types
+from app.models import inszn_dash_data, get_inszn_throwing_plan_dates, get_game_notes, get_throwing_notes, get_throwing_plan, get_throwing_plan_prethrow, get_throwing_plan_dates, get_totalthrows4wk, get_totalworkingthrows4wk, get_throwing_notes_dates, get_summary_data, get_bullpen_report_files, get_throwing_day_types
+from app.models import get_RatingsAvgs, get_WorkoutsCompleted, get_bodyNotes_dates, get_bodyNotes
 from app.api_calls import shutdown
 from flask import render_template, request, redirect, url_for
+
 
 @app.route("/", methods=["GET"])
 def index():
@@ -48,8 +50,9 @@ def inszn_home():
     plan_dates = get_inszn_throwing_plan_dates()
     notes_dates = get_throwing_notes_dates()
     throwing_days = get_throwing_day_types()
-    peak_velo, avg_readiness, acr, total_throws7d, prev_throw_day, days_last_game, avg_velos = inszn_dash_data()
+    peak_velo, avg_readiness, acr, total_throws7d, working_throws7d, prev_throw_day, days_last_game, avg_velos = inszn_dash_data()
     throws4wk = get_totalthrows4wk()
+    workingthrows4wk = get_totalworkingthrows4wk()
     game_notes, game_dates = get_game_notes()
     
     for x in throwing_plan: #get id of throwing plan
@@ -57,8 +60,8 @@ def inszn_home():
     
     return render_template('inszn_home.html',throwing_notes = throwing_notes, throwing_plan=throwing_plan, drills=drills, tp_prethrow = tp_prethrow, 
                            tableID = tableID, plan_dates = plan_dates, notes_dates = notes_dates, throwing_days = throwing_days,
-                           peak_velo = peak_velo, avg_readiness = avg_readiness, acr = acr, total_throws7d = total_throws7d, 
-                           prev_throw_day = prev_throw_day, days_last_game = days_last_game, throws4wk = throws4wk, avg_velos = avg_velos,
+                           peak_velo = peak_velo, avg_readiness = avg_readiness, acr = acr, total_throws7d = total_throws7d, working_throws7d = working_throws7d,
+                           prev_throw_day = prev_throw_day, days_last_game = days_last_game, throws4wk = throws4wk, workingthrows4wk = workingthrows4wk, avg_velos = avg_velos,
                            game_notes = game_notes, game_dates = game_dates)
 
 @app.route('/inszn_throwing_form', methods=["GET", "POST"])
@@ -83,7 +86,13 @@ def game_data_dashboard():
 
 @app.route('/workout_dashboard', methods=["GET", "POST"])
 def workout_dashboard():
-    return render_template('workout_dashboard.html')
+    energy, fatigue, motivation, focus = get_RatingsAvgs()
+    rows = get_WorkoutsCompleted()
+    dates = get_bodyNotes_dates()
+    body_notes = get_bodyNotes()
+    
+    return render_template('workout_dashboard.html', energy = energy, fatigue = fatigue, motivation = motivation, focus = focus,
+                           rows = rows, dates = dates, body_notes = body_notes)
 
 @app.route('/workout_form', methods=["GET", "POST"])
 def workout_form():

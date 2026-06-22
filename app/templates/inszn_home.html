@@ -169,16 +169,24 @@
       <h3>Last Throwing Session</h3>
       {% for data in prev_throw_day %}
       <div class="card-row">
-        <span class="card-row-label">Throwing Session</span>
+        <span class="card-row-label">Date</span>
         <span class="card-row-value">{{ data[0] }}</span>
       </div>
       <div class="card-row">
-        <span class="card-row-label">Total throws</span>
+        <span class="card-row-label">Throwing Session</span>
         <span class="card-row-value">{{ data[1] }}</span>
       </div>
       <div class="card-row">
-        <span class="card-row-label">Max Velo:</span>
+        <span class="card-row-label">Total throws</span>
         <span class="card-row-value">{{ data[2] }}</span>
+      </div>
+      <div class="card-row">
+        <span class="card-row-label">Max Velo:</span>
+        <span class="card-row-value">{{ data[4] }}</span>
+      </div>
+      <div class="card-row">
+        <span class="card-row-label">Working Set Throws:</span>
+        <span class="card-row-value">{{ data[3] }}</span>
       </div>
       {% endfor %}
     </div>
@@ -202,6 +210,19 @@
       <h3>Total Throws (Last 7d)</h3>
       <p>{{ total_throws7d[0] }}</p>
     </div>
+    <div class="card">
+      <h3>Working Set Throws (Last 7d)</h3>
+      <p>{{ working_throws7d[0] }}</p>
+    </div>
+    <div class="card">
+    <h3>Weekly Working Throws (Last 4 Wks)</h3>
+      {% for data in workingthrows4wk %}
+      <div class="card-row">
+        <span class="card-row-label">{{ data[0] }}</span>
+        <span class="card-row-value">{{ data[1] }}</span>
+      </div>
+      {% endfor %}
+      </div>
   </div>
   
   <div class="summary-col">

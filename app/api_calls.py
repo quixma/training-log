@@ -7,7 +7,7 @@ import os
 import pandas as pd
 import math
 import numpy as np
-import subprocess #update requirements for pi
+import subprocess 
 
 @app.route('/shutdown', methods = ["POST"])
 def shutdown():

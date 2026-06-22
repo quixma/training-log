@@ -1,5 +1,6 @@
 import sqlite3
 import os
+from itertools import zip_longest
 
 def get_db_connection():
     conn = sqlite3.connect('training_log.db')
@@ -151,12 +152,13 @@ def inszn_dash_data():
     peak_velos = cursor.execute("SELECT max(CASE WHEN date >= datetime(?, '-7 days') THEN max_velo ELSE 0 END) AS pv_last_7_days, max(CASE WHEN date >= datetime(?, '-14 days') THEN max_velo ELSE 0 END) AS pv_last_14_days, max(CASE WHEN date >= datetime(?, '-30 days') THEN max_velo ELSE 0 END) AS pv_last_30_days, max(max_velo) as pv_all_time FROM game_journal", (date[0],date[0],date[0])).fetchall()
     avg_readiness = cursor.execute("SELECT round(avg(CASE WHEN date >= datetime(?, '-3 days') THEN arm_readiness END),1) AS ar_last_3_days, round(avg(CASE WHEN date >= datetime(?, '-7 days') THEN arm_readiness END),1) AS ar_last_7_days, round(avg(CASE WHEN date >= datetime(?, '-14 days') THEN arm_readiness END),1) AS ar_last_14_days FROM throwing_sessions", (date[0],date[0],date[0])).fetchall()
     total_throws7d = cursor.execute("SELECT sum(total_throws) FROM (Select total_throws from throwing_sessions WHERE date >= datetime(?, '-7 days') order by date desc)", (date[0],)).fetchone()
+    working_throws7d = cursor.execute("SELECT sum(working_set_throws) FROM (Select working_set_throws from throwing_sessions WHERE date >= datetime(?, '-7 days') order by date desc)", (date[0],)).fetchone()
     acr = cursor.execute("select acr from throwing_sessions order by date desc limit 1").fetchone()
-    prev_throw_day = cursor.execute("select session_type, total_throws, max_velo from throwing_sessions order by rowid desc LIMIT 1").fetchall()
+    prev_throw_day = cursor.execute("select date, session_type, total_throws, working_set_throws, max_velo from throwing_sessions order by rowid desc LIMIT 1").fetchall()
     days_last_game = cursor.execute("select days_since_last_game from throwing_sessions order by ROWID desc limit 1").fetchone()
     avg_velos = cursor.execute("SELECT round(avg(CASE WHEN date >= datetime(?, '-7 days') THEN avg_velo END),1) AS avg_last_7_days, round(avg(CASE WHEN date >= datetime(?, '-14 days') THEN avg_velo END),1) AS avg_last_14_days, round(avg(CASE WHEN date >= datetime(?, '-30 days') THEN avg_velo END),1) AS avg_last_30_days, round(avg(avg_velo),1) as pv_all_time FROM game_journal", (date[0],date[0],date[0])).fetchall()
     
-    return (peak_velos, avg_readiness, acr, total_throws7d, prev_throw_day, days_last_game, avg_velos)
+    return (peak_velos, avg_readiness, acr, total_throws7d, working_throws7d, prev_throw_day, days_last_game, avg_velos)
 
 
 def updateThrowCount(session_id): #updating daily throw count in db after a game is logged: adds game throws to daily throws and updates
@@ -166,9 +168,11 @@ def updateThrowCount(session_id): #updating daily throw count in db after a game
     bullpen_throws = cursor.execute('Select bullpen_throws from game_journal where session_id = ?', (session_id[0],)).fetchone()
     game_throws = cursor.execute('Select game_throws from game_journal where session_id = ?', (session_id[0],)).fetchone()
     session_throws = cursor.execute('Select total_throws from throwing_sessions where id = ?', (session_id[0],)).fetchone()
+    working_throws = cursor.execute('Select working_set_throws from throwing_sessions where id = ?', (session_id[0],)).fetchone()
     
     total_throws = bullpen_throws[0] + game_throws[0] + session_throws[0]
-    cursor.execute('Update throwing_sessions SET total_throws = ?, session_type = session_type || " + game" Where id = ?', (total_throws, session_id[0]))
+    working_throws = working_throws[0] + bullpen_throws[0] + game_throws[0]
+    cursor.execute('Update throwing_sessions SET total_throws = ?, session_type = session_type || " + game", working_set_throws = ? Where id = ?', (total_throws, session_id[0], working_throws))
     
     conn.commit()
     conn.close()
@@ -183,6 +187,16 @@ def get_totalthrows4wk():
     conn.close()
      
     return total_throws 
+
+def get_totalworkingthrows4wk():
+    weeks = 4
+    conn= get_db_connection()
+    cursor = conn.cursor()
+    #groups dates as a whole week, listing in dict as the week starting on monday date, calc sum of total throws for that week
+    total_working_throws = cursor.execute("select DATE(date, 'weekday 0', '-7 days') AS week_start, sum(working_set_throws) from throwing_sessions GROUP By week_start ORDER By week_start DESC LIMIT ?",(weeks,)).fetchall()
+    conn.close()
+     
+    return total_working_throws 
 
 def calcACR(date, session_id):
     conn = get_db_connection()
@@ -199,3 +213,74 @@ def calcACR(date, session_id):
     conn.commit()
     conn.close()
     return 
+
+def get_RatingsAvgs():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    date = cursor.execute('select date from workout_log order by date desc limit 1').fetchone()
+    avg_energy = cursor.execute("SELECT avg(energy_value) FROM (Select energy_value from workout_log WHERE date >= datetime(?, '-7 days') order by date desc)", (date[0],)).fetchone()
+    avg_fatigue = cursor.execute("SELECT avg(fatigue_value) FROM (Select fatigue_value from workout_log WHERE date >= datetime(?, '-7 days') order by date desc)", (date[0],)).fetchone()
+    avg_motivation = cursor.execute("SELECT avg(motivation_value) FROM (Select motivation_value from workout_log WHERE date >= datetime(?, '-7 days') order by date desc)", (date[0],)).fetchone()
+    avg_focus = cursor.execute("SELECT avg(focus_value) FROM (Select focus_value from workout_log WHERE date >= datetime(?, '-7 days') order by date desc)", (date[0],)).fetchone()
+    
+    conn.close()
+    return (avg_energy[0], avg_fatigue[0], avg_motivation[0], avg_focus[0])
+
+def get_WorkoutsCompleted():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    date = cursor.execute('select date from workout_log order by date desc limit 1').fetchone()
+    lifts_completed = cursor.execute("Select date, workout_completed from workout_log WHERE date >= datetime(?, '-7 days') AND workout_completed IS NOT NULL order by date desc", (date[0],)).fetchall()
+    armcare_completed = cursor.execute("Select date, armcare_completed from workout_log WHERE date >= datetime(?, '-7 days') AND armcare_completed IS NOT NULL order by date desc", (date[0],)).fetchall()
+    conditioning_completed = cursor.execute("Select date, conditioning_completed from workout_log WHERE date >= datetime(?, '-7 days') AND conditioning_completed IS NOT NULL order by date desc", (date[0],)).fetchall()
+    conn.close()
+    
+    lifts = []
+    for x in lifts_completed:
+        lifts.append({
+            "Date": x[0],
+            "Lift": x[1]
+            })
+    armcare = []
+    for x in armcare_completed:
+        armcare.append({
+            "Date": x[0],
+            "Armcare": x[1]
+            })
+    conditioning = []
+    for x in conditioning_completed:
+        conditioning.append({
+            "Date": x[0],
+            "Conditioning": x[1]
+            })
+    #pads the shortest one with empty dicts to make all match same length for displaying.
+    rows = list(zip_longest(lifts, armcare, conditioning, fillvalue={'Date': '', 'Lift': '', 'Armcare': '', 'Conditioning': ''}))
+    
+    return rows
+
+def get_bodyNotes_dates():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    dates = cursor.execute("select date from workout_log where body_notes IS NOT NULL").fetchall()    
+    conn.close()
+    return dates
+
+def get_bodyNotes():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    notes = cursor.execute("select date, body_notes from workout_log where body_notes IS NOT NULL order by date DESC LIMIT 3").fetchall()    
+    conn.close()
+    body_notes = []
+    for x in notes:
+        b_notes = x['body_notes'] or ""
+        
+        body_notes.append({
+            "Date": x['date'],
+            "body_notes": b_notes.replace(".", ".<br>"),
+            })
+    return body_notes
+    
