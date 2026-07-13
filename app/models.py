@@ -172,7 +172,7 @@ def updateThrowCount(session_id): #updating daily throw count in db after a game
     
     total_throws = bullpen_throws[0] + game_throws[0] + session_throws[0]
     working_throws = working_throws[0] + bullpen_throws[0] + game_throws[0]
-    cursor.execute('Update throwing_sessions SET total_throws = ?, session_type = session_type || " + game", working_set_throws = ? Where id = ?', (total_throws, session_id[0], working_throws))
+    cursor.execute('Update throwing_sessions SET total_throws = ?, session_type = session_type || " + game", working_set_throws = ? Where id = ?', (total_throws, working_throws, session_id[0]))
     
     conn.commit()
     conn.close()
