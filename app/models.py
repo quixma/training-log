@@ -233,6 +233,7 @@ def get_WorkoutsCompleted():
     
     date = cursor.execute('select date from workout_log order by date desc limit 1').fetchone()
     lifts_completed = cursor.execute("Select date, workout_completed from workout_log WHERE date >= datetime(?, '-7 days') AND workout_completed IS NOT NULL order by date desc", (date[0],)).fetchall()
+    spine_completed = cursor.execute("Select date, spine_completed from workout_log WHERE date >= datetime(?, '-7 days') AND spine_completed IS NOT NULL order by date desc", (date[0],)).fetchall()
     armcare_completed = cursor.execute("Select date, armcare_completed from workout_log WHERE date >= datetime(?, '-7 days') AND armcare_completed IS NOT NULL order by date desc", (date[0],)).fetchall()
     conditioning_completed = cursor.execute("Select date, conditioning_completed from workout_log WHERE date >= datetime(?, '-7 days') AND conditioning_completed IS NOT NULL order by date desc", (date[0],)).fetchall()
     conn.close()
@@ -242,6 +243,12 @@ def get_WorkoutsCompleted():
         lifts.append({
             "Date": x[0],
             "Lift": x[1]
+            })
+    spine = []
+    for x in spine_completed:
+        spine.append({
+            "Date": x[0],
+            "Spine/Core": x[1]
             })
     armcare = []
     for x in armcare_completed:
@@ -256,7 +263,7 @@ def get_WorkoutsCompleted():
             "Conditioning": x[1]
             })
     #pads the shortest one with empty dicts to make all match same length for displaying.
-    rows = list(zip_longest(lifts, armcare, conditioning, fillvalue={'Date': '', 'Lift': '', 'Armcare': '', 'Conditioning': ''}))
+    rows = list(zip_longest(lifts, spine, armcare, conditioning, fillvalue={'Date': '', 'Lift': '', 'Spine/Core': '', 'Armcare': '', 'Conditioning': ''}))
     
     return rows
 

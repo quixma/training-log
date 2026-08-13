@@ -3,118 +3,147 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/workout_dashboard.css') }}">
 {% endblock %}
 {% block content %}
+
 <header>
   <h1>INSZN <span>//</span> Workout Dashboard</h1>
 </header>
 
 <!-- Tab Nav -->
 <div class="tab">
-  <button class="tablinks active" onclick="openTab(event, 'workout_survey')">Workout + Survey View</button>
+  <button class="tablinks active" onclick="openTab(event, 'workout_survey')">Workout + Survey</button>
   <button class="tablinks" onclick="openTab(event, 'warmup_workouts')">Warmup Options</button>
-  <button class="tablinks" onclick="openTab(event, 'armcare_workouts')">Arm Care Workouts</button>
+  <button class="tablinks" onclick="openTab(event, 'armcare_workouts')">Arm Care</button>
   <button class="tablinks" onclick="openTab(event, 'back_workouts')">Back Workouts</button>
-  <button class="tablinks" onclick="window.location.href='{{ url_for('workout_form') }}'">Workout Form Entry</button>
+  <button class="tablinks tab-link" onclick="window.location.href='{{ url_for('workout_form') }}'">↗ Workout Form</button>
 </div>
 
-<!-- ══ SURVEY TAB ══════════════════════════════ -->
+
+<!-- ══ SURVEY TAB ════════════════════════════ -->
 <div id="workout_survey" class="tabcontent active">
-	<div class="summary-cards">
-	<div class="summary-col">
-    <div class="summary-col-label">Workout Survery Avgs</div>
-    <div class="card">
-      <h3>Avg Energy Rating (7d)</h3>
-      <p>{{ energy }}</p>
+  <div class="summary-cards">
+
+    <!-- Stat Cards -->
+    <div class="summary-col">
+      <div class="summary-col-label">Survey Averages (7d)</div>
+      <div class="card">
+        <h3>Avg Energy</h3>
+        <p>{{ energy }}</p>
+      </div>
+      <div class="card">
+        <h3>Avg Fatigue</h3>
+        <p>{{ fatigue }}</p>
+      </div>
+      <div class="card">
+        <h3>Avg Motivation</h3>
+        <p>{{ motivation }}</p>
+      </div>
+      <div class="card">
+        <h3>Avg Focus</h3>
+        <p>{{ focus }}</p>
+      </div>
     </div>
-    <div class="card">
-      <h3>Avg Fatigue Rating (7d)</h3>
-      <p>{{ fatigue }}</p>
-    </div>
-    <div class="card">
-      <h3>Avg Motivation Rating (7d)</h3>
-      <p>{{ motivation }}</p>
-    </div>
-    <div class="card">
-      <h3>Avg Focus Rating (7d)</h3>
-      <p>{{ focus }}</p>
-    </div>
-    
-    <div class="table-scroll">
-      <table>
-  <thead>
-    <tr>
-      <th>Workouts Completed (7d)</th>
-      <th>Arm Care Complete (7d)</th>
-      <th>Conditioning Completed (7d)</th>
-    </tr>
-  </thead>
-  <tbody id="workoutlog_body">
-    {% for lift, arm, cond in rows %}
-    <tr>
-      <td>{{ lift['Date'] }} - {{ lift['Lift'] }}</td>
-      <td>{{ arm['Date'] }} - {{ arm['Armcare'] }}</td>
-      <td>{{ cond['Date'] }} - {{ cond['Conditioning'] }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-      
-      <h3>Body Notes</h3>
-      <div>
-        <div>
-          <select id="retrieve-body-notes">
-            <option value="">View Body Notes by Date</option>
-            {% for x in dates %}
-            <option value='{{ x[0] }}'>{{ x[0] }}</option>
-            {% endfor %}
-          </select>
-          <select id="body-notes-time">
-            <option value="">Select range…</option>
-            <option value="7">Last 7 days</option>
-            <option value="14">Last 14 days</option>
-            <option value="30">Last 30 days</option>
-          </select>
+
+    <!-- Tables Column -->
+    <div class="tables-col">
+
+      <!-- Workouts Completed -->
+      <div class="section-card">
+        <div class="section-card-header">
+          <h3>Workouts Completed (7d)</h3>
         </div>
-      <div class="table-scroll">
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Body Notes</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="bodynotes_body">
-         {% for x in body_notes %}
-          <tr id="">
-            <td data-label="Date">{{ x['Date'] }}</td>
-            <td data-label="Body Notes">{{ x['body_notes'] | safe }}</td>
-         {% endfor %} 
-          </tr>
-          
-        </tbody>
-      </table>
-    </div>
-    </div>
-  </div>
-  </div>
-</div>
-</div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Lift</th>
+                <th>Spine / Core</th>
+                <th>Arm Care</th>
+                <th>Conditioning</th>
+              </tr>
+            </thead>
+            <tbody id="workoutlog_body">
+              {% for lift, spine, arm, cond in rows %}
+              <tr>
+                <td>{{ lift['Date'] }} — {{ lift['Lift'] }}</td>
+                <td>{{ spine['Date'] }} — {{ spine['Spine/Core'] }}</td>
+                <td>{{ arm['Date'] }} — {{ arm['Armcare'] }}</td>
+                <td>{{ cond['Date'] }} — {{ cond['Conditioning'] }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-<!-- ══ WARMUP TAB ══════════════════════════════ -->
+      <!-- Body Notes -->
+      <div class="section-card">
+        <div class="section-card-header">
+          <h3>Body Notes</h3>
+          <div class="filter-row">
+            <select id="retrieve-body-notes">
+              <option value="">View by Date</option>
+              {% for x in dates %}
+              <option value='{{ x[0] }}'>{{ x[0] }}</option>
+              {% endfor %}
+            </select>
+            <select id="body-notes-time">
+              <option value="">Select range…</option>
+              <option value="7">Last 7 days</option>
+              <option value="14">Last 14 days</option>
+              <option value="30">Last 30 days</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Body Notes</th>
+              </tr>
+            </thead>
+            <tbody id="bodynotes_body">
+              {% for x in body_notes %}
+              <tr>
+                <td>{{ x['Date'] }}</td>
+                <td>{{ x['body_notes'] | safe }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- end .tables-col -->
+  </div><!-- end .summary-cards -->
+</div><!-- end #workout_survey -->
+
+
+<!-- ══ WARMUP TAB ════════════════════════════ -->
 <div id="warmup_workouts" class="tabcontent">
-
+  <div class="tab-placeholder">Warmup options coming soon</div>
 </div>
 
-<!-- ══ ARMCARE TAB ══════════════════════════════ -->
+<!-- ══ ARMCARE TAB ═══════════════════════════ -->
 <div id="armcare_workouts" class="tabcontent">
-
+  <div class="tab-placeholder">Arm care workouts coming soon</div>
 </div>
 
 <!-- ══ BACK TAB ══════════════════════════════ -->
 <div id="back_workouts" class="tabcontent">
-
+  <div class="tab-placeholder">Back workouts coming soon</div>
 </div>
 
+
 <script src="{{ url_for('static', filename='js/workout_dashboard.js') }}"></script>
+
+<script>
+  function openTab(evt, tabName) {
+    document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tablinks').forEach(t => t.classList.remove('active'));
+    document.getElementById(tabName).classList.add('active');
+    evt.currentTarget.classList.add('active');
+  }
+</script>
 
 {% endblock %}

@@ -132,6 +132,7 @@ def submit_workout_form():
             "explosiveness_value": request.form.get('explosivess_survey'),
             "body_notes": request.form.get('body_notes'),
             "workout_completed": request.form.get('workout_completed'),
+            "spine_completed": request.form.get('spine_completed'),
             "armcare_completed": request.form.get('armcare_completed'),
             "conditioning_completed": request.form.get('conditioning_completed'),
             "workout_notes": request.form.get("workout_notes")
@@ -142,7 +143,7 @@ def submit_workout_form():
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute('INSERT INTO workout_log (date, energy_value, fatigue_value, motivation_value, focus_value, explosiveness_value, body_notes, workout_completed, armcare_completed, conditioning_completed, workout_notes) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
-                       (form_data["date"], form_data["energy_value"], form_data["fatigue_value"], form_data["motivation_value"], form_data["focus_value"], form_data["explosiveness_value"], form_data["body_notes"], form_data["workout_completed"], form_data["armcare_completed"], form_data["conditioning_completed"], form_data["workout_notes"]))
+                       (form_data["date"], form_data["energy_value"], form_data["fatigue_value"], form_data["motivation_value"], form_data["focus_value"], form_data["explosiveness_value"], form_data["body_notes"], form_data["workout_completed"], form_data["spine_completed"], form_data["armcare_completed"], form_data["conditioning_completed"], form_data["workout_notes"]))
         conn.commit()
         conn.close()
     
