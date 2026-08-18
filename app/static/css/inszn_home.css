@@ -412,36 +412,8 @@ td button:hover {
   .tab { padding: 0 12px; overflow-x: auto; }
   .tabcontent { padding: 20px 12px; gap: 16px; }
   .summary-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-
-  .table-container {
-    flex-direction: column;
-  }
-
-  /* Drills card: stacks first, on top */
-  .table-container .section-card:first-child {
-    flex: 1 1 auto;      /* override the 700px fixed basis — in column mode
-                             that was being read as a forced height, not width */
-    width: 100%;
-    max-width: 100%;
-    border-right: 1px solid var(--border);
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    border-bottom: none;
-  }
-
-  /* Notes card (drill notes / pre-throw notes): stacks second, below drills */
-  .table-container .section-card:last-child {
-    flex: 1 1 auto;
-    width: 100%;
-    max-width: 100%;
-    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-  }
-
-  /* Let each card's table scroll internally instead of getting clipped */
-  .table-container .section-card .table-scroll {
-    max-height: 60vh;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+  /* Table stacking is handled in the consolidated mobile block
+     at the very bottom of this file — do not duplicate it here. */
 }
 
 @media (max-width: 500px) {
@@ -524,34 +496,157 @@ td button:hover {
   width: 100% !important;
   display: block;
 } 
-/* Mobile: hide table, show cards */
-@media (max-width: 768px) { 
-  #throwing_plan_body tr {
+/* ============================================================
+   CONSOLIDATED MOBILE BLOCK  —  keep this LAST in the file.
+   Verified against inszn_home.html. Everything that stacks or
+   reflows a table lives here and nowhere else.
+   ============================================================ */
+@media (max-width: 900px) {
+
+  /* ── 1. Stack the paired drill/notes cards ────────────────
+     Applies to both .table-container blocks in #Plan:
+       Pre Throw Drill Work  +  Pre Throw Notes
+       Drill Work            +  Drill Notes
+     Desktop gives the drills card `flex: 0 0 700px`. Once the
+     container is a column, flex-basis is read as HEIGHT, which
+     forced a 700px-tall drills box and buried the notes card. */
+  .table-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px;
+  }
+
+  /* DRILLS card — first, on top */
+  .table-container > .section-card:first-child {
+    flex: 0 1 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0;
+    height: auto !important;
+    order: 1;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-lg) !important;
+  }
+
+  /* NOTES card — second, directly beneath the drills */
+  .table-container > .section-card:last-child {
+    flex: 0 1 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0;
+    height: auto !important;
+    order: 2;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-lg) !important;
+  }
+
+  /* ── 2. Hide headers ONLY where a label is redundant ──────
+     The old `.section-card thead` rule was global and stripped
+     headers off every table in the app, including the drills.
+     The notes cards already say "Drill Notes" / "Pre Throw
+     Notes" in their card header, so the <th>Notes</th> is noise. */
+  #Plan > .section-card thead,          /* Throwing Plan  */
+  #GameNotes .section-card thead,       /* Game Notes     */
+  #Notes .section-card thead,           /* Throwing Notes */
+  .table-container > .section-card:last-child thead {
+    display: none;
+  }
+  /* NOTE: drills theads (Drill Name / Type / Throw Count) stay
+     visible — those tables are narrow and read fine as tables. */
+
+  /* ── 3. Card-style rows for the wide, labelled tables ─────
+     Restores what the old ID-based block did, and extends it to
+     #throwing_notes_body which was never covered.              */
+  #throwing_plan_body tr,
+  #game_notes_body tr,
+  #throwing_notes_body tr {
     display: block;
-    border: 0.5px solid var(--border);
+    border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     margin-bottom: 12px;
     background: var(--bg-card);
+    overflow: hidden;
   }
 
-  /* Hide the thead on mobile */
-  .section-card thead {
-    display: none;
+  #throwing_plan_body tr:nth-child(even),
+  #game_notes_body tr:nth-child(even),
+  #throwing_notes_body tr:nth-child(even) {
+    background: var(--bg-card);
   }
 
-  /* Each cell becomes a block with a label */
-  #throwing_plan_body td {
+  #throwing_plan_body td,
+  #game_notes_body td,
+  #throwing_notes_body td {
     display: block;
+    width: auto;
     padding: 10px 14px;
     border-bottom: 1px solid var(--border);
-    white-space: normal; /* critical — overrides your first-child rule */
+    white-space: normal !important;   /* beats nowrap on td:first-child */
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    font-size: 0.88rem;
+    line-height: 1.6;
   }
 
-  #throwing_plan_body td:last-child {
+  #throwing_plan_body td:last-child,
+  #game_notes_body td:last-child,
+  #throwing_notes_body td:last-child {
     border-bottom: none;
   }
 
-  #throwing_plan_body td::before {
+  /* ── 4. Notes tables (Pre Throw Notes / Drill Notes) ───────
+     In the HTML the {% for %} sits INSIDE the <tr>, so these
+     render as ONE row with one <td> per plan entry — the table
+     grows sideways as data is added. Forcing the cells to block
+     stacks them vertically so each note reads top-to-bottom.   */
+  #prethrow_notes_body,
+  #drill_notes_body,
+  #prethrow_notes_body tr,
+  #drill_notes_body tr {
+    display: block;
+    width: auto;
+  }
+
+  #prethrow_notes_body td,
+  #drill_notes_body td {
+    display: block;
+    width: auto;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    white-space: normal !important;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    font-size: 0.9rem;
+    line-height: 1.65;
+  }
+
+  #prethrow_notes_body td:last-child,
+  #drill_notes_body td:last-child {
+    border-bottom: none;
+  }
+
+  /* Rich note bodies ({{ ... | safe }}) can contain <ul>/<table>
+     that blow out the width — rein them in. */
+  #prethrow_notes_body td *,
+  #drill_notes_body td *,
+  #throwing_plan_body td *,
+  #game_notes_body td *,
+  #throwing_notes_body td * {
+    max-width: 100%;
+  }
+
+  #prethrow_notes_body td ul,
+  #drill_notes_body td ul,
+  #prethrow_notes_body td ol,
+  #drill_notes_body td ol {
+    padding-left: 18px;
+  }
+
+  /* ── 5. Row labels ────────────────────────────────────────
+     Only the cells that actually carry data-label get a label,
+     so the Edit-button cell and the unlabelled notes cells
+     don't render an empty heading.                            */
+  td[data-label]::before {
     content: attr(data-label);
     display: block;
     font-size: 0.65rem;
@@ -561,38 +656,29 @@ td button:hover {
     color: var(--text-secondary);
     margin-bottom: 4px;
   }
-  /* same as above, but for game notes */
-  #game_notes_body tr {
-    display: block;
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-lg);
-    margin-bottom: 12px;
-    background: var(--bg-card);
+
+  /* ── 6. Card header / control ergonomics ──────────────────
+     The Throwing Notes card nests two .select-stack divs with
+     inline flex styles; let them go full width rather than
+     squeezing side by side. */
+  .section-card-header {
+    padding: 14px 16px;
   }
 
-  .section-card thead {
-    display: none;
+  .section-card-header select {
+    max-width: 100%;
+    width: 100%;
   }
 
-  #game_notes_body td {
-    display: block;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    white-space: normal; 
+  .section-card-header .select-stack {
+    flex: 1 1 100%;
+    min-width: 0;
   }
 
-  #game_notes_body td:last-child {
-    border-bottom: none;
-  }
-
-  #game_notes_body td::before {
-    content: attr(data-label);
-    display: block;
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text-secondary);
-    margin-bottom: 4px;
+  /* Drills tables stay real tables — just let them scroll if a
+     drill name is long. */
+  .table-container .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }

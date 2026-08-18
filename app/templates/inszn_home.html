@@ -75,8 +75,8 @@
           <tbody id="prethrowdrills_body">
             {% for data in tp_prethrow %}
             <tr id="prethrowdrill-row">
-              <td>{{ data[2] }}</td>
-              <td>{{ data[3] }}</td>
+              <td data-label="Drill Name">{{ data[2] }}</td>
+				  <td data-label="Drill Type">{{ data[3] }}</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -93,12 +93,12 @@
             <tr><th>Notes</th></tr>
           </thead>
           <tbody id="prethrow_notes_body">
-            <tr>
-              {% for data in throwing_plan %}
-              <td>{{ data["pt_notes_html"] | safe }}</td>
-              {% endfor %}
-            </tr>
-          </tbody>
+  				{% for data in throwing_plan %}
+  					<tr>
+    					<td data-label="Pre Throw Notes">{{ data["pt_notes_html"] | safe }}</td>
+  					</tr>
+  				{% endfor %}
+			</tbody>
         </table>
       </div>
     </div>
@@ -122,9 +122,9 @@
           <tbody id="drills_body">
             {% for data in drills %}
             <tr>
-              <td>{{ data[2] }}</td>
-              <td>{{ data[3] }}</td>
-              <td>{{ data[5] }}</td>
+              <td data-label="Drill Name">{{ data[2] }}</td>
+				  <td data-label="Drill Type">{{ data[3] }}</td>
+				  <td data-label="Throw Count">{{ data[5] }}</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -141,12 +141,12 @@
             <tr><th>Notes</th></tr>
           </thead>
           <tbody id="drill_notes_body">
-            <tr id="drill-row">
-              {% for data in throwing_plan %}
-              <td>{{ data["d_notes_html"] | safe }}</td>
-              {% endfor %}
-            </tr>
-          </tbody>
+  				{% for data in throwing_plan %}
+  					<tr id="drill-row">
+   					 <td data-label="Drill Notes">{{ data["d_notes_html"] | safe }}</td>
+  					</tr>
+  				{% endfor %}
+			</tbody>
         </table>
       </div>
     </div>
