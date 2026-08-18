@@ -107,7 +107,7 @@ def get_game_notes():
     conn = get_db_connection()
     cursor = conn.cursor()
     game_dates = cursor.execute('select date from game_journal where in_game = "yes" order by date DESC').fetchall()
-    game_notes = cursor.execute('select id, date, opponent, subjective_notes, feel_notes, mental_notes, good_bad_notes, post_outing_notes from game_journal where in_game = "yes" order by date DESC LIMIT 1').fetchall()
+    game_notes = cursor.execute('select id, date, opponent, subjective_notes, feel_notes, mental_notes, delivery_notes, post_outing_notes from game_journal where in_game = "yes" order by date DESC LIMIT 1').fetchall()
     conn.close()
     
     updated_game_notes = [] #adds line break after every .
@@ -115,7 +115,7 @@ def get_game_notes():
         s_notes = row['subjective_notes'] or ""
         f_notes = row['feel_notes'] or ""
         m_notes = row['mental_notes'] or ""
-        gb_notes = row['good_bad_notes'] or ""
+        gb_notes = row['delivery_notes'] or ""
         po_notes = row['post_outing_notes'] or ""
         
         updated_game_notes.append({
@@ -124,7 +124,7 @@ def get_game_notes():
             "subjective_notes": s_notes.replace(".", ".<br>"),
             "feel_notes": f_notes.replace(".", ".<br>"),
             "mental_notes": m_notes.replace(".", ".<br>"),
-            "good_bad_notes": gb_notes.replace(".", ".<br>"),
+            "delivery_notes": gb_notes.replace(".", ".<br>"),
             "post_outing_notes": po_notes.replace(".", ".<br>"),
             "id": row['id'],
             })

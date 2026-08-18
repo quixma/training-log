@@ -412,15 +412,35 @@ td button:hover {
   .tab { padding: 0 12px; overflow-x: auto; }
   .tabcontent { padding: 20px 12px; gap: 16px; }
   .summary-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .table-container { flex-direction: column; }
+
+  .table-container {
+    flex-direction: column;
+  }
+
+  /* Drills card: stacks first, on top */
   .table-container .section-card:first-child {
+    flex: 1 1 auto;      /* override the 700px fixed basis — in column mode
+                             that was being read as a forced height, not width */
+    width: 100%;
+    max-width: 100%;
     border-right: 1px solid var(--border);
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     border-bottom: none;
   }
+
+  /* Notes card (drill notes / pre-throw notes): stacks second, below drills */
   .table-container .section-card:last-child {
-    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    flex: 1 1 auto;
+    width: 100%;
     max-width: 100%;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  }
+
+  /* Let each card's table scroll internally instead of getting clipped */
+  .table-container .section-card .table-scroll {
+    max-height: 60vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 

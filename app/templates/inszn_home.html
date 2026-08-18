@@ -338,9 +338,9 @@
             <th>Date</th>
             <th>Opponent</th>
             <th>Subjective Notes</th>
-            <th>Feel Notes</th>
+            <th>Stuff/Execution Notes</th>
+            <th>Delivery Notes</th>
             <th>Mental Notes</th>
-            <th>Good/Bad</th>
             <th>Post Outing</th>
           </tr>
         </thead>
@@ -350,9 +350,9 @@
             <td data-label="Date">{{ data["date"] }}</td>
             <td data-label="Opponent">{{ data["opponent"] | safe }}</td>
             <td data-label="Subjective Notes">{{ data["subjective_notes"] | safe }}</td>
-            <td data-label="Feel Notes">{{ data["feel_notes"] | safe }}</td>
+            <td data-label="Stuff/Execution Notes">{{ data["feel_notes"] | safe }}</td>
+            <td data-label="Delivery">{{ data["delivery_notes"] | safe }}</td>
             <td data-label="Mental Notes">{{ data["mental_notes"] | safe }}</td>
-            <td data-label="Good Bad Notes">{{ data["good_bad_notes"] | safe }}</td>
             <td data-label="Post Outing Notes">{{ data["post_outing_notes"] | safe }}</td>
           </tr>
           {% endfor %}

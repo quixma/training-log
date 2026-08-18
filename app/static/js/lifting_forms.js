@@ -1,4 +1,3 @@
-
 //tab control on home screen
 function openTab(evt, tabName) {
     document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
@@ -7,44 +6,25 @@ function openTab(evt, tabName) {
     evt.currentTarget.classList.add('active');
 }
 
-function addExRow() {
-    const container = document.getElementById('ex-container');
+function addExRow(containerId, rowClass = 'ex-row') {
+    const container = document.getElementById(containerId);
     const newRow = document.createElement('div');
-    newRow.classList.add('ex-row');
+    newRow.classList.add(rowClass);
     newRow.innerHTML = `
+      <input type="text" name="ex_block[]" placeholder="Exercise Block">
       <input type="text" name="ex_name[]" placeholder="Exercise Name">
       <input type="text" name="sets_reps[]" placeholder="Sets/Reps">
+      <input type="text" name="ex_notes[]" placeholder="Exercise Notes">
     `;
     container.appendChild(newRow);
 }
 
-function deleteExRow() {
-    const container = document.getElementById('ex-container');
-    const divElements = container.querySelectorAll(".ex-row");
+function deleteExRow(containerId, rowClass = 'ex-row') {
+    const container = document.getElementById(containerId);
+    const divElements = container.querySelectorAll(`.${rowClass}`);
     const rowAmount = divElements.length;
+    if (rowAmount === 0) return;
     const indextoDelete = rowAmount - 1;
 
     divElements[indextoDelete].remove();
-}
-
-function addBackExRow() {
-    const container = document.getElementById('ex-container-back');
-    const newRow = document.createElement('div');
-    newRow.classList.add('ex-row-back');
-    newRow.innerHTML = `
-      <input type="text" name="ex_name[]" placeholder="Exercise Name">
-      <input type="text" name="sets_reps[]" placeholder="Sets/Reps">
-    `;
-    container.appendChild(newRow);
-}
-
-function deleteBackExRow() {
-    const container = document.getElementById('ex-container-back');
-    const divElements = container.querySelectorAll(".ex-row-back");
-    const rowAmount = divElements.length;
-    const indextoDelete = rowAmount - 1;
-
-    divElements[indextoDelete].remove();
-
-
 }

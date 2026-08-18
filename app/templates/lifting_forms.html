@@ -10,9 +10,10 @@
 <!-- Tab Nav -->
 <div class="tab">
   <button class="tablinks active" onclick="openTab(event, 'warmup_form')">Warmup Form</button>
+  <button class="tablinks" onclick="openTab(event, 'lift_form')">Lift Form</button>
   <button class="tablinks" onclick="openTab(event, 'armcare_form')">Arm Care Form</button>
   <button class="tablinks" onclick="openTab(event, 'back_form')">Back Routine Form</button>
-  
+  <button class="tablinks" onclick="openTab(event, 'conditioning_form')">Conditioning Form</button>
 </div>
 
 <!-- ══ WARMUP FORM TAB ══════════════════════════════ -->
@@ -60,15 +61,17 @@
     <label for="armcare-name">Armcare Name</label>
     <textarea id="armcare-name" name="armcare_name" rows="1"></textarea>
     
-    <div id="ex-container">
+    <div id="ex-container-armcare" class="ex-container">
     <div class="ex-row">
+      <input type="text" name="ex_block[]" placeholder="Block">
       <input type="text" name="ex_name[]" placeholder="Exercise Name">
       <input type="text" name="sets_reps[]" placeholder="Sets/Reps">
+      <input type="text" name="ex_notes[]" placeholder="Exercise Notes">
     </div>
   	</div>
   <div class="btn-group">
-    <button type="button" onclick="addExRow()">+ Add Exercise </button>
-    <button type="button" class="btn-delete" onclick="deleteExRow()">Remove Exercise</button>
+    <button type="button" onclick="addExRow('ex-container-armcare')">+ Add Exercise </button>
+    <button type="button" class="btn-delete" onclick="deleteExRow('ex-container-armcare')">Remove Exercise</button>
   </div>
 
   <div class="field-group">
@@ -76,7 +79,7 @@
     <textarea id="notes" name="notes" rows="5"></textarea>
   </div>
     
-	<button type="submit">Save Armcare Day</button>
+	<button type="submit">Save Armcare Workout</button>
 </form>
 </div>
 
@@ -89,15 +92,17 @@
     <label for="back-name">Back Routine Name</label>
     <textarea id="back-name" name="back_name" rows="1"></textarea>
     
-    <div id="ex-container-back">
+    <div id="ex-container-back" class="ex-container">
     <div class="ex-row-back">
+      <input type="text" name="ex_block[]" placeholder="Block">
       <input type="text" name="ex_name[]" placeholder="Exercise Name">
       <input type="text" name="sets_reps[]" placeholder="Sets/Reps">
+      <input type="text" name="ex_notes[]" placeholder="Exercise Notes">
     </div>
   	</div>
   <div class="btn-group">
-    <button type="button" onclick="addBackExRow()">+ Add Exercise </button>
-    <button type="button" class="btn-delete" onclick="deleteBackExRow()">Remove Exercise</button>
+    <button type="button" onclick="addExRow('ex-container-back', 'ex-row-back')">+ Add Exercise </button>
+    <button type="button" class="btn-delete" onclick="deleteExRow('ex-container-back', 'ex-row-back')">Remove Exercise</button>
   </div>
 
   <div class="field-group">
@@ -105,7 +110,70 @@
     <textarea id="notes" name="notes" rows="5"></textarea>
   </div>
 
-	<button type="submit">Save Back Routine</button>
+	<button type="submit">Save Back Workout</button>
+</form>
+</div>
+
+<!-- ══ LIFT INPUT FORM TAB ══════════════════════════════ -->
+<div id="lift_form" class="tabcontent">
+<form id="lift-form" method="POST" action="/submit_lift">
+	 <label for="date">Date</label>
+    <input type="date" id="date" name="date" required>
+    
+    <label for="lift-name">Lift Name</label>
+    <textarea id="lift-name" name="lift_name" rows="1"></textarea>
+    
+    <div id="ex-container-lift" class="ex-container">
+    <div class="ex-row">
+    	<input type="text" name="ex_block[]" placeholder="Block">
+      <input type="text" name="ex_name[]" placeholder="Exercise Name">
+      <input type="text" name="sets_reps[]" placeholder="Sets/Reps">
+      <input type="text" name="ex_notes[]" placeholder="Exercise Notes">
+    </div>
+  	</div>
+  <div class="btn-group">
+    <button type="button" onclick="addExRow('ex-container-lift')">+ Add Exercise </button>
+    <button type="button" class="btn-delete" onclick="deleteExRow('ex-container-lift')">Remove Exercise</button>
+  </div>
+    
+     <div class="field-group">
+    	<label for="notes">Notes</label>
+    	<textarea id="notes" name="notes" rows="5"></textarea>
+     </div>
+
+	<button type="submit">Save Lift</button>
+</form>
+</div>
+
+<!-- ══ CONDITIONING INPUT FORM TAB ══════════════════════════════ -->
+<div id="conditioning_form" class="tabcontent">
+<form id="conditioning-form" method="POST" action="/submit_conditioning">
+	 <label for="date">Date</label>
+    <input type="date" id="date" name="date" required>
+    
+    <label for="conditioning-name">Conditioning Day Name</label>
+    <textarea id="conditioning-name" name="conditioning_name" rows="1"></textarea>
+    
+    <div id="ex-container-conditioning" class="ex-container">
+    <div class="ex-row">
+    	<input type="text" name="ex_block[]" placeholder="Block">
+      <input type="text" name="ex_name[]" placeholder="Exercise Name">
+      <input type="text" name="sets_reps[]" placeholder="Sets/Reps">
+      <input type="text" name="ex_notes[]" placeholder="Exercise Notes">
+    </div>
+  	</div>
+  	
+  <div class="btn-group">
+    <button type="button" onclick="addExRow('ex-container-conditioning')">+ Add Exercise </button>
+    <button type="button" class="btn-delete" onclick="deleteExRow('ex-container-conditioning')">Remove Exercise</button>
+  </div>
+  
+     <div class="field-group">
+    	<label for="notes">Notes</label>
+    	<textarea id="notes" name="notes" rows="5"></textarea>
+     </div>
+
+	<button type="submit">Save Conditioning Day</button>
 </form>
 </div>
 

@@ -12,9 +12,12 @@
 <div class="tab">
   <button class="tablinks active" onclick="openTab(event, 'workout_survey')">Workout + Survey</button>
   <button class="tablinks" onclick="openTab(event, 'warmup_workouts')">Warmup Options</button>
-  <button class="tablinks" onclick="openTab(event, 'armcare_workouts')">Arm Care</button>
+  <button class="tablinks" onclick="openTab(event, 'armcare_workouts')">Arm Care Days</button>
   <button class="tablinks" onclick="openTab(event, 'back_workouts')">Back Workouts</button>
-  <button class="tablinks tab-link" onclick="window.location.href='{{ url_for('workout_form') }}'">↗ Workout Form</button>
+  <button class="tablinks" onclick="openTab(event, 'lifts_workouts')">Lifts</button>
+  <button class="tablinks" onclick="openTab(event, 'conditioning_workouts')">Conditioning Options</button>
+  <button class="tablinks tab-link" onclick="window.location.href='{{ url_for('lifting_forms') }}'">Workout Input Forms</button>
+  <button class="tablinks tab-link" onclick="window.location.href='{{ url_for('workout_form') }}'">↗ Workout Log Form</button>
 </div>
 
 
@@ -134,6 +137,15 @@
   <div class="tab-placeholder">Back workouts coming soon</div>
 </div>
 
+<!-- ══ Lifts TAB ══════════════════════════════ -->
+<div id="lifts_workouts" class="tabcontent">
+  <div class="tab-placeholder">Lifts options coming soon</div>
+</div>
+
+<!-- ══ Conditioning TAB ══════════════════════════════ -->
+<div id="conditioning_workouts" class="tabcontent">
+  <div class="tab-placeholder">Conditioning workouts coming soon</div>
+</div>
 
 <script src="{{ url_for('static', filename='js/workout_dashboard.js') }}"></script>
 

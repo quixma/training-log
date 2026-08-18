@@ -91,8 +91,8 @@ def submit_game_journal():
             "max_velo": request.form.get('max_velo'),
             "subjective_notes": request.form.get('subjective_notes'),
             "feel_notes": request.form.get('feel_notes'),
+            "delivery_notes": request.form.get('delivery_notes'),
             "mental_notes": request.form.get('mental_notes'),
-            "good_bad_notes": request.form.get('good_bad_notes'),
             "post_outing_notes": request.form.get('post_outing_notes')
             }
         form_data = {key: None if value == "" else value for key, value in form_data.items()} #empty values to null
@@ -111,8 +111,8 @@ def submit_game_journal():
         cursor = conn.cursor()
         #get session id based on throwing session with same date
         session_id = cursor.execute("select id from throwing_sessions where date = ?", (form_data["date"],)).fetchone()
-        cursor.execute("INSERT INTO game_journal (id, session_id, date, opponent, get_hot, bullpen_throws, in_game, game_throws, avg_velo, max_velo, ip, hits, er, walks, strikeouts, hr, stuff_grade, execution_grade, recovery_grade, mentality_grade, subjective_notes, feel_notes, mental_notes, good_bad_notes, post_outing_notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                       (form_data["id"], session_id[0], form_data["date"], form_data["opponent"], form_data["get_hot"], form_data["bullpen_throws"], form_data["in_game"],form_data["game_throws"], form_data["avg_velo"], form_data["max_velo"], form_data["ip"], form_data["hits"], form_data["er"],form_data["walks"],form_data["strikeouts"],form_data["hr"], form_data["stuff_grade"], form_data["execution_grade"], form_data["recovery_grade"], form_data["mentality_grade"], form_data["subjective_notes"],form_data["feel_notes"],form_data["mental_notes"], form_data["good_bad_notes"],form_data["post_outing_notes"]))
+        cursor.execute("INSERT INTO game_journal (id, session_id, date, opponent, get_hot, bullpen_throws, in_game, game_throws, avg_velo, max_velo, ip, hits, er, walks, strikeouts, hr, stuff_grade, execution_grade, recovery_grade, mentality_grade, subjective_notes, feel_notes, delivery_notes, mental_notes, post_outing_notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                       (form_data["id"], session_id[0], form_data["date"], form_data["opponent"], form_data["get_hot"], form_data["bullpen_throws"], form_data["in_game"],form_data["game_throws"], form_data["avg_velo"], form_data["max_velo"], form_data["ip"], form_data["hits"], form_data["er"],form_data["walks"],form_data["strikeouts"],form_data["hr"], form_data["stuff_grade"], form_data["execution_grade"], form_data["recovery_grade"], form_data["mentality_grade"], form_data["subjective_notes"],form_data["feel_notes"],form_data["delivery_notes"], form_data["mental_notes"], form_data["post_outing_notes"]))
         
         conn.commit()
         conn.close()
@@ -369,15 +369,19 @@ def submit_warmup():
 @app.route('/submit_armcare', methods = ["POST"])
 def submit_armcare():
     if request.method == "POST":
+        ex_block = request.form.getlist('ex_block[]')
         ex_names = request.form.getlist('ex_name[]')
         sets_reps = request.form.getlist('sets_reps[]')
+        ex_notes = request.form.getlist('ex_notes[]')
         ex_list = []
         
         if(len(ex_names) == len(sets_reps)):
             for x in range(len(ex_names)):
                 ex_dict = {
+                    "ex_block": ex_block[x],
                     "ex_name": ex_names[x],
-                    "set_rep": sets_reps[x]
+                    "set_rep": sets_reps[x],
+                    "ex_notes": ex_notes[x]
                     }
                 ex_dict = {key: None if value == "" else value for key, value in ex_dict.items()}
                 ex_list.append(ex_dict)
@@ -396,8 +400,8 @@ def submit_armcare():
         
         session_id = cursor.lastrowid
         for x in range(len(ex_names)):
-            cursor.execute("INSERT INTO armcare_workouts_ex (session_id, ex_name, sets_reps) VALUES (?,?,?)",
-                           (session_id, ex_list[x]["ex_name"], ex_list["set_rep"]))
+            cursor.execute("INSERT INTO armcare_workout_ex (session_id, ex_block, ex_name, sets_reps, ex_notes) VALUES (?,?,?,?,?)",
+                           (session_id, ex_list[x]["ex_block"], ex_list[x]["ex_name"], ex_list[x]["set_rep"], ex_list[x]["ex_notes"]))
         conn.commit()
         conn.close()
         return redirect(url_for('workout_dashboard'))
@@ -405,22 +409,26 @@ def submit_armcare():
 @app.route('/submit_back', methods = ["POST"])
 def submit_back():
     if request.method == "POST":
+        ex_block = request.form.getlist('ex_block[]')
         ex_names = request.form.getlist('ex_name[]')
         sets_reps = request.form.getlist('sets_reps[]')
+        ex_notes = request.form.getlist('ex_notes[]')
         ex_list = []
         
         if(len(ex_names) == len(sets_reps)):
             for x in range(len(ex_names)):
                 ex_dict = {
+                    "ex_block": ex_block[x],
                     "ex_name": ex_names[x],
-                    "set_rep": sets_reps[x]
+                    "set_rep": sets_reps[x],
+                    "ex_notes": ex_notes[x]
                     }
                 ex_dict = {key: None if value == "" else value for key, value in ex_dict.items()}
                 ex_list.append(ex_dict)
                 
         form_data = {
             "date": request.form.get("date"),
-            "workout_name": request.form.get("armcare_name"),
+            "workout_name": request.form.get("back_name"),
             "notes": request.form.get("notes")
             }
         form_data = {key: None if value == "" else value for key, value in form_data.items()}
@@ -430,10 +438,90 @@ def submit_back():
         cursor.execute("INSERT INTO back_workouts (date, workout_name, notes) VALUES (?,?,?)", 
                        (form_data["date"], form_data["workout_name"], form_data["notes"]))
         
+        session_id = cursor.lastrowid #session id uses id of workout to connect it to exercises in ex db table
+        for x in range(len(ex_names)):
+            cursor.execute("INSERT INTO back_workout_ex (session_id, ex_block, ex_name, sets_reps, ex_notes) VALUES (?,?,?,?,?)",
+                           (session_id, ex_list[x]["ex_block"], ex_list[x]["ex_name"], ex_list[x]["set_rep"], ex_list[x]["ex_notes"]))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('workout_dashboard'))
+
+@app.route('/submit_lift', methods = ["POST"])
+def submit_lift():
+    if request.method == "POST":
+        ex_block = request.form.getlist('ex_block[]')
+        ex_names = request.form.getlist('ex_name[]')
+        sets_reps = request.form.getlist('sets_reps[]')
+        ex_notes = request.form.getlist('ex_notes[]')
+        ex_list = []
+        
+        if(len(ex_names) == len(sets_reps)):
+            for x in range(len(ex_names)):
+                ex_dict = {
+                    "ex_block": ex_block[x],
+                    "ex_name": ex_names[x],
+                    "set_rep": sets_reps[x],
+                    "ex_notes": ex_notes[x]
+                    }
+                ex_dict = {key: None if value == "" else value for key, value in ex_dict.items()}
+                ex_list.append(ex_dict)
+                
+        form_data = {
+            "date": request.form.get("date"),
+            "workout_name": request.form.get("lift_name"),
+            "notes": request.form.get("notes")
+            }
+        form_data = {key: None if value == "" else value for key, value in form_data.items()}
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO lift_workouts (date, workout_name, notes) VALUES (?,?,?)", 
+                       (form_data["date"], form_data["workout_name"], form_data["notes"]))
+        
         session_id = cursor.lastrowid
         for x in range(len(ex_names)):
-            cursor.execute("INSERT INTO back_workouts_ex (session_id, ex_name, sets_reps) VALUES (?,?,?)",
-                           (session_id, ex_list[x]["ex_name"], ex_list["set_rep"]))
+            cursor.execute("INSERT INTO lift_workout_ex (session_id, ex_block, ex_name, sets_reps, ex_notes) VALUES (?,?,?,?,?)",
+                           (session_id, ex_list[x]["ex_block"], ex_list[x]["ex_name"], ex_list[x]["set_rep"], ex_list[x]["ex_notes"]))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('workout_dashboard'))
+    
+@app.route('/submit_conditioning', methods = ["POST"])
+def submit_conditioning():
+    if request.method == "POST":
+        ex_block = request.form.getlist('ex_block[]')
+        ex_names = request.form.getlist('ex_name[]')
+        sets_reps = request.form.getlist('sets_reps[]')
+        ex_notes = request.form.getlist('ex_notes[]')
+        ex_list = []
+        
+        if(len(ex_names) == len(sets_reps)):
+            for x in range(len(ex_names)):
+                ex_dict = {
+                    "ex_block": ex_block[x],
+                    "ex_name": ex_names[x],
+                    "set_rep": sets_reps[x],
+                    "ex_notes": ex_notes[x]
+                    }
+                ex_dict = {key: None if value == "" else value for key, value in ex_dict.items()}
+                ex_list.append(ex_dict)
+                
+        form_data = {
+            "date": request.form.get("date"),
+            "workout_name": request.form.get("conditioning_name"),
+            "notes": request.form.get("notes")
+            }
+        form_data = {key: None if value == "" else value for key, value in form_data.items()}
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO conditioning_workouts (date, workout_name, notes) VALUES (?,?,?)", 
+                       (form_data["date"], form_data["workout_name"], form_data["notes"]))
+        
+        session_id = cursor.lastrowid
+        for x in range(len(ex_names)):
+            cursor.execute("INSERT INTO conditioning_workout_ex (session_id, ex_block, ex_name, sets_reps, ex_notes) VALUES (?,?,?,?,?)",
+                           (session_id, ex_list[x]["ex_block"], ex_list[x]["ex_name"], ex_list[x]["set_rep"], ex_list[x]["ex_notes"]))
         conn.commit()
         conn.close()
         return redirect(url_for('workout_dashboard'))
