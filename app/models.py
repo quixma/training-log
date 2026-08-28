@@ -290,4 +290,340 @@ def get_bodyNotes():
             "body_notes": b_notes.replace(".", ".<br>"),
             })
     return body_notes
+
+def get_warmup_names():
+    conn = get_db_connection()
+    cursor = conn.cursor()
     
+    names = cursor.execute("select name from warmups where name IS NOT NULL order by date DESC").fetchall()
+    conn.close()
+    return names
+
+def get_warmups():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    warmups = cursor.execute("select name, rollout_ex, spine_ex, hip_ex, shoulder_ex, arm_ex, dynamic_ex, notes from warmups where name IS NOT NULL order by date DESC LIMIT 1").fetchall()
+    conn.close()
+    
+    warmups_formatted = []
+    for x in warmups:
+        r_ex = x['rollout_ex'] or ""
+        sp_ex = x['spine_ex'] or ""
+        h_ex = x['hip_ex'] or ""
+        sh_ex = x['shoulder_ex'] or ""
+        a_ex = x['arm_ex'] or ""
+        dy_ex = x['dynamic_ex'] or ""
+        notes = x['notes'] or ""
+        
+        warmups_formatted.append({
+            "name": x["name"],
+            "rollout_ex": r_ex.replace(".", ".<br>"),
+            "spine_ex": sp_ex.replace(".", ".<br>"),
+            "hip_ex": h_ex.replace(".", ".<br>"),
+            "shoulder_ex": sh_ex.replace(".", ".<br>"),
+            "arm_ex": a_ex.replace(".", ".<br>"),
+            "dynamic_ex": dy_ex.replace(".", ".<br>"),
+            "notes": notes.replace(".", ".<br>"),
+            })
+    
+    return warmups_formatted
+
+def get_armcare_names():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    names = cursor.execute("select workout_name from armcare_workouts where workout_name IS NOT NULL order by date DESC").fetchall()
+    conn.close()
+    return names
+
+def get_armcare_workout():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    workout = cursor.execute("select Id, date, workout_name, notes from armcare_workouts order by Id desc limit 1").fetchone()
+    exercises = cursor.execute("select ex_block, ex_name, sets_reps, ex_notes from armcare_workout_ex where session_id = ? order by ID", (workout['Id'],)).fetchall()
+    conn.close()
+
+    notes = workout['notes'] or ""
+
+    exercises_formatted = []
+    for x in exercises:
+        ex_notes = x['ex_notes'] or ""
+        exercises_formatted.append({
+            "ex_block": x['ex_block'],
+            "ex_name": x['ex_name'],
+            "sets_reps": x['sets_reps'],
+            "ex_notes": ex_notes.replace(".", ".<br>"),
+            })
+
+    armcare_workout = {
+        "workout_name": workout['workout_name'],
+        "notes": notes.replace(".", ".<br>"),
+        "exercises": exercises_formatted,
+        }
+
+    return armcare_workout
+
+def get_back_names():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    names = cursor.execute("select workout_name from back_workouts where workout_name IS NOT NULL order by date DESC").fetchall()
+    conn.close()
+    return names
+
+def get_back_workout():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    workout = cursor.execute("select Id, date, workout_name, notes from back_workouts order by Id desc limit 1").fetchone()
+    exercises = cursor.execute("select ex_block, ex_name, sets_reps, ex_notes from back_workout_ex where session_id = ? order by ID", (workout['Id'],)).fetchall()
+    conn.close()
+
+    notes = workout['notes'] or ""
+
+    exercises_formatted = []
+    for x in exercises:
+        ex_notes = x['ex_notes'] or ""
+        exercises_formatted.append({
+            "ex_block": x['ex_block'],
+            "ex_name": x['ex_name'],
+            "sets_reps": x['sets_reps'],
+            "ex_notes": ex_notes.replace(".", ".<br>"),
+            })
+
+    back_workout = {
+        "workout_name": workout['workout_name'],
+        "notes": notes.replace(".", ".<br>"),
+        "exercises": exercises_formatted,
+        }
+
+    return back_workout
+
+def get_lift_names():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    names = cursor.execute("select workout_name from lift_workouts where workout_name IS NOT NULL order by date DESC").fetchall()
+    conn.close()
+    return names
+
+def get_lift_workout():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    workout = cursor.execute("select ID, date, workout_name, notes from lift_workouts order by ID desc limit 1").fetchone()
+    exercises = cursor.execute("select ex_block, ex_name, sets_reps, ex_notes from lift_workout_ex where session_id = ? order by ID", (workout['ID'],)).fetchall()
+    conn.close()
+
+    notes = workout['notes'] or ""
+
+    exercises_formatted = []
+    for x in exercises:
+        ex_notes = x['ex_notes'] or ""
+        exercises_formatted.append({
+            "ex_block": x['ex_block'],
+            "ex_name": x['ex_name'],
+            "sets_reps": x['sets_reps'],
+            "ex_notes": ex_notes.replace(".", ".<br>"),
+            })
+
+    lift_workout = {
+        "workout_name": workout['workout_name'],
+        "notes": notes.replace(".", ".<br>"),
+        "exercises": exercises_formatted,
+        }
+
+    return lift_workout
+
+def get_conditioning_names():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    names = cursor.execute("select workout_name from conditioning_workouts where workout_name IS NOT NULL order by date DESC").fetchall()
+    conn.close()
+    return names
+
+def get_conditioning_workout():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    workout = cursor.execute("select ID, date, workout_name, notes from conditioning_workouts order by ID desc limit 1").fetchone()
+    exercises = cursor.execute("select ex_block, ex_name, sets_reps, ex_notes from conditioning_workout_ex where session_id = ? order by ID", (workout['ID'],)).fetchall()
+    conn.close()
+
+    notes = workout['notes'] or ""
+
+    exercises_formatted = []
+    for x in exercises:
+        ex_notes = x['ex_notes'] or ""
+        exercises_formatted.append({
+            "ex_block": x['ex_block'],
+            "ex_name": x['ex_name'],
+            "sets_reps": x['sets_reps'],
+            "ex_notes": ex_notes.replace(".", ".<br>"),
+            })
+
+    conditioning_workout = {
+        "workout_name": workout['workout_name'],
+        "notes": notes.replace(".", ".<br>"),
+        "exercises": exercises_formatted,
+        }
+
+    return conditioning_workout
+
+def get_warmup_by_name(workout):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    warmups = cursor.execute("select name, rollout_ex, spine_ex, hip_ex, shoulder_ex, arm_ex, dynamic_ex, notes from warmups where name = ?", (workout,)).fetchone()
+    if warmups is None:
+        conn.close()
+        return None
+    conn.close()
+    
+    r_ex = warmups['rollout_ex'] or ""
+    sp_ex = warmups['spine_ex'] or ""
+    h_ex = warmups['hip_ex'] or ""
+    sh_ex = warmups['shoulder_ex'] or ""
+    a_ex = warmups['arm_ex'] or ""
+    dy_ex = warmups['dynamic_ex'] or ""
+    notes = warmups['notes'] or ""
+
+    warmup_formatted = {
+        "name": warmups["name"],
+        "rollout_ex": r_ex.replace(".", ".<br>"),
+        "spine_ex": sp_ex.replace(".", ".<br>"),
+        "hip_ex": h_ex.replace(".", ".<br>"),
+        "shoulder_ex": sh_ex.replace(".", ".<br>"),
+        "arm_ex": a_ex.replace(".", ".<br>"),
+        "dynamic_ex": dy_ex.replace(".", ".<br>"),
+        "notes": notes.replace(".", ".<br>"),
+        }
+
+    return warmup_formatted
+
+def get_armcare_by_name(workout):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    workout = cursor.execute("select Id, date, workout_name, notes from armcare_workouts where workout_name = ?",(workout,)).fetchone()
+    if workout is None:
+        conn.close()
+        return None
+    exercises = cursor.execute("select ex_block, ex_name, sets_reps, ex_notes from armcare_workout_ex where session_id = ? order by ID", (workout['Id'],)).fetchall()
+    conn.close()
+
+    notes = workout['notes'] or ""
+
+    exercises_formatted = []
+    for x in exercises:
+        ex_notes = x['ex_notes'] or ""
+        exercises_formatted.append({
+            "ex_block": x['ex_block'],
+            "ex_name": x['ex_name'],
+            "sets_reps": x['sets_reps'],
+            "ex_notes": ex_notes.replace(".", ".<br>"),
+            })
+
+    armcare_workout = {
+        "workout_name": workout['workout_name'],
+        "notes": notes.replace(".", ".<br>"),
+        "exercises": exercises_formatted,
+        }
+
+    return armcare_workout
+
+def get_back_by_name(workout):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    workout = cursor.execute("select Id, date, workout_name, notes from back_workouts where workout_name = ?", (workout,)).fetchone()
+    if workout is None:
+        conn.close()
+        return None
+    exercises = cursor.execute("select ex_block, ex_name, sets_reps, ex_notes from back_workout_ex where session_id = ? order by ID", (workout['Id'],)).fetchall()
+    conn.close()
+
+    notes = workout['notes'] or ""
+
+    exercises_formatted = []
+    for x in exercises:
+        ex_notes = x['ex_notes'] or ""
+        exercises_formatted.append({
+            "ex_block": x['ex_block'],
+            "ex_name": x['ex_name'],
+            "sets_reps": x['sets_reps'],
+            "ex_notes": ex_notes.replace(".", ".<br>"),
+            })
+
+    back_workout = {
+        "workout_name": workout['workout_name'],
+        "notes": notes.replace(".", ".<br>"),
+        "exercises": exercises_formatted,
+        }
+
+    return back_workout
+
+def get_lift_by_name(workout):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    workout = cursor.execute("select ID, date, workout_name, notes from lift_workouts where workout_name = ?",(workout,)).fetchone()
+    if workout is None:
+        conn.close()
+        return None
+    exercises = cursor.execute("select ex_block, ex_name, sets_reps, ex_notes from lift_workout_ex where session_id = ? order by ID", (workout['ID'],)).fetchall()
+    conn.close()
+
+    notes = workout['notes'] or ""
+
+    exercises_formatted = []
+    for x in exercises:
+        ex_notes = x['ex_notes'] or ""
+        exercises_formatted.append({
+            "ex_block": x['ex_block'],
+            "ex_name": x['ex_name'],
+            "sets_reps": x['sets_reps'],
+            "ex_notes": ex_notes.replace(".", ".<br>"),
+            })
+
+    lift_workout = {
+        "workout_name": workout['workout_name'],
+        "notes": notes.replace(".", ".<br>"),
+        "exercises": exercises_formatted,
+        }
+
+    return lift_workout
+
+def get_conditioning_by_name(workout):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    workout = cursor.execute("select ID, date, workout_name, notes from conditioning_workouts where workout_name = ?",(workout,)).fetchone()
+    if workout is None:
+        conn.close()
+        return None
+    exercises = cursor.execute("select ex_block, ex_name, sets_reps, ex_notes from conditioning_workout_ex where session_id = ? order by ID", (workout['ID'],)).fetchall()
+    conn.close()
+
+    notes = workout['notes'] or ""
+
+    exercises_formatted = []
+    for x in exercises:
+        ex_notes = x['ex_notes'] or ""
+        exercises_formatted.append({
+            "ex_block": x['ex_block'],
+            "ex_name": x['ex_name'],
+            "sets_reps": x['sets_reps'],
+            "ex_notes": ex_notes.replace(".", ".<br>"),
+            })
+
+    conditioning_workout = {
+        "workout_name": workout['workout_name'],
+        "notes": notes.replace(".", ".<br>"),
+        "exercises": exercises_formatted,
+        }
+
+    return conditioning_workout

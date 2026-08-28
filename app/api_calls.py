@@ -1,6 +1,6 @@
 from app import app
 from app.input_validation import DashboardMetrics, UpdateThrowingPlanModel
-from app.models import get_db_connection
+from app.models import get_db_connection, get_warmup_by_name, get_armcare_by_name, get_back_by_name, get_lift_by_name, get_conditioning_by_name
 from pydantic import ValidationError
 from flask import jsonify, request, url_for, redirect, render_template
 import os
@@ -354,3 +354,26 @@ def getInsznThrowingPlan():
     conn.close()
     
     return jsonify(allData)
+
+@app.route("/api/getSelectedWorkout", methods = ["POST"])
+def getSelectedWorkout():
+    data = request.get_json()
+    table = data.get("type")
+    workout = data.get("value")
+    
+    if table == "warmup":
+        result = get_warmup_by_name(workout)
+    elif table == "armcare":
+        result = get_armcare_by_name(workout)
+    elif table == "back":
+        result = get_back_by_name(workout)
+    elif table == "lift":
+        result = get_lift_by_name(workout)
+    elif table == "conditioning":
+        result = get_conditioning_by_name(workout)
+    else:
+        return jsonify({"error": "unknown workout type"}), 400
+
+    if result is None:
+        return jsonify({"error": "workout not found"}), 404
+    return jsonify(result)

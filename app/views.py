@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from app import app
-from app.models import inszn_dash_data, get_inszn_throwing_plan_dates, get_game_notes, get_throwing_notes, get_throwing_plan, get_throwing_plan_prethrow, get_throwing_plan_dates, get_totalthrows4wk, get_totalworkingthrows4wk, get_throwing_notes_dates, get_summary_data, get_bullpen_report_files, get_throwing_day_types
-from app.models import get_RatingsAvgs, get_WorkoutsCompleted, get_bodyNotes_dates, get_bodyNotes
+from app.models import inszn_dash_data, get_inszn_throwing_plan_dates, get_game_notes, get_throwing_notes, get_throwing_plan, get_throwing_plan_prethrow 
+from app.models import get_throwing_plan_dates, get_totalthrows4wk, get_totalworkingthrows4wk, get_throwing_notes_dates, get_summary_data, get_bullpen_report_files, get_throwing_day_types
+from app.models import get_RatingsAvgs, get_WorkoutsCompleted, get_bodyNotes_dates, get_bodyNotes, get_warmup_names, get_warmups
+from app.models import get_armcare_names, get_armcare_workout, get_back_names, get_back_workout, get_lift_names, get_lift_workout, get_conditioning_names, get_conditioning_workout
 from app.api_calls import shutdown
 from flask import render_template, request, redirect, url_for
 
@@ -90,9 +92,22 @@ def workout_dashboard():
     rows = get_WorkoutsCompleted()
     dates = get_bodyNotes_dates()
     body_notes = get_bodyNotes()
+    warmup_names = get_warmup_names()
+    warmups = get_warmups()
+    armcare_names = get_armcare_names()
+    armcare_workout = get_armcare_workout()
+    spine_names = get_back_names()
+    spine_workout = get_back_workout()
+    lift_names = get_lift_names()
+    lift_workout = get_lift_workout()
+    conditioning_names = get_conditioning_names()
+    conditioning_workout = get_conditioning_workout()
     
     return render_template('workout_dashboard.html', energy = energy, fatigue = fatigue, motivation = motivation, focus = focus,
-                           rows = rows, dates = dates, body_notes = body_notes)
+                           rows = rows, dates = dates, body_notes = body_notes, warmup_names = warmup_names, warmups = warmups,
+                          armcare_names = armcare_names, armcare_workout = armcare_workout, spine_names=spine_names, 
+                          spine_workout=spine_workout, lift_names=lift_names,lift_workout=lift_workout, conditioning_names=conditioning_names,
+                          conditioning_workout=conditioning_workout)
 
 @app.route('/workout_form', methods=["GET", "POST"])
 def workout_form():

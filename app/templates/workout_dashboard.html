@@ -17,7 +17,7 @@
   <button class="tablinks" onclick="openTab(event, 'lifts_workouts')">Lifts</button>
   <button class="tablinks" onclick="openTab(event, 'conditioning_workouts')">Conditioning Options</button>
   <button class="tablinks tab-link" onclick="window.location.href='{{ url_for('lifting_forms') }}'">Workout Input Forms</button>
-  <button class="tablinks tab-link" onclick="window.location.href='{{ url_for('workout_form') }}'">↗ Workout Log Form</button>
+  <button class="tablinks tab-link" onclick="window.location.href='{{ url_for('workout_form') }}'">↗ Workout Log </button>
 </div>
 
 
@@ -124,38 +124,202 @@
 
 <!-- ══ WARMUP TAB ════════════════════════════ -->
 <div id="warmup_workouts" class="tabcontent">
-  <div class="tab-placeholder">Warmup options coming soon</div>
+  
+  <!-- Warmup options dropdown -->
+  <div class="section-card">
+    <div class="section-card-header">
+      <h3>Warmups</h3>
+      <select id="retrieve-warmup">
+        <option value="">Select Warmup to View</option>
+        {% for data in warmup_names %}
+        <option value='{{ data["name"] }}'>{{ data["name"] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+	</div>
+	<div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Rollout Exercises</th>
+            <th>Spine Exercises</th>
+            <th>Hip Exercises</th>
+            <th>Shoulder Exercises</th>
+				<th>Arm Exercises</th>
+				<th>Dynamic Exercises</th>
+				<th>Notes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="warmups_body">
+          {% for data in warmups %}
+          <tr>
+            <td data-label="Name">{{ data["name"] }}</td>
+				<td data-label="rollout_ex">{{ data["rollout_ex"] | safe }}</td>
+				<td data-label="spine_ex">{{ data["spine_ex"] | safe }}</td>
+				<td data-label="hip_ex">{{ data["hip_ex"] | safe }}</td>
+				<td data-label="shoulder_ex">{{ data["shoulder_ex"] | safe }}</td>
+				<td data-label="arm_ex">{{ data["arm_ex"] | safe }}</td>
+				<td data-label="dynamic_ex">{{ data["dynamic_ex"] | safe }}</td>
+				<td data-label="notes">{{ data["notes"] | safe }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
 </div>
-
 <!-- ══ ARMCARE TAB ═══════════════════════════ -->
 <div id="armcare_workouts" class="tabcontent">
-  <div class="tab-placeholder">Arm care workouts coming soon</div>
+  <div class="section-card">
+    <div class="section-card-header">
+      <h3>Arm Care</h3>
+      <span class="workout-meta">{{ armcare_workout["workout_name"] }}</span>
+      <select id="retrieve-armcare">
+        <option value="">Select Armcare Workout to View</option>
+        {% for data in armcare_names %}
+        <option value='{{ data["workout_name"] }}'>{{ data["workout_name"] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+	</div>
+	<div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Block</th>
+            <th>Exercise</th>
+            <th>Sets/Reps</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="armcare_body">
+          {% for ex in armcare_workout["exercises"] %}
+          <tr>
+            <td data-label="Block">{{ ex["ex_block"] }}</td>
+            <td data-label="Exercise">{{ ex["ex_name"] }}</td>
+            <td data-label="Sets/Reps">{{ ex["sets_reps"] }}</td>
+            <td data-label="Notes">{{ ex["ex_notes"] | safe }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
 </div>
 
 <!-- ══ BACK TAB ══════════════════════════════ -->
 <div id="back_workouts" class="tabcontent">
-  <div class="tab-placeholder">Back workouts coming soon</div>
+  <div class="section-card">
+    <div class="section-card-header">
+      <h3>Back/Core Workouts</h3>
+      <span class="workout-meta">{{ spine_workout["workout_name"] }}</span>
+      <select id="retrieve-spine">
+        <option value="">Select Back/Core Workouts to View</option>
+        {% for data in spine_names %}
+        <option value='{{ data["workout_name"] }}'>{{ data["workout_name"] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+	</div>
+	<div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Block</th>
+            <th>Exercise</th>
+            <th>Sets/Reps</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="spine_body">
+          {% for ex in spine_workout["exercises"] %}
+          <tr>
+            <td data-label="Block">{{ ex["ex_block"] }}</td>
+            <td data-label="Exercise">{{ ex["ex_name"] }}</td>
+            <td data-label="Sets/Reps">{{ ex["sets_reps"] }}</td>
+            <td data-label="Notes">{{ ex["ex_notes"] | safe }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
 </div>
 
 <!-- ══ Lifts TAB ══════════════════════════════ -->
 <div id="lifts_workouts" class="tabcontent">
-  <div class="tab-placeholder">Lifts options coming soon</div>
+  <div class="section-card">
+    <div class="section-card-header">
+      <h3>Lifts</h3>
+      <span class="workout-meta">{{ lift_workout["workout_name"] }}</span>
+      <select id="retrieve-lift">
+        <option value="">Select Lift to View</option>
+        {% for data in lift_names %}
+        <option value='{{ data["workout_name"] }}'>{{ data["workout_name"] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+	</div>
+	<div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Block</th>
+            <th>Exercise</th>
+            <th>Sets/Reps</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="lift_body">
+          {% for ex in lift_workout["exercises"] %}
+          <tr>
+            <td data-label="Block">{{ ex["ex_block"] }}</td>
+            <td data-label="Exercise">{{ ex["ex_name"] }}</td>
+            <td data-label="Sets/Reps">{{ ex["sets_reps"] }}</td>
+            <td data-label="Notes">{{ ex["ex_notes"] | safe }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
 </div>
 
 <!-- ══ Conditioning TAB ══════════════════════════════ -->
 <div id="conditioning_workouts" class="tabcontent">
-  <div class="tab-placeholder">Conditioning workouts coming soon</div>
+ <div class="section-card">
+    <div class="section-card-header">
+      <h3>Conditioning</h3>
+      <span class="workout-meta">{{ conditioning_workout["workout_name"] }}</span>
+      <select id="retrieve-conditioning">
+        <option value="">Select Conditioning to View</option>
+        {% for data in conditioning_names %}
+        <option value='{{ data["workout_name"] }}'>{{ data["workout_name"] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+	</div>
+	<div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Block</th>
+            <th>Exercise</th>
+            <th>Sets/Reps</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="conditioning_body">
+          {% for ex in conditioning_workout["exercises"] %}
+          <tr>
+            <td data-label="Block">{{ ex["ex_block"] }}</td>
+            <td data-label="Exercise">{{ ex["ex_name"] }}</td>
+            <td data-label="Sets/Reps">{{ ex["sets_reps"] }}</td>
+            <td data-label="Notes">{{ ex["ex_notes"] | safe }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
 </div>
 
 <script src="{{ url_for('static', filename='js/workout_dashboard.js') }}"></script>
-
-<script>
-  function openTab(evt, tabName) {
-    document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tablinks').forEach(t => t.classList.remove('active'));
-    document.getElementById(tabName).classList.add('active');
-    evt.currentTarget.classList.add('active');
-  }
-</script>
-
 {% endblock %}
