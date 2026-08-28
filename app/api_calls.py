@@ -305,7 +305,7 @@ def getGameNotes():
     
     conn = get_db_connection()
     cursor = conn.cursor()
-    results = cursor.execute('select id, date, opponent, subjective_notes, feel_notes, mental_notes, good_bad_notes, post_outing_notes from game_journal Where date = ?', (date,)).fetchall()
+    results = cursor.execute('select id, date, opponent, subjective_notes, feel_notes, mental_notes, delivery_notes, post_outing_notes from game_journal Where date = ?', (date,)).fetchall()
     conn.close()
     
     updated_game_notes = [] #adds line break after every .
@@ -313,7 +313,7 @@ def getGameNotes():
         s_notes = row['subjective_notes'] or ""
         f_notes = row['feel_notes'] or ""
         m_notes = row['mental_notes'] or ""
-        gb_notes = row['good_bad_notes'] or ""
+        d_notes = row['delivery_notes'] or ""
         po_notes = row['post_outing_notes'] or ""
         
         updated_game_notes.append({
@@ -322,7 +322,7 @@ def getGameNotes():
             "subjective_notes": s_notes.replace(".", ".<br>"),
             "feel_notes": f_notes.replace(".", ".<br>"),
             "mental_notes": m_notes.replace(".", ".<br>"),
-            "good_bad_notes": gb_notes.replace(".", ".<br>"),
+            "delivery_notes": d_notes.replace(".", ".<br>"),
             "post_outing_notes": po_notes.replace(".", ".<br>"),
             "id": row['id'],
             })

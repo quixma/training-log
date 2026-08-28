@@ -84,8 +84,8 @@ function UpdateGameNotesTable(data) {
     row.cells[1].innerHTML = data[0]["opponent"];
     row.cells[2].innerHTML = data[0]["subjective_notes"];
     row.cells[3].innerHTML = data[0]["feel_notes"];
-    row.cells[4].innerHTML = data[0]['mental_notes'];
-    row.cells[5].innerHTML = data[0]['good_bad_notes'];
+    row.cells[4].innerHTML = data[0]['delivery_notes'];
+    row.cells[5].innerHTML = data[0]['mental_notes'];
     row.cells[6].innerHTML = data[0]["post_outing_notes"];
 
 }
