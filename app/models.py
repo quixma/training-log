@@ -81,6 +81,20 @@ def get_inszn_throwing_plan_dates():
     conn.close()
     return throwing_plan_dates
 
+def get_player_goals(plan_type):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    goals = cursor.execute('Select * from player_goals Where plan_type = ? order by id desc limit 1', (plan_type,)).fetchone()
+    conn.close()
+    return goals
+
+def get_player_goals_dates(plan_type):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    dates = cursor.execute('Select date from player_goals Where plan_type = ? order by id desc', (plan_type,)).fetchall()
+    conn.close()
+    return dates
+
 def get_throwing_notes_dates():
     conn = get_db_connection()
     cursor = conn.cursor()

@@ -31,6 +31,7 @@
     <select id="session-type" name="session_type" required>
       <option value="">Select Type</option>
       <option value="recovery">Recovery</option>
+      <option value="recovery">Recovery+</option>
       <option value="hybrid_a">Hybrid A</option>
       <option value="hybrid_b">Hybrid B</option>
       <option value="constraint_long_toss">Constraint Long Toss</option>
@@ -45,9 +46,17 @@
 
   <!-- Total Throws + Bodyweight + Max Velo -->
   <div class="row-3col">
+  	 <div class="field-group">
+      <label for="non-baseball-throws">Non Baseball Throws</label>
+      <input type="number" id="non-baseball-throws" name="non-baseball-throws" placeholder="0">
+    </div>
     <div class="field-group">
       <label for="total-throws">Total Throws</label>
       <input type="number" id="total-throws" name="total_throws" placeholder="0">
+    </div>
+    <div class="field-group">
+      <label for="working-set-throws">Working Set Throws</label>
+      <input type="number" id="working-set-throws" name="working_set_throws" placeholder="0">
     </div>
     <div class="field-group">
       <label for="body-weight">Bodyweight</label>
@@ -70,8 +79,8 @@
       <input type="number" step="0.1" id="rpe" name="rpe" min="1" max="10" placeholder="—">
     </div>
     <div class="field-group">
-      <label for="arm-readiness">Arm Readiness (1–10)</label>
-      <input type="number" step="0.1" id="arm-readiness" name="arm_readiness" min="1" max="10" placeholder="—">
+      <label for="arm-readiness">Arm Readiness (1–5)</label>
+      <input type="number" step="0.1" id="arm-readiness" name="arm_readiness" min="1" max="5" placeholder="—">
     </div>
   </div>
 
@@ -95,6 +104,11 @@
         <option>32</option>
         <option>48</option>
         <option>64</option>
+        <option>jav</option>
+        <option>football</option>
+        <option>club</option>
+        <option>volleyball</option>
+        <option>tennis</option>
       </select>
       <input type="number" step="0.01" name="drill_velocity[]" placeholder="Max Velo">
       <input type="number" name="throw_count[]" placeholder="Throw Count">

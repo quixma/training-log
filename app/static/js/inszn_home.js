@@ -14,6 +14,15 @@ const drill_row = document.getElementById("drill-row");
 var editTP_Btn = document.getElementById('editTP');
 const rowTP = editTP_Btn.closest("tr");
 
+//edit throwing plan button/modal
+var modalTP = document.getElementById('editTP-modal')
+var saveTP_Btn = document.getElementById('saveTP')
+
+//player goals button/modal
+var modalGoals = document.getElementById('editGoals-modal')
+var editGoals_Btn = document.getElementById('editGoals')
+var saveGoalsBtn = document.getElementById('saveGoals')
+
 //throwing plan and notes labels
 const throwingPlanSelect = document.getElementById('retrieve-throwing-plan');
 const throwingNoteSelect = document.getElementById('retrieve-throwing-notes');
@@ -21,6 +30,7 @@ const throwingNoteTimeSelect = document.getElementById('throwing-notes-time');
 const throwingDaySelect = document.getElementById('throwing-day-type');
 const throwingDayTimeSelect = document.getElementById('throwing-day-time');
 const gameNoteSelect = document.getElementById('retrieve-game-notes');
+const playerGoalsSelect = document.getElementById('retrieve-player-goals');
 
 //add event listeners
 throwingPlanSelect.addEventListener("change", GetThrowingPlan);
@@ -29,14 +39,29 @@ throwingNoteTimeSelect.addEventListener("change", GetThrowingNotes);
 throwingDaySelect.addEventListener("change", GetThrowingNotesByDay);
 throwingDayTimeSelect.addEventListener("change", GetThrowingNotesByDay);
 gameNoteSelect.addEventListener("change", GetGameNotes);
+playerGoalsSelect.addEventListener("change", GetPlayerGoals);
 //chart event listeners
 metricSelect.addEventListener("change", getData);
 timeframeSelect.addEventListener("change", getData);
+
+// Close buttons
+document.querySelectorAll('.modal-close').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.getElementById(btn.dataset.modal).classList.remove('active');
+    });
+});
+// Click outside to close
+document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('click', e => {
+        if (e.target === modal) modal.classList.remove('active');
+    });
+});
 
 GetThrowingPlan();
 GetThrowingNotes();
 GetThrowingNotesByDay();
 GetGameNotes();
+GetPlayerGoals();
 getData(); //chart api data
 
 
@@ -47,6 +72,152 @@ function openTab(evt, tabName) {
     document.getElementById(tabName).classList.add('active');
     evt.currentTarget.classList.add('active');
 }
+
+function openModal(id) {
+    document.getElementById(id).classList.add('active');
+}
+
+editTP_Btn.onclick = function () { //edit throwing plan
+    openModal('editTP-modal');
+
+    //get modal text boxes to populate and update
+    const throwing_sessions_modal = document.getElementById("throwing-days");
+    const throwing_notes_modal = document.getElementById("throwing-notes");
+    const pitching_notes_modal = document.getElementById("pitching-notes");
+    const drill_notes_modal = document.getElementById("drill-notes");
+
+    //gets current table values displayed in html
+    const throwing_sessions = rowTP.children[1].innerText;
+    const throwing_notes = rowTP.children[2].innerText;
+    const pitching_notes = rowTP.children[3].innerText;
+    const drill_notes = drill_row.children[0].innerText;
+
+    //populates modal fields for editing
+    throwing_sessions_modal.value = throwing_sessions;
+    throwing_notes_modal.value = throwing_notes;
+    pitching_notes_modal.value = pitching_notes;
+    drill_notes_modal.value = drill_notes;
+}
+
+saveTP_Btn.onclick = function () {
+    const updatedFormData = {
+        throwing_planID: Number(rowTP.id),
+        throwing_sessions: document.getElementById("throwing-days").value,
+        throwing_notes: document.getElementById("throwing-notes").value,
+        pitching_notes: document.getElementById("pitching-notes").value,
+        drill_notes: document.getElementById("drill-notes").value
+    }
+
+    fetch('/api/updateThrowingPlan',
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', },
+            body: JSON.stringify(updatedFormData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Update success:', data);
+            modalTP.style.display = "none";
+            window.location.reload();
+        })
+        .catch(error => {
+            console.error('Update failed:', error);
+            alert('Update failed. See console.');
+        });
+}
+
+editGoals_Btn.onclick = function () { //log new player plan goals
+    openModal('editGoals-modal');
+
+    //default date to today, clear prior entries so a new dated entry is created
+    document.getElementById("goals-date").value = new Date().toISOString().split('T')[0];
+    document.getElementById("goals-pitching").value = "";
+    document.getElementById("goals-arsenal").value = "";
+    document.getElementById("goals-delivery").value = "";
+    document.getElementById("goals-execution").value = "";
+}
+
+saveGoalsBtn.onclick = function () {
+    const newGoals = {
+        date: document.getElementById("goals-date").value,
+        plan_type: document.getElementById("goals-plan-type").value,
+        pitching: document.getElementById("goals-pitching").value,
+        arsenal: document.getElementById("goals-arsenal").value,
+        delivery: document.getElementById("goals-delivery").value,
+        execution: document.getElementById("goals-execution").value
+    }
+
+    fetch('/api/addPlayerGoals',
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', },
+            body: JSON.stringify(newGoals)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Save success:', data);
+            modalGoals.style.display = "none";
+            window.location.reload();
+        })
+        .catch(error => {
+            console.error('Save failed:', error);
+            alert('Save failed. See console.');
+        });
+}
+
+async function GetPlayerGoals() {
+    date = playerGoalsSelect.value;
+    if (!date) {
+        console.log("Enter a search criteria")
+        return;
+    }
+    else {
+        const response = await fetch('/api/getPlayerGoals',
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', },
+                body: JSON.stringify({ plan_type: "inszn", date: date })
+            });
+
+        if (!response.ok) {
+            console.log('Update failed:', await response.text());
+            alert('Update failed. See console.');
+            return;
+        }
+
+        const data = await response.json();
+        UpdatePlayerGoalsTable(data);
+    }
+}
+function UpdatePlayerGoalsTable(data) {
+    const table = document.getElementById('player_goals_body');
+    const row = table.rows[0];
+
+    row.cells[0].innerText = data["date"];
+    row.cells[1].innerText = data["pitching"];
+    row.cells[2].innerText = data["arsenal"];
+    row.cells[3].innerText = data["delivery"];
+    row.cells[4].innerText = data["execution"];
+}
+
+window.addEventListener('click', function (event) {
+    if (event.target == modalGoals) {
+        modalGoals.style.display = "none";
+    }
+    if (event.target == modalTP) {
+        modalTP.style.display = "none";
+    }
+});
 
 //updating and displaying game notes tab
 async function GetGameNotes() {

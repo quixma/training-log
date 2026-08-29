@@ -13,6 +13,7 @@ class ThrowingLogModel(BaseModel):
     throwing_block: Literal["deload", "on_ramp", "velo_phase", "pre_season", "in_season", "return_to_throw"]
     session_type: Literal["recovery", "hybrid_a","hybrid_b", "constraint_long_toss", "mound_blend", "plyo_velo", "pitch_design", "command_training", "bullpen", "live_abs"]
     total_throws: Optional[Annotated[int, Field(ge = 0)]]
+    non_baseball_throws: Optional[Annotated[int, Field(ge = 0)]]
     body_weight: Optional[Annotated[float, Field(gt= 0)]]
     max_velo: Optional[Annotated[float, Field(gt= 0)]]
     one_day_workload: Optional[Annotated[float, Field(gt= 0)]]
@@ -44,6 +45,17 @@ class UpdateThrowingPlanModel(BaseModel):
     pitching_notes: Optional[str]
     drill_notes: Optional[str]
     
+class PlayerGoalsModel(BaseModel):
+    date: date
+    plan_type: Literal['offszn', 'inszn', 'workout']
+    pitching: Optional[str]
+    arsenal: Optional[str]
+    delivery: Optional[str]
+    execution: Optional[str]
+    gym: Optional[str]
+    back: Optional[str]
+    nutrition: Optional[str]
+
 class DashboardMetrics(BaseModel):
     metric: Literal['body_weight', 'max_velo', 'total_throws', 'one_day_workload', 'rpe', 'arm_readiness', 'totalThrows7d']
     time: Literal['7', '14', '21', '30', '60', '90']

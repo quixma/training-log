@@ -1,5 +1,5 @@
 from app import app
-from app.input_validation import DashboardMetrics, UpdateThrowingPlanModel
+from app.input_validation import DashboardMetrics, UpdateThrowingPlanModel, PlayerGoalsModel
 from app.models import get_db_connection, get_warmup_by_name, get_armcare_by_name, get_back_by_name, get_lift_by_name, get_conditioning_by_name
 from pydantic import ValidationError
 from flask import jsonify, request, url_for, redirect, render_template
@@ -377,3 +377,50 @@ def getSelectedWorkout():
     if result is None:
         return jsonify({"error": "workout not found"}), 404
     return jsonify(result)
+
+@app.route("/api/addPlayerGoals", methods = ["POST"])
+def addPlayerGoals():
+    data = request.get_json()
+    goals = {
+        "date": data.get('date'),
+        "plan_type": data.get('plan_type'),
+        "pitching": data.get('pitching'),
+        "arsenal": data.get('arsenal'),
+        "delivery": data.get('delivery'),
+        "execution": data.get('execution'),
+        "gym": data.get('gym'),
+        "back": data.get('back'),
+        "nutrition": data.get('nutrition'),
+        }
+    goals = {key: None if value == "" else value for key, value in goals.items()}
+
+    try:
+        PlayerGoalsModel(**goals)
+    except ValidationError as e:
+        return jsonify(e.errors()), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO player_goals (date, plan_type, pitching, arsenal, delivery, execution, gym, back, nutrition) VALUES (?,?,?,?,?,?,?,?,?)",
+                   (goals["date"], goals["plan_type"], goals["pitching"], goals["arsenal"], goals["delivery"], goals["execution"], goals["gym"], goals["back"], goals["nutrition"]))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"status": "goals saved"}), 200
+
+@app.route("/api/getPlayerGoals", methods = ["POST"])
+def getPlayerGoals():
+    data = request.get_json()
+    plan_type = data.get('plan_type')
+    date = data.get('date')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    result = cursor.execute("Select * from player_goals Where plan_type = ? and date = ? order by id desc limit 1", (plan_type, date)).fetchone()
+    conn.close()
+
+    if result is None:
+        return jsonify({"error": "No goals found"}), 404
+
+    return jsonify(dict(result))
+

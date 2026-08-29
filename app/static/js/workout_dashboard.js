@@ -5,6 +5,12 @@ const armcareSelect = document.getElementById('retrieve-armcare')
 const spineSelect = document.getElementById('retrieve-spine')
 const liftSelect = document.getElementById('retrieve-lift')
 const conditioningSelect = document.getElementById('retrieve-conditioning')
+const playerGoalsSelect = document.getElementById('retrieve-player-goals')
+
+//player goals button/modal
+var modalGoals = document.getElementById('editGoals-modal')
+var editGoals_Btn = document.getElementById('editGoals')
+var saveGoalsBtn = document.getElementById('saveGoals')
 
 //add event listeners to query on change
 warmupSelect.addEventListener("change", () => GetSelectedWorkout('warmup'));
@@ -12,7 +18,22 @@ armcareSelect.addEventListener("change", () => GetSelectedWorkout('armcare'));
 spineSelect.addEventListener("change", () => GetSelectedWorkout('back'));
 liftSelect.addEventListener("change", () => GetSelectedWorkout('lift'));
 conditioningSelect.addEventListener("change", () => GetSelectedWorkout('conditioning'));
+playerGoalsSelect.addEventListener("change", GetPlayerGoals);
 
+// Close buttons
+document.querySelectorAll('.modal-close').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.getElementById(btn.dataset.modal).classList.remove('active');
+    });
+});
+// Click outside to close
+document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('click', e => {
+        if (e.target === modal) modal.classList.remove('active');
+    });
+});
+
+GetPlayerGoals();
 
 //tab control on home screen
 function openTab(evt, tabName) {
@@ -21,6 +42,92 @@ function openTab(evt, tabName) {
     document.getElementById(tabName).classList.add('active');
     evt.currentTarget.classList.add('active');
 }
+
+function openModal(id) {
+    document.getElementById(id).classList.add('active');
+}
+
+editGoals_Btn.onclick = function () { //log new player plan goals
+    openModal('editGoals-modal');
+
+    //default date to today, clear prior entries so a new dated entry is created
+    document.getElementById("goals-date").value = new Date().toISOString().split('T')[0];
+    document.getElementById("goals-gym").value = "";
+    document.getElementById("goals-back").value = "";
+    document.getElementById("goals-nutrition").value = "";
+}
+
+saveGoalsBtn.onclick = function () {
+    const newGoals = {
+        date: document.getElementById("goals-date").value,
+        plan_type: document.getElementById("goals-plan-type").value,
+        gym: document.getElementById("goals-gym").value,
+        back: document.getElementById("goals-back").value,
+        nutrition: document.getElementById("goals-nutrition").value
+    }
+
+    fetch('/api/addPlayerGoals',
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', },
+            body: JSON.stringify(newGoals)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Save success:', data);
+            modalGoals.style.display = "none";
+            window.location.reload();
+        })
+        .catch(error => {
+            console.error('Save failed:', error);
+            alert('Save failed. See console.');
+        });
+}
+
+async function GetPlayerGoals() {
+    date = playerGoalsSelect.value;
+    if (!date) {
+        console.log("Enter a search criteria")
+        return;
+    }
+    else {
+        const response = await fetch('/api/getPlayerGoals',
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', },
+                body: JSON.stringify({ plan_type: "workout", date: date })
+            });
+
+        if (!response.ok) {
+            console.log('Update failed:', await response.text());
+            alert('Update failed. See console.');
+            return;
+        }
+
+        const data = await response.json();
+        UpdatePlayerGoalsTable(data);
+    }
+}
+function UpdatePlayerGoalsTable(data) {
+    const table = document.getElementById('player_goals_body');
+    const row = table.rows[0];
+
+    row.cells[0].innerText = data["date"];
+    row.cells[1].innerText = data["gym"];
+    row.cells[2].innerText = data["back"];
+    row.cells[3].innerText = data["nutrition"];
+}
+
+window.addEventListener('click', function (event) {
+    if (event.target == modalGoals) {
+        modalGoals.style.display = "none";
+    }
+});
 
 
 async function GetSelectedWorkout(tabName) {

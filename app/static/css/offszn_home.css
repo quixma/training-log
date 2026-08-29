@@ -80,6 +80,57 @@ header h1 span {
   gap: 32px;
 }
 
+/* ── Tab Nav ─────────────────────────────────── */
+.tab {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.tablinks {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 16px 20px 14px;
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition);
+  white-space: nowrap;
+}
+
+.tablinks:hover {
+  color: var(--text-primary);
+}
+
+.tablinks.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* ── Tab Content ─────────────────────────────── */
+.tabcontent {
+  display: none;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.tabcontent.active {
+  display: flex;
+}
+
 /* ── Section Card ───────────────────────────── */
 .section-card {
   background: var(--bg-card);
@@ -396,7 +447,8 @@ td button:hover,
 
 /* Modal save button */
 .modal-content button#saveTP,
-.modal-content button#saveNotes {
+.modal-content button#saveNotes,
+.modal-content button#saveGoals {
   align-self: stretch;
   padding: 14px;
   background: var(--accent);
@@ -415,7 +467,8 @@ td button:hover,
 }
 
 .modal-content button#saveTP:hover,
-.modal-content button#saveNotes:hover {
+.modal-content button#saveNotes:hover,
+.modal-content button#saveGoals:hover {
   background: #f04044;
   box-shadow: 0 6px 28px rgba(232,56,59,0.5);
   transform: translateY(-1px);
@@ -482,6 +535,8 @@ footer strong {
   header { padding: 24px 20px 18px; }
   header h1 { font-size: 1.4rem; }
   .page-content { padding: 20px 12px; gap: 20px; }
+  .tab { padding: 0 12px; overflow-x: auto; }
+  .tabcontent { padding: 20px 12px; gap: 16px; }
   .table-container { flex-direction: column; }
   .table-container .section-card:first-child {
     border-right: 1px solid var(--border);
@@ -554,6 +609,36 @@ footer strong {
   }
 
   #throwing_notes_body td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+  /* same as above, but for player goals */
+  #player_goals_body tr {
+    display: block;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 12px;
+    background: var(--bg-card);
+  }
+
+  #player_goals_body td {
+    display: block;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    white-space: normal;
+  }
+
+  #player_goals_body td:last-child {
+    border-bottom: none;
+  }
+
+  #player_goals_body td::before {
     content: attr(data-label);
     display: block;
     font-size: 0.65rem;

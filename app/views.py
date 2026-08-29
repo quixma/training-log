@@ -4,6 +4,7 @@ from app.models import inszn_dash_data, get_inszn_throwing_plan_dates, get_game_
 from app.models import get_throwing_plan_dates, get_totalthrows4wk, get_totalworkingthrows4wk, get_throwing_notes_dates, get_summary_data, get_bullpen_report_files, get_throwing_day_types
 from app.models import get_RatingsAvgs, get_WorkoutsCompleted, get_bodyNotes_dates, get_bodyNotes, get_warmup_names, get_warmups
 from app.models import get_armcare_names, get_armcare_workout, get_back_names, get_back_workout, get_lift_names, get_lift_workout, get_conditioning_names, get_conditioning_workout
+from app.models import get_player_goals, get_player_goals_dates
 from app.api_calls import shutdown
 from flask import render_template, request, redirect, url_for
 
@@ -19,12 +20,15 @@ def offszn_home():
     plan_dates = get_throwing_plan_dates()
     notes_dates = get_throwing_notes_dates()
     throwing_days = get_throwing_day_types()
+    player_goals = get_player_goals('offszn')
+    player_goals_dates = get_player_goals_dates('offszn')
     message = request.args.get('message')
-    
+
     for x in throwing_plan: #get id of throwing plan
         tableID = x['id']
-    
-    return render_template('offszn_home.html',throwing_notes = throwing_notes, throwing_plan=throwing_plan, drills=drills, tableID = tableID, plan_dates = plan_dates, notes_dates = notes_dates, throwing_days = throwing_days)
+
+    return render_template('offszn_home.html',throwing_notes = throwing_notes, throwing_plan=throwing_plan, drills=drills, tableID = tableID, plan_dates = plan_dates, notes_dates = notes_dates, throwing_days = throwing_days,
+                           player_goals = player_goals, player_goals_dates = player_goals_dates)
 
 @app.route('/offszn-throwing-form', methods=["GET","POST"])
 def offszn_throwing_form():
@@ -56,15 +60,17 @@ def inszn_home():
     throws4wk = get_totalthrows4wk()
     workingthrows4wk = get_totalworkingthrows4wk()
     game_notes, game_dates = get_game_notes()
-    
+    player_goals = get_player_goals('inszn')
+    player_goals_dates = get_player_goals_dates('inszn')
+
     for x in throwing_plan: #get id of throwing plan
         tableID = x['id']
-    
-    return render_template('inszn_home.html',throwing_notes = throwing_notes, throwing_plan=throwing_plan, drills=drills, tp_prethrow = tp_prethrow, 
+
+    return render_template('inszn_home.html',throwing_notes = throwing_notes, throwing_plan=throwing_plan, drills=drills, tp_prethrow = tp_prethrow,
                            tableID = tableID, plan_dates = plan_dates, notes_dates = notes_dates, throwing_days = throwing_days,
                            peak_velo = peak_velo, avg_readiness = avg_readiness, acr = acr, total_throws7d = total_throws7d, working_throws7d = working_throws7d,
                            prev_throw_day = prev_throw_day, days_last_game = days_last_game, throws4wk = throws4wk, workingthrows4wk = workingthrows4wk, avg_velos = avg_velos,
-                           game_notes = game_notes, game_dates = game_dates)
+                           game_notes = game_notes, game_dates = game_dates, player_goals = player_goals, player_goals_dates = player_goals_dates)
 
 @app.route('/inszn_throwing_form', methods=["GET", "POST"])
 def inszn_throwing_form():
@@ -102,12 +108,14 @@ def workout_dashboard():
     lift_workout = get_lift_workout()
     conditioning_names = get_conditioning_names()
     conditioning_workout = get_conditioning_workout()
-    
+    player_goals = get_player_goals('workout')
+    player_goals_dates = get_player_goals_dates('workout')
+
     return render_template('workout_dashboard.html', energy = energy, fatigue = fatigue, motivation = motivation, focus = focus,
                            rows = rows, dates = dates, body_notes = body_notes, warmup_names = warmup_names, warmups = warmups,
-                          armcare_names = armcare_names, armcare_workout = armcare_workout, spine_names=spine_names, 
+                          armcare_names = armcare_names, armcare_workout = armcare_workout, spine_names=spine_names,
                           spine_workout=spine_workout, lift_names=lift_names,lift_workout=lift_workout, conditioning_names=conditioning_names,
-                          conditioning_workout=conditioning_workout)
+                          conditioning_workout=conditioning_workout, player_goals = player_goals, player_goals_dates = player_goals_dates)
 
 @app.route('/workout_form', methods=["GET", "POST"])
 def workout_form():

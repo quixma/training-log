@@ -13,12 +13,18 @@ const rowTP = editTP_Btn.closest("tr");
 var modalNotes = document.getElementById('editNotes-modal')
 var saveNotesBtn = document.getElementById('saveNotes')
 
+//player goals button/modal
+var modalGoals = document.getElementById('editGoals-modal')
+var editGoals_Btn = document.getElementById('editGoals')
+var saveGoalsBtn = document.getElementById('saveGoals')
+
 //throwing plan and notes labels
 const throwingPlanSelect = document.getElementById('retrieve-throwing-plan')
 const throwingNoteSelect = document.getElementById('retrieve-throwing-notes')
 const throwingNoteTimeSelect = document.getElementById('throwing-notes-time')
 const throwingDaySelect = document.getElementById('throwing-day-type')
 const throwingDayTimeSelect = document.getElementById('throwing-day-time')
+const playerGoalsSelect = document.getElementById('retrieve-player-goals')
 
 //add event listeners
 throwingPlanSelect.addEventListener("change", GetThrowingPlan);
@@ -26,6 +32,7 @@ throwingNoteSelect.addEventListener("change", GetThrowingNotes);
 throwingNoteTimeSelect.addEventListener("change", GetThrowingNotes);
 throwingDaySelect.addEventListener("change", GetThrowingNotesByDay);
 throwingDayTimeSelect.addEventListener("change", GetThrowingNotesByDay);
+playerGoalsSelect.addEventListener("change", GetPlayerGoals);
 
 
 // Close buttons
@@ -44,11 +51,99 @@ document.querySelectorAll('.modal').forEach(modal => {
 GetThrowingPlan();
 GetThrowingNotes();
 GetThrowingNotesByDay();
+GetPlayerGoals();
+
+//tab control on home screen
+function openTab(evt, tabName) {
+    document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tablinks').forEach(t => t.classList.remove('active'));
+    document.getElementById(tabName).classList.add('active');
+    evt.currentTarget.classList.add('active');
+}
 
 // Open helpers — call these from index.js or inline
 // openModal('editTP-modal') / openModal('editNotes-modal')
 function openModal(id) {
     document.getElementById(id).classList.add('active');
+}
+
+editGoals_Btn.onclick = function () { //log new player plan goals
+    openModal('editGoals-modal');
+
+    //default date to today, clear prior entries so a new dated entry is created
+    document.getElementById("goals-date").value = new Date().toISOString().split('T')[0];
+    document.getElementById("goals-pitching").value = "";
+    document.getElementById("goals-arsenal").value = "";
+    document.getElementById("goals-delivery").value = "";
+    document.getElementById("goals-execution").value = "";
+}
+
+saveGoalsBtn.onclick = function () {
+    const newGoals = {
+        date: document.getElementById("goals-date").value,
+        plan_type: document.getElementById("goals-plan-type").value,
+        pitching: document.getElementById("goals-pitching").value,
+        arsenal: document.getElementById("goals-arsenal").value,
+        delivery: document.getElementById("goals-delivery").value,
+        execution: document.getElementById("goals-execution").value
+    }
+
+    fetch('/api/addPlayerGoals',
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', },
+            body: JSON.stringify(newGoals)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Save success:', data);
+            modalGoals.style.display = "none";
+            window.location.reload();
+        })
+        .catch(error => {
+            console.error('Save failed:', error);
+            alert('Save failed. See console.');
+        });
+}
+
+async function GetPlayerGoals() {
+    date = playerGoalsSelect.value;
+    if (!date) {
+        console.log("Enter a search criteria")
+        return;
+    }
+    else {
+        const response = await fetch('/api/getPlayerGoals',
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', },
+                body: JSON.stringify({ plan_type: "offszn", date: date })
+            });
+
+        if (!response.ok) {
+            console.log('Update failed:', await response.text());
+            alert('Update failed. See console.');
+            return;
+        }
+
+        const data = await response.json();
+        UpdatePlayerGoalsTable(data);
+    }
+}
+function UpdatePlayerGoalsTable(data) {
+    const table = document.getElementById('player_goals_body');
+    const row = table.rows[0];
+
+    row.cells[0].innerText = data["date"];
+    row.cells[1].innerText = data["pitching"];
+    row.cells[2].innerText = data["arsenal"];
+    row.cells[3].innerText = data["delivery"];
+    row.cells[4].innerText = data["execution"];
 }
 
 editTP_Btn.onclick = function () { //edit throwing plan
@@ -344,6 +439,9 @@ window.onclick = function (event) {
     }
     if (event.target == modalNotes) {
         modalNotes.style.display = "none";
+    }
+    if (event.target == modalGoals) {
+        modalGoals.style.display = "none";
     }
 
 } 
