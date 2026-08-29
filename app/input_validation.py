@@ -16,7 +16,6 @@ class ThrowingLogModel(BaseModel):
     non_baseball_throws: Optional[Annotated[int, Field(ge = 0)]]
     body_weight: Optional[Annotated[float, Field(gt= 0)]]
     max_velo: Optional[Annotated[float, Field(gt= 0)]]
-    one_day_workload: Optional[Annotated[float, Field(gt= 0)]]
     rpe: Optional[Annotated[float, Field(ge= 1, le=10)]]
     arm_readiness: Optional[Annotated[float, Field(ge= 1, le=10)]]
     notes: Optional[str]

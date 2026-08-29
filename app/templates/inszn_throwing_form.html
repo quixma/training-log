@@ -33,10 +33,14 @@
       <input type="number" step="0.01" id="body-weight" name="body_weight" placeholder="lbs">
     </div>
     <div class="field-group">
-      <label for="total-throws">Total Throws</label>
+      <label for="non-baseball-throws">Non Baseball Throws</label>
+      <input type="number" id="non-baseball-throws" name="non-baseball-throws" placeholder="0">
+    </div>
+    <div class="field-group">
+      <label for="total-throws">Total Baseball Throws</label>
       <input type="number" id="total-throws" name="total_throws" placeholder="0">
     </div>
-    
+
     <div class="field-group">
       <label for="working-set-throws">Working Set Throws</label>
       <input type="number" id="working-set-throws" name="working_set_throws" placeholder="0">
@@ -46,16 +50,6 @@
       <label for="max-velocity">Max Velocity</label>
       <input type="number" step="0.01" id="max-velocity" name="max_velocity" placeholder="mph">
     </div>
-  </div>
-
-  <div class="mound-row">
-    <div class="checkbox-field">
-      <input type="checkbox" id="mound-work" name="mound_work" value="yes">
-      <label for="mound-work">Mound Work?</label>
-    </div>
-  </div>
-
-  <div class="row-2col">
     <div class="field-group">
       <label for="rpe">RPE (1–10)</label>
       <input type="number" step="0.1" id="rpe" name="rpe" min="1" max="10" placeholder="—">
@@ -64,11 +58,6 @@
       <label for="arm-readiness">Arm Readiness (1-5)</label>
       <input type="number" step="0.01" id="arm-readiness" name="arm_readiness" min="1" max="5" placeholder="—">
     </div>
-  </div>
-
-  <div class="checkbox-field">
-    <input type="checkbox" id="game-available" name="game_available" value="yes">
-    <label for="game-available">Available / Hot in game?</label>
   </div>
 
   <h3>Session Breakdown</h3>

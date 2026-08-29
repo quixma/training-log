@@ -235,21 +235,6 @@ body {
   border-radius: 4px;
 }
 
-/* ── Mound row (inline checkbox + 2 fields) ── */
-.mound-row {
-  display: grid;
-  grid-template-columns: auto 1fr 1fr;
-  gap: 14px;
-  align-items: end;
-  margin-bottom: 20px;
-}
-
-.mound-row .checkbox-field {
-  margin-bottom: 0;
-  white-space: nowrap;
-  padding: 10px 12px;
-}
-
 /* ── RPE + Readiness + Days Row ─────────────── */
 .metrics-row {
   display: grid;
@@ -374,12 +359,7 @@ body {
 
   .row-2col,
   .row-3col,
-  .metrics-row,
-  .mound-row {
+  .metrics-row {
     grid-template-columns: 1fr;
-  }
-
-  .mound-row .checkbox-field {
-    grid-column: 1;
   }
 }
