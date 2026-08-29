@@ -4,7 +4,7 @@ from datetime import date
 
 class ThrowingLogDrillEntry(BaseModel):
     drill_name: Optional[str]
-    ball_weight: Optional[Annotated[float, Field(ge= 0, le=64)]]
+    ball_weight: Optional[str]
     drill_velo: Optional[Annotated[float, Field(gt= 0)]]
     throw_count: Optional[Annotated[int, Field(gt= 0)]]
 
