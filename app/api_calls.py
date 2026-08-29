@@ -1,5 +1,5 @@
 from app import app
-from app.input_validation import DashboardMetrics, UpdateThrowingPlanModel, PlayerGoalsModel
+from app.input_validation import UpdateThrowingPlanModel, PlayerGoalsModel
 from app.models import get_db_connection, get_warmup_by_name, get_armcare_by_name, get_back_by_name, get_lift_by_name, get_conditioning_by_name
 from pydantic import ValidationError
 from flask import jsonify, request, url_for, redirect, render_template
@@ -104,44 +104,6 @@ def report_data():
     
     return jsonify(allData)
 
-@app.route('/api/data', methods = ["POST"])
-def get_chart_data():
-    data = request.get_json()
-    dict_data = {
-        'metric': data.get('metric'),
-        'time': data.get('time')
-        }
-    try:
-        DashboardMetrics(**dict_data)
-        #proceed to insertion
-    except ValidationError as e:
-        return jsonify(e)
-    
-    if(dict_data["metric"] == 'totalThrows7d'):
-        weeks = int(int(dict_data['time']) / 7)
-        conn= get_db_connection()
-        cursor = conn.cursor()
-        #groups dates as a whole week, listing in dict as the week starting on monday date, calc sum of total throws for that week
-        total_throws = cursor.execute("select DATE(date, 'weekday 0', '-7 days') AS week_start, sum(total_throws) from throwing_sessions GROUP By week_start ORDER By week_start DESC LIMIT ?",(weeks,)).fetchall()
-        conn.close()
-        throws_dict = {
-            "totalThrows7d": [],
-            "date": []
-            }
-        for row in total_throws:
-            throws_dict["totalThrows7d"].append(row[1])
-            throws_dict["date"].append(row[0])
-            
-        return jsonify(throws_dict) 
-    else:
-        conn= get_db_connection()
-        cursor = conn.cursor()
-        #get last date for query 
-        date = cursor.execute('select date from throwing_sessions order by date desc limit 1').fetchone()
-        results = cursor.execute(f'select {dict_data["metric"]}, date from throwing_sessions Where date >= datetime(?, "-{dict_data["time"]} days")', (date[0],)).fetchall()
-        conn.close()
-        return jsonify([dict(row) for row in results])
-    
 @app.route('/api/inszn_chart_data', methods = ["POST"])
 def inszn_chart_data():
     data = request.get_json()
@@ -235,29 +197,6 @@ def updateNotes():
     conn.close()
     
     return jsonify({"status": "update complete"}), 200
-
-@app.route("/api/getThrowingPlan", methods = ["POST"])
-def getThrowingPlan():
-    date = request.get_json()
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    results = cursor.execute("Select * from throwing_plan Where date = ?", (date,)).fetchall()
-    
-    for x in results: #converts sqlite objects into dictionary, since its only one "row" returned dont need to do it like drills where there is multiple
-        rdict = dict(x) #just have to add the one row to dict
-        
-    drills = cursor.execute("Select * from throwing_plan_drills Where sessionId = ?", (rdict["id"],)).fetchall() #gets drills based on id from first query
-    
-    drdict = {}
-    drdict["drills"] = [dict(row) for row in drills] #gets each individual drill and appends to dict.
-    allData = { #combines into one dict to pass back to javascript
-        "tp": rdict,
-        "drills": drdict
-        }
-    conn.close()
-    
-    return jsonify(allData)
-     
 
 @app.route("/api/getThrowingNotes", methods = ["POST"])
 def getThrowingNotes():

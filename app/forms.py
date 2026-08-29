@@ -1,7 +1,7 @@
 from app import app
 from app.input_validation import ThrowingLogModel, ThrowingPlanModel
 from app.models import get_db_connection, updateThrowCount, calcACR
-from flask import request, flash, redirect, url_for
+from flask import request, flash, redirect, url_for, jsonify
 from pydantic import ValidationError
 from werkzeug.utils import secure_filename
 import os
@@ -10,21 +10,25 @@ import os
 def submit_insznthrow():
     if request.method ==  "POST":
         drill_names = request.form.getlist("drill_name[]")
+        ball_weights = request.form.getlist('drill_ball_weight[]')
         drill_velos = request.form.getlist("drill_velocity[]")
+        throw_counts = request.form.getlist('throw_count[]')
         drill_list = []
-        
-        if(len(drill_names) == len(drill_velos)): #making sure entry lengths match, add each indvidual drill, velo pair to drill list for db.
+
+        if(len(drill_names) == len(ball_weights) == len(drill_velos) == len(throw_counts)): #making sure entry lengths match, add each indvidual drill entry for db.
             for x in range(len(drill_names)):
                 drill_entry = {
                     "drill_name": drill_names[x],
-                    "drill_velo": drill_velos[x]
+                    "ball_weight": ball_weights[x],
+                    "drill_velo": drill_velos[x],
+                    "throw_count": throw_counts[x]
                     }
                 drill_entry = {key: None if value == "" else value for key, value in drill_entry.items()} # if empty value replace with null
-                drill_list.append(drill_entry) 
-                
+                drill_list.append(drill_entry)
+
         form_data = {
             "date": request.form.get("date"),
-            "throwing_block": "in_season",
+            "throwing_block": request.form.get("throwing_block"),
             "session_type": request.form.get("session_type"),
             "body_weight": request.form.get("body_weight"),
             "total_throws": request.form.get("total_throws"),
@@ -40,7 +44,10 @@ def submit_insznthrow():
         #converts unentered field values to None
         form_data = {key: None if value == "" else value for key, value in form_data.items()}
 
-        #input validation here
+        try:
+            ThrowingLogModel(**form_data)
+        except ValidationError as e:
+            return jsonify(e.errors()), 400
 
         #insert data
         conn = get_db_connection()
@@ -50,8 +57,8 @@ def submit_insznthrow():
         
         session_id = cursor.lastrowid
         for x in range(len(drill_names)):
-            cursor.execute("INSERT INTO drills (session_id, drill_name, drill_max_velo) VALUES (?,?,?)",
-                           (session_id, drill_list[x]['drill_name'], drill_list[x]['drill_velo']))   
+            cursor.execute("INSERT INTO drills (session_id, drill_name, ball_weight, drill_max_velo, throw_count) VALUES (?,?,?,?,?)",
+                           (session_id, drill_list[x]['drill_name'], drill_list[x]['ball_weight'], drill_list[x]['drill_velo'], drill_list[x]['throw_count']))
         conn.commit()
         conn.close()
         calcACR(form_data["date"], session_id)
@@ -174,6 +181,7 @@ def submit_inszn_throwing_plan():
                 
         tp_data = {
             "date": request.form.get("date"),
+            "throwing_block": request.form.get("throwing_block"),
             "throwing_sessions": request.form.get("throwing_days"),
             "throwing_notes": request.form.get("throwing_notes"),
             "pitching_notes": request.form.get("pitching_notes"),
@@ -183,11 +191,16 @@ def submit_inszn_throwing_plan():
             "drills": drill_list
             }
         tp_data = {key: None if value == "" else value for key, value in tp_data.items()}
-        
+
+        try:
+            ThrowingPlanModel(**tp_data)
+        except ValidationError as e:
+            return jsonify(e.errors()), 400
+
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO throwing_plan (date, throwing_sessions, throwing_notes, pitching_notes, prethrow_notes, drill_notes) VALUES (?,?,?,?,?,?)",
-                       (tp_data["date"], tp_data["throwing_sessions"], tp_data["throwing_notes"], tp_data["pitching_notes"], tp_data["prethrow_notes"], tp_data["drill_notes"]))
+        cursor.execute("INSERT INTO throwing_plan (date, throwing_block, throwing_sessions, throwing_notes, pitching_notes, prethrow_notes, drill_notes) VALUES (?,?,?,?,?,?,?)",
+                       (tp_data["date"], tp_data["throwing_block"], tp_data["throwing_sessions"], tp_data["throwing_notes"], tp_data["pitching_notes"], tp_data["prethrow_notes"], tp_data["drill_notes"]))
         
         session_id = cursor.lastrowid
         for x in range(len(drill_names)):
@@ -224,114 +237,6 @@ def file_upload():
     return redirect(url_for('bullpen_report'))
 
 
-@app.route("/submit_throw", methods=["POST"])
-def submit_throw():
-    if request.method == "POST":
-        #transforming drill arrays to list of dict entries for all values per drill, b4 validation
-        drill_names = request.form.getlist("drill_name[]")
-        ball_weights = request.form.getlist('drill_ball_weight[]')
-        drill_velos = request.form.getlist('drill_velocity[]')
-        throw_counts = request.form.getlist('throw_count[]')
-        drills_list = [] 
-        
-        if(len(drill_names) == len(ball_weights) == len(drill_velos) == len(throw_counts)):
-            for x in range(len(drill_names)):
-                drill_entry = {
-                    "drill_name": drill_names[x],
-                    "ball_weight": ball_weights[x],
-                    "max_velocity": drill_velos[x],
-                    "throw_count": throw_counts[x]
-                    }
-                drill_entry = {key: None if value == "" else value for key, value in drill_entry.items()}
-                drills_list.append(drill_entry)  
-                
-        form_data = {
-           "date": request.form.get("date"),
-           "throwing_block": request.form.get('throwing_block'),
-           "session_type": request.form.get('session_type'),
-           "total_throws": request.form.get('total_throws'),
-           "non_baseball_throws": request.form.get('non-baseball-throws'),
-           "body_weight": request.form.get('body_weight'),
-           "max_velo": request.form.get('max_velocity'),
-           "rpe": request.form.get('rpe'),
-           "arm_readiness": request.form.get('arm_readiness'),
-           "notes": request.form.get('notes'),
-           "drills": drills_list
-           }
-        #converts unentered field values to None
-        form_data = {key: None if value == "" else value for key, value in form_data.items()}
-        
-        try:
-            ThrowingLogModel(**form_data)
-            #proceed to insertion
-        except ValidationError as e:
-            return redirect(url_for('validation_error.html', error_details = e))
-
-        #insert data
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO throwing_sessions (date, throwing_block, session_type, total_throws, non_baseball_throws, body_weight, max_velo, rpe, arm_readiness, notes) VALUES (?,?,?,?,?,?,?,?,?,?)",
-                       (form_data["date"],form_data["throwing_block"], form_data["session_type"], form_data["total_throws"], form_data["non_baseball_throws"], form_data["body_weight"], form_data["max_velo"], form_data["rpe"], form_data["arm_readiness"], form_data["notes"]))
-        
-        session_id = cursor.lastrowid
-        for x in range(len(drill_names)):
-            cursor.execute("INSERT INTO drills (session_id, drill_name, ball_weight, drill_max_velo, throw_count) VALUES (?,?,?,?,?)",
-                           (session_id, drills_list[x]['drill_name'], drills_list[x]['ball_weight'], drills_list[x]['max_velocity'], drills_list[x]['throw_count']))   
-        conn.commit()
-        conn.close()
-        return redirect(url_for('offszn_home'))
-    
-@app.route('/submit_throwing_plan', methods = ["GET","POST"])
-def submit_throwing_plan():
-    if request.method == "POST":
-        drill_names = request.form.getlist('drill_name[]')
-        drill_types = request.form.getlist('drill_type[]')
-        drill_weights = request.form.getlist('drill_ball_weight[]')
-        drill_throws = request.form.getlist('drill_throw_count[]')
-        drillsTP = []
-        
-        if(len(drill_names) == len(drill_types) == len(drill_weights) == len(drill_throws)):
-            for x in range(len(drill_names)):
-                drill_entryTP = {
-                    "drill_names": drill_names[x],
-                    "drill_types": drill_types[x],
-                    "drill_weights": drill_weights[x],
-                    "drill_throws": drill_throws[x]
-                    }
-                drill_entryTP = {key: None if value == "" else value for key, value in drill_entryTP.items()}
-                drillsTP.append(drill_entryTP)
-                
-        tp_data = {
-            "date": request.form.get("date"),
-            "throwing_block": request.form.get("throwing_block"),
-            "num_throwing_days": request.form.get("num_throwing_days"),
-            "throwing_sessions": request.form.get("throwing_days"),
-            "throwing_notes": request.form.get("throwing_notes"),
-            "pitching_notes": request.form.get("pitching_notes"),
-            "drill_notes": request.form.get('drill_notes'),
-            "drills": drillsTP
-            }
-        tp_data = {key: None if value == "" else value for key, value in tp_data.items()}
-        
-        try:
-            ThrowingPlanModel(**tp_data)
-            #proceed to insertion
-        except ValidationError as e:
-            return redirect(url_for('validation_error.html', error_details = e))
-            
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO throwing_plan (date, throwing_block, num_throwing_days, throwing_sessions, throwing_notes, pitching_notes, drill_notes) VALUES (?,?,?,?,?,?,?)",
-                       (tp_data["date"], tp_data["throwing_block"], tp_data["num_throwing_days"], tp_data["throwing_sessions"], tp_data["throwing_notes"], tp_data["pitching_notes"], tp_data["drill_notes"]))
-        
-        session_id = cursor.lastrowid
-        for x in range(len(drill_names)):
-            cursor.execute("INSERT INTO throwing_plan_drills (sessionId, drill_name, drill_type, ball_weight, throw_count) VALUES (?,?,?,?,?)",
-                           (session_id, drillsTP[x]['drill_names'], drillsTP[x]['drill_types'], drillsTP[x]['drill_weights'], drillsTP[x]['drill_throws']))
-        conn.commit()
-        conn.close()
-        return redirect(url_for('offszn_home'))
-    
 @app.route('/submit_warmup', methods = ["POST"])
 def submit_warmup():
     if request.method == "POST":

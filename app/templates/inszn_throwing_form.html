@@ -6,10 +6,22 @@
 <form id="inszn-throwing-form" method="POST" action="/submit_insznthrow">
   <h2>Throwing Journal</h2>
 
-  <div class="row-2col">
+  <div class="row-3col">
     <div class="field-group">
       <label for="date">Date</label>
       <input type="date" id="date" name="date" required>
+    </div>
+    <div class="field-group">
+      <label for="throwing-block">Throwing Block</label>
+      <select id="throwing-block" name="throwing_block" required>
+        <option value="">Select Block</option>
+        <option value="deload">Deload</option>
+        <option value="on_ramp">On Ramp</option>
+        <option value="velo_phase">Velo Phase</option>
+        <option value="pre_season">Pre-season</option>
+        <option value="return_to_throw">Return to Throw</option>
+        <option value = "in_season">In Season</option>
+      </select>
     </div>
     <div class="field-group">
       <label for="session-type">Session Type</label>
@@ -22,7 +34,12 @@
         <option value="hybrid_b_pitching">Hybrid B Pitching</option>
 		  <option value="hybrid_b_delivery">Hybrid B Delivery</option>
         <option value="extension_day">Extension LT</option>
+        <option value="mound_blend">Mound Blend</option>
+        <option value="plyo_velo">Plyo Velo</option>
+        <option value="pitch_design">Pitch Design</option>
+        <option value="command_training">Command Training</option>
         <option value="bullpen">Bullpen</option>
+        <option value="live_abs">Live ABs</option>
       </select>
     </div>
   </div>
@@ -64,7 +81,29 @@
   <div id="drills-container">
     <div class="drill-row">
       <input type="text" name="drill_name[]" placeholder="Drill Name">
+      <select name="drill_ball_weight[]">
+        <option value="">Ball Weight</option>
+        <option>3</option>
+        <option>3.5</option>
+        <option>4</option>
+        <option>5</option>
+        <option>6</option>
+        <option>7</option>
+        <option>9</option>
+        <option>11</option>
+        <option>16</option>
+        <option>21</option>
+        <option>32</option>
+        <option>48</option>
+        <option>64</option>
+        <option>jav</option>
+        <option>football</option>
+        <option>club</option>
+        <option>volleyball</option>
+        <option>tennis</option>
+      </select>
       <input type="number" step="0.01" name="drill_velocity[]" placeholder="Max Velo">
+      <input type="number" name="throw_count[]" placeholder="Throw Count">
     </div>
   </div>
   <div class="btn-group">

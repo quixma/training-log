@@ -179,13 +179,12 @@ body {
   line-height: 1.6;
 }
 
-/* ── Date row ───────────────────────────────── */
-.date-row {
-  margin-bottom: 24px;
-}
-
-.date-row input {
-  max-width: 220px;
+/* ── Two-column Row ─────────────────────────── */
+.row-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
 /* ── Plan Notes Stack ───────────────────────── */
@@ -321,5 +320,5 @@ body {
   #inszn_throwing_plan { padding: 28px 22px; }
   .drill-row { grid-template-columns: 1fr 1fr; }
   .drill-row label { display: none; }
-  .date-row input { max-width: 100%; }
+  .row-2col { grid-template-columns: 1fr; }
 }

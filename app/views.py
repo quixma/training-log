@@ -1,47 +1,17 @@
 # -*- coding: utf-8 -*-
 from app import app
 from app.models import inszn_dash_data, get_inszn_throwing_plan_dates, get_game_notes, get_throwing_notes, get_throwing_plan, get_throwing_plan_prethrow, get_last7d_throw_breakdown
-from app.models import get_throwing_plan_dates, get_totalthrows4wk, get_totalworkingthrows4wk, get_throwing_notes_dates, get_summary_data, get_bullpen_report_files, get_throwing_day_types
+from app.models import get_totalthrows4wk, get_totalworkingthrows4wk, get_throwing_notes_dates, get_bullpen_report_files, get_throwing_day_types
 from app.models import get_RatingsAvgs, get_WorkoutsCompleted, get_bodyNotes_dates, get_bodyNotes, get_warmup_names, get_warmups
 from app.models import get_armcare_names, get_armcare_workout, get_back_names, get_back_workout, get_lift_names, get_lift_workout, get_conditioning_names, get_conditioning_workout
 from app.models import get_player_goals, get_player_goals_dates
 from app.api_calls import shutdown
-from flask import render_template, request, redirect, url_for
+from flask import render_template, redirect, url_for
 
 
 @app.route("/", methods=["GET"])
 def index():
     return redirect(url_for('inszn_home'))
-
-@app.route("/offszn_home", methods=["GET"])
-def offszn_home(): 
-    throwing_notes = get_throwing_notes() 
-    throwing_plan, drills = get_throwing_plan()
-    plan_dates = get_throwing_plan_dates()
-    notes_dates = get_throwing_notes_dates()
-    throwing_days = get_throwing_day_types()
-    player_goals = get_player_goals('offszn')
-    player_goals_dates = get_player_goals_dates('offszn')
-    message = request.args.get('message')
-
-    for x in throwing_plan: #get id of throwing plan
-        tableID = x['id']
-
-    return render_template('offszn_home.html',throwing_notes = throwing_notes, throwing_plan=throwing_plan, drills=drills, tableID = tableID, plan_dates = plan_dates, notes_dates = notes_dates, throwing_days = throwing_days,
-                           player_goals = player_goals, player_goals_dates = player_goals_dates)
-
-@app.route('/offszn-throwing-form', methods=["GET","POST"])
-def offszn_throwing_form():
-    return render_template('offszn_throwing_form.html')
-
-@app.route('/dashboard', methods=["GET", "POST"])
-def dashboard():
-    peak_velo, avg_readiness, total_throws = get_summary_data()
-    return render_template('dashboard.html', peak_velo = peak_velo, avg_readiness = avg_readiness, total_throws = total_throws)
-
-@app.route('/throwing-plan', methods = ["GET", "POST"])
-def throwing_plan():
-    return render_template('throwing_plan.html')
 
 @app.route('/bullpen-report', methods = ["GET", "POST"])
 def bullpen_report():

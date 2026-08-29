@@ -63,20 +63,11 @@ def get_throwing_plan_prethrow():
     conn.close()
     return prethrow_drills
 
-def get_throwing_plan_dates():
-    #getting dates to populate view prior throwing plans drop down, same with notes below.
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('Select date from throwing_plan order by Id desc')
-    throwing_plan_dates = cursor.fetchall()
-    conn.close()
-    return throwing_plan_dates
-
 def get_inszn_throwing_plan_dates():
     #getting dates to populate view prior throwing plans drop down, same with notes below.
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('Select date from throwing_plan where date >= "2026-03-31" order by Id desc')
+    cursor.execute('Select date from throwing_plan order by Id desc')
     throwing_plan_dates = cursor.fetchall()
     conn.close()
     return throwing_plan_dates
@@ -144,18 +135,6 @@ def get_game_notes():
             })
         
     return (updated_game_notes, game_dates)
-
-def get_summary_data():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    #get last date for last 7 days throwing
-    date = cursor.execute('select date from throwing_sessions order by date desc limit 1').fetchone()
-    peak_velo = cursor.execute('Select max(max_velo) from throwing_sessions').fetchall()
-    avg_readiness = cursor.execute('SELECT Round(avg(arm_readiness),1) FROM (Select arm_readiness from throwing_sessions order by date desc limit 7)').fetchall()
-    total_throws = cursor.execute("SELECT sum(total_throws) FROM (Select total_throws from throwing_sessions WHERE date >= datetime(?, '-7 days') order by date desc)", (date[0],)).fetchone()
-    
-    conn.close()
-    return (peak_velo, avg_readiness, total_throws)
 
 def inszn_dash_data():
     conn = get_db_connection()

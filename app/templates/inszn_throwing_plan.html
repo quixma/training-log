@@ -6,12 +6,26 @@
 <form id="inszn_throwing_plan" method="POST" action="/submit_inszn_throwing_plan">
 	  <h2>Update Throwing Plan</h2>
  
-  <!-- Date -->
-  <div class="date-row">
-    <label for="date">Date</label>
-    <input type="date" id="date" name="date" required>
+  <!-- Date + Throwing Block -->
+  <div class="row-2col">
+    <div class="field-group">
+      <label for="date">Date</label>
+      <input type="date" id="date" name="date" required>
+    </div>
+    <div class="field-group">
+      <label for="throwing-block">Throwing Block</label>
+      <select id="throwing-block" name="throwing_block" required>
+        <option value="">Select Block</option>
+        <option value="deload">Deload</option>
+        <option value="on_ramp">On Ramp</option>
+        <option value="velo_phase">Velo Phase</option>
+        <option value="pre_season">Pre-season</option>
+        <option value="in_season">In-season</option>
+        <option value="return_to_throw">Return to Throw</option>
+      </select>
+    </div>
   </div>
- 
+
   <!-- Plan Notes -->
   <div class="notes-stack">
     <div class="field-group">
