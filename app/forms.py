@@ -34,7 +34,6 @@ def submit_insznthrow():
             "acr": 0,
             "rpe": request.form.get('rpe'),
             "arm_readiness": request.form.get('arm_readiness'),
-            "days_since_last_game": request.form.get('days_from_last_game'),
             "game_available": request.form.get('game_available'),
             "notes": request.form.get('notes'),
             "drills": drill_list
@@ -53,8 +52,8 @@ def submit_insznthrow():
         #insert data
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO throwing_sessions (date, throwing_block, session_type, body_weight, total_throws, working_set_throws, max_velo, mound_work, acr, rpe, arm_readiness, days_since_last_game, game_available, notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                       (form_data["date"], form_data["throwing_block"], form_data["session_type"], form_data["body_weight"], form_data["total_throws"], form_data["working_set_throws"], form_data["max_velo"], form_data["mound_work"], form_data["acr"], form_data["rpe"], form_data["arm_readiness"], form_data["days_since_last_game"],form_data["game_available"],form_data["notes"]))
+        cursor.execute("INSERT INTO throwing_sessions (date, throwing_block, session_type, body_weight, total_throws, working_set_throws, max_velo, mound_work, acr, rpe, arm_readiness, game_available, notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                       (form_data["date"], form_data["throwing_block"], form_data["session_type"], form_data["body_weight"], form_data["total_throws"], form_data["working_set_throws"], form_data["max_velo"], form_data["mound_work"], form_data["acr"], form_data["rpe"], form_data["arm_readiness"], form_data["game_available"],form_data["notes"]))
         
         session_id = cursor.lastrowid
         for x in range(len(drill_names)):

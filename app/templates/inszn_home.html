@@ -245,14 +245,6 @@
       {% endfor %}
     </div>
     <div class="card">
-      <h3>Total Throws (Last 7d)</h3>
-      <p>{{ total_throws7d[0] }}</p>
-    </div>
-    <div class="card">
-      <h3>Working Set Throws (Last 7d)</h3>
-      <p>{{ working_throws7d[0] }}</p>
-    </div>
-    <div class="card">
     <h3>Weekly Working Throws (Last 4 Wks)</h3>
       {% for data in workingthrows4wk %}
       <div class="card-row">
@@ -273,10 +265,6 @@
       <h3>Avg Readiness (7d)</h3>
       {% for data in avg_readiness %}<p>{{ data[1] }}</p>{% endfor %}
     </div>
-    <div class="card">
-      <h3>Avg Readiness (14d)</h3>
-      {% for data in avg_readiness %}<p>{{ data[2] }}</p>{% endfor %}
-    </div>
   </div>
   
    <div class="summary-col">
@@ -286,16 +274,12 @@
       {% for data in avg_velos %}<p>{{ data[0] }}</p>{% endfor %}
     </div>
     <div class="card">
-      <h3>Avg Velocity (14d)</h3>
+      <h3>Avg Velocity (30d)</h3>
       {% for data in avg_velos %}<p>{{ data[1] }}</p>{% endfor %}
     </div>
     <div class="card">
-      <h3>Avg Velocity (30d)</h3>
-      {% for data in avg_velos %}<p>{{ data[2] }}</p>{% endfor %}
-    </div>
-    <div class="card">
       <h3>Avg Velocity (szn)</h3>
-      {% for data in avg_velos %}<p>{{ data[3] }}</p>{% endfor %}
+      {% for data in avg_velos %}<p>{{ data[2] }}</p>{% endfor %}
     </div>
   </div>
   
@@ -306,19 +290,27 @@
       {% for data in peak_velo %}<p>{{ data[0] }}</p>{% endfor %}
     </div>
     <div class="card">
-      <h3>Peak Velocity (14d)</h3>
+      <h3>Peak Velocity (30d)</h3>
       {% for data in peak_velo %}<p>{{ data[1] }}</p>{% endfor %}
     </div>
     <div class="card">
-      <h3>Peak Velocity (30d)</h3>
-      {% for data in peak_velo %}<p>{{ data[2] }}</p>{% endfor %}
-    </div>
-    <div class="card">
       <h3>Peak Velocity (All Time)</h3>
-      {% for data in peak_velo %}<p>{{ data[3] }}</p>{% endfor %}
+      {% for data in peak_velo %}<p>{{ data[2] }}</p>{% endfor %}
     </div>
   </div>
 </div>
+
+  <!-- Throw Volume Breakdown Chart -->
+  <div class="section-card">
+    <div class="section-card-header">
+      <h3>Throw Volume — Last 7 Days</h3>
+      <div class="chart-corner-stats" id="throwsBreakdownStats"></div>
+    </div>
+    <div class="chart-area">
+      <canvas id="throwsBreakdownChart"></canvas>
+    </div>
+  </div>
+  <script id="throws-breakdown-data" type="application/json">{{ throws_breakdown | tojson }}</script>
 
 	<!-- Controls -->
   <div class="controls">

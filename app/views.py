@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from app import app
-from app.models import inszn_dash_data, get_inszn_throwing_plan_dates, get_game_notes, get_throwing_notes, get_throwing_plan, get_throwing_plan_prethrow 
+from app.models import inszn_dash_data, get_inszn_throwing_plan_dates, get_game_notes, get_throwing_notes, get_throwing_plan, get_throwing_plan_prethrow, get_last7d_throw_breakdown
 from app.models import get_throwing_plan_dates, get_totalthrows4wk, get_totalworkingthrows4wk, get_throwing_notes_dates, get_summary_data, get_bullpen_report_files, get_throwing_day_types
 from app.models import get_RatingsAvgs, get_WorkoutsCompleted, get_bodyNotes_dates, get_bodyNotes, get_warmup_names, get_warmups
 from app.models import get_armcare_names, get_armcare_workout, get_back_names, get_back_workout, get_lift_names, get_lift_workout, get_conditioning_names, get_conditioning_workout
@@ -56,19 +56,20 @@ def inszn_home():
     plan_dates = get_inszn_throwing_plan_dates()
     notes_dates = get_throwing_notes_dates()
     throwing_days = get_throwing_day_types()
-    peak_velo, avg_readiness, acr, total_throws7d, working_throws7d, prev_throw_day, days_last_game, avg_velos = inszn_dash_data()
+    peak_velo, avg_readiness, acr, prev_throw_day, days_last_game, avg_velos = inszn_dash_data()
     throws4wk = get_totalthrows4wk()
     workingthrows4wk = get_totalworkingthrows4wk()
     game_notes, game_dates = get_game_notes()
     player_goals = get_player_goals('inszn')
     player_goals_dates = get_player_goals_dates('inszn')
+    throws_breakdown = get_last7d_throw_breakdown()
 
     for x in throwing_plan: #get id of throwing plan
         tableID = x['id']
 
     return render_template('inszn_home.html',throwing_notes = throwing_notes, throwing_plan=throwing_plan, drills=drills, tp_prethrow = tp_prethrow,
                            tableID = tableID, plan_dates = plan_dates, notes_dates = notes_dates, throwing_days = throwing_days,
-                           peak_velo = peak_velo, avg_readiness = avg_readiness, acr = acr, total_throws7d = total_throws7d, working_throws7d = working_throws7d,
+                           peak_velo = peak_velo, avg_readiness = avg_readiness, acr = acr, throws_breakdown = throws_breakdown,
                            prev_throw_day = prev_throw_day, days_last_game = days_last_game, throws4wk = throws4wk, workingthrows4wk = workingthrows4wk, avg_velos = avg_velos,
                            game_notes = game_notes, game_dates = game_dates, player_goals = player_goals, player_goals_dates = player_goals_dates)
 

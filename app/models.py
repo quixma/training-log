@@ -163,16 +163,55 @@ def inszn_dash_data():
     #get last date for last 7 days throwing
     date = cursor.execute('select date from throwing_sessions order by date desc limit 1').fetchone()
     
-    peak_velos = cursor.execute("SELECT max(CASE WHEN date >= datetime(?, '-7 days') THEN max_velo ELSE 0 END) AS pv_last_7_days, max(CASE WHEN date >= datetime(?, '-14 days') THEN max_velo ELSE 0 END) AS pv_last_14_days, max(CASE WHEN date >= datetime(?, '-30 days') THEN max_velo ELSE 0 END) AS pv_last_30_days, max(max_velo) as pv_all_time FROM game_journal", (date[0],date[0],date[0])).fetchall()
-    avg_readiness = cursor.execute("SELECT round(avg(CASE WHEN date >= datetime(?, '-3 days') THEN arm_readiness END),1) AS ar_last_3_days, round(avg(CASE WHEN date >= datetime(?, '-7 days') THEN arm_readiness END),1) AS ar_last_7_days, round(avg(CASE WHEN date >= datetime(?, '-14 days') THEN arm_readiness END),1) AS ar_last_14_days FROM throwing_sessions", (date[0],date[0],date[0])).fetchall()
-    total_throws7d = cursor.execute("SELECT sum(total_throws) FROM (Select total_throws from throwing_sessions WHERE date >= datetime(?, '-7 days') order by date desc)", (date[0],)).fetchone()
-    working_throws7d = cursor.execute("SELECT sum(working_set_throws) FROM (Select working_set_throws from throwing_sessions WHERE date >= datetime(?, '-7 days') order by date desc)", (date[0],)).fetchone()
+    peak_velos = cursor.execute("SELECT max(CASE WHEN date >= datetime(?, '-7 days') THEN max_velo ELSE 0 END) AS pv_last_7_days, max(CASE WHEN date >= datetime(?, '-30 days') THEN max_velo ELSE 0 END) AS pv_last_30_days, max(max_velo) as pv_all_time FROM game_journal", (date[0],date[0])).fetchall()
+    avg_readiness = cursor.execute("SELECT round(avg(CASE WHEN date >= datetime(?, '-3 days') THEN arm_readiness END),1) AS ar_last_3_days, round(avg(CASE WHEN date >= datetime(?, '-7 days') THEN arm_readiness END),1) AS ar_last_7_days FROM throwing_sessions", (date[0],date[0])).fetchall()
     acr = cursor.execute("select acr from throwing_sessions order by date desc limit 1").fetchone()
-    prev_throw_day = cursor.execute("select date, session_type, total_throws, working_set_throws, max_velo from throwing_sessions order by rowid desc LIMIT 1").fetchall()
-    days_last_game = cursor.execute("select days_since_last_game from throwing_sessions order by ROWID desc limit 1").fetchone()
-    avg_velos = cursor.execute("SELECT round(avg(CASE WHEN date >= datetime(?, '-7 days') THEN avg_velo END),1) AS avg_last_7_days, round(avg(CASE WHEN date >= datetime(?, '-14 days') THEN avg_velo END),1) AS avg_last_14_days, round(avg(CASE WHEN date >= datetime(?, '-30 days') THEN avg_velo END),1) AS avg_last_30_days, round(avg(avg_velo),1) as pv_all_time FROM game_journal", (date[0],date[0],date[0])).fetchall()
-    
-    return (peak_velos, avg_readiness, acr, total_throws7d, working_throws7d, prev_throw_day, days_last_game, avg_velos)
+    prev_throw_day = cursor.execute("select date, session_type, total_throws, working_set_throws, max_velo from throwing_sessions order by date desc LIMIT 1").fetchall()
+    days_last_game = cursor.execute("select CAST(julianday(?) - julianday(max(date)) AS INTEGER) as days_since_last_game from game_journal", (date[0],)).fetchone()
+    avg_velos = cursor.execute("SELECT round(avg(CASE WHEN date >= datetime(?, '-7 days') THEN avg_velo END),1) AS avg_last_7_days, round(avg(CASE WHEN date >= datetime(?, '-30 days') THEN avg_velo END),1) AS avg_last_30_days, round(avg(avg_velo),1) as pv_all_time FROM game_journal", (date[0],date[0])).fetchall()
+
+    return (peak_velos, avg_readiness, acr, prev_throw_day, days_last_game, avg_velos)
+
+def get_last7d_throw_breakdown():
+    #breaks each of the last 7 calendar days (including rest days) into game throws, working set throws (outside the game), and the rest of the throws
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    #anchor "today" on the most recent logged date, matching the -7/-14/-30 day windows used elsewhere in this app
+    date = cursor.execute('select date from throwing_sessions order by date desc limit 1').fetchone()
+    #takes most recent throwing day date, recusrively runs this query for previous 6 days before that, getting each type of throw count for each day
+    rows = cursor.execute("""
+        WITH RECURSIVE date_series(day) AS (
+            SELECT date(?, '-6 days')
+            UNION ALL
+            SELECT date(day, '+1 day') FROM date_series WHERE day < ?
+        )
+        SELECT ds.day as date,
+               COALESCE(ts.total_throws, 0) as total_throws,
+               COALESCE(ts.working_set_throws, 0) as working_set_throws,
+               COALESCE(gj.game_throws, 0) as game_throws
+        FROM date_series ds
+        LEFT JOIN throwing_sessions ts ON ts.date = ds.day
+        LEFT JOIN game_journal gj ON gj.session_id = ts.id
+        ORDER BY ds.day ASC
+    """, (date[0], date[0])).fetchall()
+    conn.close()
+
+    breakdown = []
+    for row in rows:
+        total_throws = row["total_throws"] or 0
+        working_set_throws = row["working_set_throws"] or 0
+        game_throws = row["game_throws"] or 0
+
+        #working_set_throws already has bullpen_throws folded in by updateThrowCount() when a game is logged,
+        #so subtracting only game_throws here keeps bullpen throws in this bucket rather than "other_throws"
+        breakdown.append({
+            "date": row["date"],
+            "game_throws": game_throws,
+            "working_set_throws": max(working_set_throws - game_throws, 0),
+            "other_throws": max(total_throws - working_set_throws, 0),
+        })
+
+    return breakdown
 
 
 def updateThrowCount(session_id): #updating daily throw count in db after a game is logged: adds game throws to daily throws and updates

@@ -1,6 +1,7 @@
 //once html is loaded, get inital chart
 document.addEventListener("DOMContentLoaded", () => {
     initializeChart();
+    initializeThrowsBreakdownChart();
 });
 
 //get form elements for chart values
@@ -579,5 +580,62 @@ function initializeChart() {
             responsive: true
         }
     });
+}
+
+//stacked bar chart: last 7 throwing days broken into game / working set / other throws
+function initializeThrowsBreakdownChart() {
+    const dataEl = document.getElementById('throws-breakdown-data');
+    const breakdown = JSON.parse(dataEl.textContent);
+
+    const ctx = document.getElementById('throwsBreakdownChart').getContext('2d');
+    throwsBreakdownChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: breakdown.map(d => d.date),
+            datasets: [
+                {
+                    label: 'Game Throws',
+                    data: breakdown.map(d => d.game_throws),
+                    backgroundColor: '#e8383b'
+                },
+                {
+                    label: 'Working Set Throws',
+                    data: breakdown.map(d => d.working_set_throws),
+                    backgroundColor: '#f59e0b'
+                },
+                {
+                    label: 'Other Throws',
+                    data: breakdown.map(d => d.other_throws),
+                    backgroundColor: '#7b82a0'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: { stacked: true },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    title: { display: true, text: 'Throw Count' }
+                }
+            }
+        }
+    });
+
+    UpdateThrowsBreakdownStats(breakdown);
+}
+
+function UpdateThrowsBreakdownStats(breakdown) {
+    const gameThrows7d = breakdown.reduce((sum, d) => sum + d.game_throws, 0);
+    const workingSetThrows7d = breakdown.reduce((sum, d) => sum + d.working_set_throws, 0);
+    const totalThrows7d = breakdown.reduce((sum, d) => sum + d.game_throws + d.working_set_throws + d.other_throws, 0);
+
+    const statsEl = document.getElementById('throwsBreakdownStats');
+    statsEl.innerHTML = `
+        <div class="stat-item"><span class="stat-label">Total (7d)</span><span class="stat-value">${totalThrows7d}</span></div>
+        <div class="stat-item"><span class="stat-label">Working Set (7d)</span><span class="stat-value">${workingSetThrows7d}</span></div>
+        <div class="stat-item"><span class="stat-label">Game (7d)</span><span class="stat-value">${gameThrows7d}</span></div>
+    `;
 }
 

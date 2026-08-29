@@ -669,7 +669,38 @@ td button:hover,
 .chart-area canvas {
   width: 100% !important;
   display: block;
-} 
+}
+
+/* ── Chart Corner Stats ──────────────────────── */
+.chart-corner-stats {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+.chart-corner-stats .stat-item {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.chart-corner-stats .stat-label {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.chart-corner-stats .stat-value {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
 /* ============================================================
    CONSOLIDATED MOBILE BLOCK  —  keep this LAST in the file.
    Verified against inszn_home.html. Everything that stacks or
