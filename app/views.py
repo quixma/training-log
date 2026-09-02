@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from app import app
 from app.models import inszn_dash_data, get_inszn_throwing_plan_dates, get_game_notes, get_throwing_notes, get_throwing_plan, get_throwing_plan_prethrow, get_last7d_throw_breakdown
-from app.models import get_totalthrows4wk, get_totalworkingthrows4wk, get_throwing_notes_dates, get_bullpen_report_files, get_throwing_day_types
+from app.models import get_totalthrows4wk, get_totalworkingthrows4wk, get_throwing_notes_dates, get_bullpen_report_files, get_outing_report_files, get_throwing_day_types
 from app.models import get_RatingsAvgs, get_WorkoutsCompleted, get_bodyNotes_dates, get_bodyNotes, get_warmup_names, get_warmups
 from app.models import get_armcare_names, get_armcare_workout, get_back_names, get_back_workout, get_lift_names, get_lift_workout, get_conditioning_names, get_conditioning_workout
 from app.models import get_player_goals, get_player_goals_dates
@@ -30,8 +30,8 @@ def inszn_home():
     throws4wk = get_totalthrows4wk()
     workingthrows4wk = get_totalworkingthrows4wk()
     game_notes, game_dates = get_game_notes()
-    player_goals = get_player_goals('inszn')
-    player_goals_dates = get_player_goals_dates('inszn')
+    player_goals = get_player_goals()
+    player_goals_dates = get_player_goals_dates()
     throws_breakdown = get_last7d_throw_breakdown()
 
     for x in throwing_plan: #get id of throwing plan
@@ -53,7 +53,8 @@ def game_form():
 
 @app.route('/outing_report', methods=["GET", "POST"])
 def outing_report():
-    return render_template('outing_report.html')
+    filenames = get_outing_report_files()
+    return render_template('outing_report.html', filenames=filenames)
 
 @app.route('/inszn_throwing_plan', methods=["GET", "POST"])
 def inszn_throwing_plan():
@@ -95,3 +96,11 @@ def workout_form():
 @app.route('/lifting_forms', methods=["GET", "POST"])
 def lifting_forms():
     return render_template('lifting_forms.html')
+
+@app.route('/input_throwing_day', methods=["GET", "POST"])
+def input_throwing_day():
+    return render_template('input_throwing_day.html')
+
+@app.route('/training_calendar', methods=["GET", "POST"])
+def training_calendar():
+    return render_template('training_calendar.html')

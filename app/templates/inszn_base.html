@@ -14,44 +14,56 @@
             <span class="icon">🏠</span>
             <span class="link-text">Home</span>
         </a>
+        <a href="{{ url_for('training_calendar') }}">
+            <span class="icon">🗓️</span>
+            <span class="link-text">Training Calendar</span>
+        </a>
+
+        <div class="sidebar-section-title"><span class="link-text">Throwing</span></div>
         <a href="{{ url_for('inszn_throwing_form') }}">
             <span class="icon">&#128211;</span>
             <span class="link-text">Throwing Journal</span>
-        </a>
-        <a href="{{ url_for('workout_form') }}">
-            <span class="icon">&#127947;</span>
-            <span class="link-text">Workout Log</span>
         </a>
         <a href="{{ url_for('game_form') }}">
             <span class="icon">&#128210;</span>
             <span class="link-text">Game Journal</span>
         </a>
-        
-         <a href="{{ url_for('outing_report') }}">
-            <span class="icon">&#128202;</span>
-            <span class="link-text">Outing Report</span>
-        </a>
-        
-        <a href=" {{ url_for('game_data_dashboard') }}">
-        		<span class="icon">&#128225;</span>
-        		<span class="link-text">Game Data Dashboard</span>
-        </a>
         <a href="{{ url_for('inszn_throwing_plan') }}">
             <span class="icon">📅</span>
             <span class="link-text">Throwing Plan</span>
+        </a>
+        <a href="{{ url_for('input_throwing_day') }}">
+            <span class="icon">&#9998;</span>
+            <span class="link-text">Input Throwing Form</span>
+        </a>
+
+        <div class="sidebar-section-title"><span class="link-text">Training</span></div>
+        <a href="{{ url_for('workout_form') }}">
+            <span class="icon">&#127947;</span>
+            <span class="link-text">Workout Log</span>
         </a>
         <a href="{{ url_for('workout_dashboard') }}">
             <span class="icon">📊</span>
             <span class="link-text">Workout Dashboard</span>
         </a>
+        <a href="{{ url_for('lifting_forms') }}">
+            <span class="icon">&#9917;</span>
+            <span class="link-text">Lifting Forms</span>
+        </a>
+
+        <div class="sidebar-section-title"><span class="link-text">Data</span></div>
+        <a href="{{ url_for('outing_report') }}">
+            <span class="icon">&#128202;</span>
+            <span class="link-text">Outing Report</span>
+        </a>
         <a href="{{ url_for('bullpen_report') }}">
             <span class="icon">📈</span>
             <span class="link-text">Bullpen Report</span>
         </a>
-			<a href="{{ url_for('lifting_forms') }}">
-            <span class="icon">&#9917;</span>
-            <span class="link-text">Lifting Forms</span>
-        	</a>
+        <a href="{{ url_for('game_data_dashboard') }}">
+            <span class="icon">&#128225;</span>
+            <span class="link-text">Game Data Dashboard</span>
+        </a>    
 
     </div>
     <div class="content" id="content">

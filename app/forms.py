@@ -220,21 +220,41 @@ def submit_inszn_throwing_plan():
 def file_upload():
     ALLOWED_EXTENSIONS = '.csv'
     file = request.files['file']
-    
+
     if request.method == "POST":
         if file.filename != '':
             file_ext = os.path.splitext(file.filename)[1]
             if file_ext != ALLOWED_EXTENSIONS:
                 flash("Invalid file: Upload a .csv file.")
                 redirect(url_for('bullpen_report'))
-            else:  #add try catch for file save      
+            else:  #add try catch for file save
                 file.save(f"/home/quixma/training-log/bullpen_report_uploads/{secure_filename(file.filename)}") #has to change for pi version
                 flash(f"Success: {file.filename} uploaded.")
-        else: 
+        else:
             flash("No file uploaded: Try again.")
             redirect(url_for('bullpen_report'))
-    
+
     return redirect(url_for('bullpen_report'))
+
+@app.route('/upload_outing_csv', methods = ["POST"])
+def upload_outing_csv():
+    ALLOWED_EXTENSIONS = '.csv'
+    files = [request.files.get('file1'), request.files.get('file2')]
+
+    for file in files:
+        if file is None or file.filename == '':
+            flash("No file uploaded: Try again.")
+            continue
+
+        file_ext = os.path.splitext(file.filename)[1]
+        if file_ext != ALLOWED_EXTENSIONS:
+            flash("Invalid file: Upload a .csv file.")
+            continue
+
+        file.save(f"/home/quixma/Desktop/CS/training-log/outing_report_uploads/{secure_filename(file.filename)}")
+        flash(f"Success: {file.filename} uploaded.")
+
+    return redirect(url_for('outing_report'))
 
 
 @app.route('/submit_warmup', methods = ["POST"])

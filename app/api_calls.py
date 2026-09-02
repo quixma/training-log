@@ -4,10 +4,11 @@ from app.models import get_db_connection, get_warmup_by_name, get_armcare_by_nam
 from pydantic import ValidationError
 from flask import jsonify, request, url_for, redirect, render_template
 import os
+import io
 import pandas as pd
 import math
 import numpy as np
-import subprocess 
+import subprocess
 
 @app.route('/shutdown', methods = ["POST"])
 def shutdown():
@@ -103,6 +104,141 @@ def report_data():
         }
     
     return jsonify(allData)
+
+OUTING_REPORT_FOLDER = "/home/quixma/Desktop/CS/training-log/outing_report_uploads" #has to change for pi version
+
+#pBp pitch type names -> chart color, shared across the movement/release/velo/zone charts
+OUTING_PITCH_TYPE_COLORS = {
+    "Four Seamer": "rgb(255, 0, 0)",
+    "Fastball": "rgb(255, 0, 0)",
+    "Two Seamer": "rgba(255, 140, 0, 1)",
+    "Sinker": "rgba(255, 165, 0, 1)",
+    "Cutter": "rgba(0, 0, 0, 1)",
+    "Changeup": "rgba(0, 255, 0, 1)",
+    "Splitter": "rgba(255, 192, 203, 1)",
+    "Slider": "rgba(255, 255, 0, 1)",
+    "Sweeper": "rgba(0, 0, 255, 1)",
+    "Curveball": "rgba(128, 0, 128, 1)",
+    "Knuckle Curve": "rgba(153, 50, 204, 1)",
+    "Knuckleball": "rgba(211, 211, 211, 1)",
+}
+
+def _read_outing_postgame_report(path):
+    #the export repeats its header line before each mini-table (TOTAL, then per-pitch-type) and
+    #separates them with a blank line, so strip anything that isn't the first header or a data row
+    with open(path) as f:
+        lines = f.read().splitlines()
+
+    header = lines[0]
+    data_lines = [line for line in lines[1:] if line.strip() != '' and line != header]
+    df = pd.read_csv(io.StringIO(header + '\n' + '\n'.join(data_lines)))
+
+    #drop TOTAL and any pitch type with zero pitches thrown; every table below is broken out per pitch type
+    pitch_type_rows = df.loc[(df['SplitBy'] != 'TOTAL') & (df['P'] > 0)]
+
+    pitch_mvmt = [{
+        "pitch_type": row["Pitch Type - Ungrouped"],
+        "pitch_count": row["P"],
+        "velo": row["Vel"],
+        "max_velo": row["MxVel"],
+        "ivb": row["IndVertBrk"],
+        "hb": row["HorzBrk"],
+        "rel_z": row["RelHeight"],
+        "rel_x": row["RelSide"],
+        "ext": row["Extension"],
+    } for _, row in pitch_type_rows.iterrows()]
+
+    strikes = [{
+        "pitch_type": row["Pitch Type - Ungrouped"],
+        "zone_pct": row["IZ%"],
+        "two_k_zone_pct": row["2K IZ%"],
+        "heart_pct": row["Heart%"],
+    } for _, row in pitch_type_rows.iterrows()]
+
+    miss = [{
+        "pitch_type": row["Pitch Type - Ungrouped"],
+        "csw_pct": row["CSW%"],
+        "whiff_pct": row["Miss%"],
+        "z_whiff_pct": row["IZ Ms%"],
+        "o_whiff_pct": row["OZMiss% - P"],
+        "chase_pct": row["Chase%"],
+    } for _, row in pitch_type_rows.iterrows()]
+
+    damage = [{
+        "pitch_type": row["Pitch Type - Ungrouped"],
+        "woba": row["wOBA"],
+        "xwoba": row["xWOBA"],
+        "xwobacon": row["xWOBAcon"],
+        "babip": row["BABIP"],
+        "hard_hit_pct": row["HardHit%"],
+        "gb_pct": row["Ground%"],
+        "fb_pct": row["Fly%"],
+    } for _, row in pitch_type_rows.iterrows()]
+
+    return pitch_mvmt, strikes, miss, damage
+
+def _read_outing_pbp(path):
+    df = pd.read_csv(path)
+
+    numeric_cols = ['Vel', 'IndVertBrk', 'HorzBrk', 'RelX', 'RelZ', 'PX', 'PZ']
+    for col in numeric_cols:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+    df['pitch_type'] = df['pitchTypeFull'].fillna('Unknown')
+
+    movement_df = df.dropna(subset=['HorzBrk', 'IndVertBrk'])
+    movement = [{"pitch_type": r.pitch_type, "hb": r.HorzBrk, "ivb": r.IndVertBrk} for r in movement_df.itertuples()]
+
+    #RelX/RelZ come from this file in inches; convert to feet to line up with the postgame report's release units
+    release_df = df.dropna(subset=['RelX', 'RelZ'])
+    release = [{"pitch_type": r.pitch_type, "rel_x": r.RelX / 12, "rel_z": r.RelZ / 12} for r in release_df.itertuples()]
+
+    velo_df = df.dropna(subset=['Vel']).reset_index(drop=True)
+    velo = [{"pitch_type": row.pitch_type, "pitch_num": i + 1, "velo": row.Vel} for i, row in enumerate(velo_df.itertuples())]
+
+    zone_df = df.dropna(subset=['PX', 'PZ'])
+    locations_rhh = []
+    locations_lhh = []
+    for r in zone_df.itertuples():
+        point = {"x": r.PX, "y": r.PZ, "pitch_type": r.pitch_type, "velo": r.Vel, "ivb": r.IndVertBrk, "hb": r.HorzBrk, "result": r.pitchResult}
+        if r.batterHand == 'L':
+            locations_lhh.append(point)
+        else:
+            locations_rhh.append(point)
+
+    return movement, release, velo, locations_rhh, locations_lhh
+
+@app.route('/api/outing_report_data', methods = ["POST"])
+def outing_report_data():
+    data = request.get_json()
+    file1 = data.get('file1')
+    file2 = data.get('file2')
+
+    files = {}
+    for filename in (file1, file2):
+        path = os.path.join(OUTING_REPORT_FOLDER, filename)
+        header_cols = pd.read_csv(path, nrows=0).columns
+        if 'SplitBy' in header_cols:
+            files['postgame'] = path
+        elif 'playGuid' in header_cols:
+            files['pbp'] = path
+
+    if 'postgame' not in files or 'pbp' not in files:
+        return jsonify({"error": "Select one postgame report file and one pBp file."}), 400
+
+    pitch_mvmt, strikes, miss, damage = _read_outing_postgame_report(files['postgame'])
+    movement, release, velo, locations_rhh, locations_lhh = _read_outing_pbp(files['pbp'])
+
+    return jsonify({
+        "pitch_mvmt": pitch_mvmt,
+        "strikes": strikes,
+        "miss": miss,
+        "damage": damage,
+        "movement": movement,
+        "release": release,
+        "velo": velo,
+        "locations_rhh": locations_rhh,
+        "locations_lhh": locations_lhh,
+    })
 
 @app.route('/api/inszn_chart_data', methods = ["POST"])
 def inszn_chart_data():
@@ -355,7 +491,10 @@ def getPlayerGoals():
 
     conn = get_db_connection()
     cursor = conn.cursor()
-    result = cursor.execute("Select * from player_goals Where plan_type = ? and date = ? order by id desc limit 1", (plan_type, date)).fetchone()
+    if plan_type:
+        result = cursor.execute("Select * from player_goals Where plan_type = ? and date = ? order by id desc limit 1", (plan_type, date)).fetchone()
+    else:
+        result = cursor.execute("Select * from player_goals Where date = ? order by id desc limit 1", (date,)).fetchone()
     conn.close()
 
     if result is None:

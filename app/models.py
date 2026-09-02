@@ -72,17 +72,23 @@ def get_inszn_throwing_plan_dates():
     conn.close()
     return throwing_plan_dates
 
-def get_player_goals(plan_type):
+def get_player_goals(plan_type=None):
     conn = get_db_connection()
     cursor = conn.cursor()
-    goals = cursor.execute('Select * from player_goals Where plan_type = ? order by id desc limit 1', (plan_type,)).fetchone()
+    if plan_type:
+        goals = cursor.execute('Select * from player_goals Where plan_type = ? order by id desc limit 1', (plan_type,)).fetchone()
+    else:
+        goals = cursor.execute('Select * from player_goals order by id desc limit 1').fetchone()
     conn.close()
     return goals
 
-def get_player_goals_dates(plan_type):
+def get_player_goals_dates(plan_type=None):
     conn = get_db_connection()
     cursor = conn.cursor()
-    dates = cursor.execute('Select date from player_goals Where plan_type = ? order by id desc', (plan_type,)).fetchall()
+    if plan_type:
+        dates = cursor.execute('Select date from player_goals Where plan_type = ? order by id desc', (plan_type,)).fetchall()
+    else:
+        dates = cursor.execute('Select date from player_goals order by id desc').fetchall()
     conn.close()
     return dates
 
@@ -97,7 +103,13 @@ def get_throwing_notes_dates():
 def get_bullpen_report_files():
     folder_path = "/home/quixma/Desktop/CS/training-log/bullpen_report_uploads" #this has to change for pi as well.
     filenames = os.listdir(folder_path)
-    
+
+    return filenames
+
+def get_outing_report_files():
+    folder_path = "/home/quixma/Desktop/CS/training-log/outing_report_uploads" #this has to change for pi as well.
+    filenames = [f for f in os.listdir(folder_path) if f.endswith('.csv')]
+
     return filenames
 
 def get_throwing_day_types():
@@ -167,6 +179,7 @@ def get_last7d_throw_breakdown():
         SELECT ds.day as date,
                COALESCE(ts.total_throws, 0) as total_throws,
                COALESCE(ts.working_set_throws, 0) as working_set_throws,
+               COALESCE(ts.non_baseball_throws, 0) as non_baseball_throws,
                COALESCE(gj.game_throws, 0) as game_throws
         FROM date_series ds
         LEFT JOIN throwing_sessions ts ON ts.date = ds.day
@@ -180,14 +193,18 @@ def get_last7d_throw_breakdown():
         total_throws = row["total_throws"] or 0
         working_set_throws = row["working_set_throws"] or 0
         game_throws = row["game_throws"] or 0
+        non_baseball_throws = row["non_baseball_throws"] or 0
 
         #working_set_throws already has bullpen_throws folded in by updateThrowCount() when a game is logged,
         #so subtracting only game_throws here keeps bullpen throws in this bucket rather than "other_throws"
+        #non_baseball_throws is tracked separately on throwing_sessions and never folded into total_throws,
+        #so it's kept out of the game/working-set/other split entirely
         breakdown.append({
             "date": row["date"],
             "game_throws": game_throws,
             "working_set_throws": max(working_set_throws - game_throws, 0),
             "other_throws": max(total_throws - working_set_throws, 0),
+            "non_baseball_throws": non_baseball_throws,
         })
 
     return breakdown

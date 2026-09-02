@@ -41,6 +41,7 @@ throwingDaySelect.addEventListener("change", GetThrowingNotesByDay);
 throwingDayTimeSelect.addEventListener("change", GetThrowingNotesByDay);
 gameNoteSelect.addEventListener("change", GetGameNotes);
 playerGoalsSelect.addEventListener("change", GetPlayerGoals);
+
 //chart event listeners
 metricSelect.addEventListener("change", getData);
 timeframeSelect.addEventListener("change", getData);
@@ -132,6 +133,7 @@ saveTP_Btn.onclick = function () {
         });
 }
 
+//player goals modal
 editGoals_Btn.onclick = function () { //log new player plan goals
     openModal('editGoals-modal');
 
@@ -178,6 +180,7 @@ saveGoalsBtn.onclick = function () {
 
 async function GetPlayerGoals() {
     date = playerGoalsSelect.value;
+
     if (!date) {
         console.log("Enter a search criteria")
         return;
@@ -187,7 +190,7 @@ async function GetPlayerGoals() {
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', },
-                body: JSON.stringify({ plan_type: "inszn", date: date })
+                body: JSON.stringify({ date: date })
             });
 
         if (!response.ok) {
@@ -604,9 +607,14 @@ function initializeThrowsBreakdownChart() {
                     backgroundColor: '#f59e0b'
                 },
                 {
-                    label: 'Other Throws',
+                    label: 'Regular Throws',
                     data: breakdown.map(d => d.other_throws),
                     backgroundColor: '#7b82a0'
+                },
+                {
+                    label: 'Non-Baseball Throws',
+                    data: breakdown.map(d => d.non_baseball_throws),
+                    backgroundColor: '#22c55e'
                 }
             ]
         },
@@ -629,6 +637,8 @@ function initializeThrowsBreakdownChart() {
 function UpdateThrowsBreakdownStats(breakdown) {
     const gameThrows7d = breakdown.reduce((sum, d) => sum + d.game_throws, 0);
     const workingSetThrows7d = breakdown.reduce((sum, d) => sum + d.working_set_throws, 0);
+    const nonBaseballThrows7d = breakdown.reduce((sum, d) => sum + d.non_baseball_throws, 0);
+    //baseball-only total: non-baseball throws are tracked separately and never count toward total throws
     const totalThrows7d = breakdown.reduce((sum, d) => sum + d.game_throws + d.working_set_throws + d.other_throws, 0);
 
     const statsEl = document.getElementById('throwsBreakdownStats');
@@ -636,6 +646,7 @@ function UpdateThrowsBreakdownStats(breakdown) {
         <div class="stat-item"><span class="stat-label">Total (7d)</span><span class="stat-value">${totalThrows7d}</span></div>
         <div class="stat-item"><span class="stat-label">Working Set (7d)</span><span class="stat-value">${workingSetThrows7d}</span></div>
         <div class="stat-item"><span class="stat-label">Game (7d)</span><span class="stat-value">${gameThrows7d}</span></div>
+        <div class="stat-item"><span class="stat-label">Non-Baseball (7d)</span><span class="stat-value">${nonBaseballThrows7d}</span></div>
     `;
 }
 

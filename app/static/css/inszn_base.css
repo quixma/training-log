@@ -60,6 +60,19 @@
     transition: opacity 0.2s ease;
 }
 
+/* Section Headers */
+.sidebar-section-title {
+    padding: 14px 15px 4px;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #999;
+    white-space: nowrap;
+    border-top: 1px solid #444;
+    margin-top: 6px;
+}
+
 /* Collapsed State */
 #sidebar.collapsed {
     width: 60px;
@@ -67,6 +80,10 @@
 #sidebar.collapsed .link-text {
     opacity: 0;
     pointer-events: none;
+}
+#sidebar.collapsed .sidebar-section-title {
+    padding-left: 0;
+    text-align: center;
 }
 
 /* Main content — THIS was the bug: class="content" had no margin */

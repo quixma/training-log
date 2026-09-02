@@ -5,7 +5,7 @@
 {% block content %}
 
 <header>
-  <h1>INSZN <span>//</span> Workout Dashboard</h1>
+  <h1><span>//</span> Workout Dashboard <span>//</span></h1>
 </header>
 
 <!-- Tab Nav -->
@@ -16,6 +16,7 @@
   <button class="tablinks" onclick="openTab(event, 'back_workouts')">Back Workouts</button>
   <button class="tablinks" onclick="openTab(event, 'lifts_workouts')">Lifts</button>
   <button class="tablinks" onclick="openTab(event, 'conditioning_workouts')">Conditioning Options</button>
+  <button class="tablinks tab-link" onclick="window.location.href='{{ url_for('training_calendar') }}'">Training Calendar</button>
   <button class="tablinks tab-link" onclick="window.location.href='{{ url_for('lifting_forms') }}'">Workout Input Forms</button>
   <button class="tablinks tab-link" onclick="window.location.href='{{ url_for('workout_form') }}'">↗ Workout Log </button>
 </div>

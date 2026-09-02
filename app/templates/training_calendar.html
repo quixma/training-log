@@ -1,0 +1,11 @@
+{% extends "inszn_base.html" %}
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/training_calendar.css') }}">
+{% endblock %}
+{% block content %}
+<header>
+  <h1>Training Calendar</h1>
+</header>
+
+<script src="{{ url_for('static', filename='js/training_calendar.js') }}"></script>
+{% endblock %}

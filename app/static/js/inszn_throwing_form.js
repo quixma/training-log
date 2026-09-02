@@ -4,7 +4,29 @@ function addDrillRow() {
     newRow.classList.add('drill-row');
     newRow.innerHTML = `
       <input type="text" name="drill_name[]" placeholder="Drill Name">
-      <input type="number" step="0.01" name="drill_velocity[]" placeholder="Max Velocity">
+      <select name="drill_ball_weight[]">
+        <option value="">Ball Weight</option>
+        <option>3</option>
+        <option>3.5</option>
+        <option>4</option>
+        <option>5</option>
+        <option>6</option>
+        <option>7</option>
+        <option>9</option>
+        <option>11</option>
+        <option>16</option>
+        <option>21</option>
+        <option>32</option>
+        <option>48</option>
+        <option>64</option>
+        <option>jav</option>
+        <option>football</option>
+        <option>club</option>
+        <option>volleyball</option>
+        <option>tennis</option>
+      </select>
+      <input type="number" step="0.01" name="drill_velocity[]" placeholder="Max Velo">
+      <input type="number" name="throw_count[]" placeholder="Throw Count">
     `;
     container.appendChild(newRow);
 }

@@ -85,6 +85,12 @@ header h1 span {
   z-index: 100;
 }
 
+.tab-right-group {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+}
+
 .tablinks {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 0.82rem;

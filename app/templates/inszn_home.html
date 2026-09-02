@@ -6,16 +6,19 @@
 {% block content %}
 
 <header>
-  <h1>INSZN <span>//</span> Homepage</h1>
+  <h1><span>//</span> Training App Homepage <span>//</span> </h1>
 </header>
 
 <!-- Tab Nav -->
 <div class="tab">
   <button class="tablinks active" onclick="openTab(event, 'Plan')">Throwing Plan</button>
   <button class="tablinks" onclick="openTab(event, 'Dashboard')">Throwing Dashboard</button>
-  <button class="tablinks" onclick="window.location.href='{{ url_for('workout_dashboard') }}'">Workout Dashboard</button>
   <button class="tablinks" onclick="openTab(event, 'GameNotes')">Game Notes</button>
   <button class="tablinks" onclick="openTab(event, 'Notes')">Throwing Notes</button>
+  <div class="tab-right-group">
+    <button class="tablinks" onclick="window.location.href='{{ url_for('training_calendar') }}'">Training Calendar</button>
+    <button class="tablinks" onclick="window.location.href='{{ url_for('workout_dashboard') }}'">Workout Dashboard</button>
+  </div>
 </div>
 
 <!-- ══ PLAN TAB ══════════════════════════════ -->
@@ -503,6 +506,7 @@
         <label for="goals-plan-type">Plan Type</label>
         <select id="goals-plan-type" name="plan_type">
           <option value="inszn" selected>In Season</option>
+          <option value="offszn">Off Season</option>
         </select>
       </div>
       <div class="field-group">

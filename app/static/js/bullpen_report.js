@@ -94,6 +94,29 @@ function fillTable(data, length) {
         i++;
     })
 }
+//shared pitch-type -> color map so every chart on this page colors pitch types consistently
+function pitchTypeColor(pitchType) {
+    switch (pitchType) {
+        case "Fastball": return "rgb(255, 0, 0)";
+        case "Sinker": return "rgba(255, 165, 0, 1)";
+        case "Cutter": return "rgba(255, 255, 0, 1)";
+        case "Changeup": return "rgba(0, 255, 0, 1)";
+        case "Splitter": return "rgba(255, 192, 203, 1)";
+        case "Slider": return "rgba(184, 134, 11, 1)";
+        case "Sweeper": return "rgba(0, 100, 0, 1)";
+        case "Curveball": return "rgba(128, 0, 128, 1)";
+        case "Knuckleball": return "rgba(211, 211, 211, 1)";
+        default: return "rgba(128, 128, 128, 1)";
+    }
+}
+
+//scriptable point color: Chart.js can invoke this before any data exists (e.g. initial legend/render
+//pass with an empty dataset), so guard against an out-of-range point rather than reading .status off undefined
+function pointPitchTypeColor(context) {
+    const point = context.dataset.data[context.dataIndex];
+    return point ? pitchTypeColor(point.status) : "rgba(128, 128, 128, 1)";
+}
+
 function displayReport(data) {
     clearCharts();
     mvmt_chart(data);
@@ -113,30 +136,7 @@ function release_chart(pitch_data) {
         datasets: [{
             label: 'Pitch Release Plot',
             data: formattedData,
-            backgroundColor: function (context) { //color determined by pitch type
-                const value = context.dataset.data[context.dataIndex];
-                if (value.status == "Fastball") {
-                    return "rgb(255, 0, 0)";
-                } else if (value.status == "Sinker") {
-                    return "rgba(255, 165, 0, 1)";
-                } else if (value.status == "Cutter") {
-                    return "rgba(0, 0, 0, 1)";
-                } else if (value.status == "Changeup") {
-                    return "rgba(0, 255, 0, 1)";
-                } else if (value.status == "Splitter") {
-                    return "rgba(255, 192, 203, 1)";
-                } else if (value.status == "Slider") {
-                    return "rgba(255, 255, 0, 1)";
-                } else if (value.status == "Sweeper") {
-                    return "rgba(0, 0, 255, 1)";
-                } else if (value.status == "Curveball") {
-                    return "rgba(128, 0, 128, 1)";
-                } else if (value.status == "Knuckleball") {
-                    return "rgba(211, 211, 211, 1)";
-                } else {
-                    return "rgba(128, 128, 128, 1)";
-                }
-            }
+            backgroundColor: pointPitchTypeColor
         }],
     };
 
@@ -213,30 +213,7 @@ function zone_chart(pitch_data) {
             label: 'Strike Zone Plot',
             data: formattedData,
             pointRadius: 5, //size of dots on plot
-            backgroundColor: function (context) { //color determined by pitch type
-                const value = context.dataset.data[context.dataIndex];
-                if (value.status == "Fastball") {
-                    return "rgb(255, 0, 0)";
-                } else if (value.status == "Sinker") {
-                    return "rgba(255, 165, 0, 1)";
-                } else if (value.status == "Cutter") {
-                    return "rgba(0, 0, 0, 1)";
-                } else if (value.status == "Changeup") {
-                    return "rgba(0, 255, 0, 1)";
-                } else if (value.status == "Splitter") {
-                    return "rgba(255, 192, 203, 1)";
-                } else if (value.status == "Slider") {
-                    return "rgba(255, 255, 0, 1)";
-                } else if (value.status == "Sweeper") {
-                    return "rgba(0, 0, 255, 1)";
-                } else if (value.status == "Curveball") {
-                    return "rgba(128, 0, 128, 1)";
-                } else if (value.status == "Knuckleball") {
-                    return "rgba(211, 211, 211, 1)";
-                } else {
-                    return "rgba(128, 128, 128, 1)";
-                }
-            }
+            backgroundColor: pointPitchTypeColor
         }],
     };
 
@@ -373,30 +350,7 @@ function mvmt_chart(pitch_data) {
         datasets: [{
             label: 'Pitch Movement Plot',
             data: formattedData,
-            backgroundColor: function (context) { //color determined by pitch type
-                const value = context.dataset.data[context.dataIndex];
-                if (value.status == "Fastball") {
-                    return "rgb(255, 0, 0)";
-                } else if (value.status == "Sinker") {
-                    return "rgba(255, 165, 0, 1)";
-                } else if (value.status == "Cutter") {
-                    return "rgba(0, 0, 0, 1)";
-                } else if (value.status == "Changeup") {
-                    return "rgba(0, 255, 0, 1)";
-                } else if (value.status == "Splitter") {
-                    return "rgba(255, 192, 203, 1)";
-                } else if (value.status == "Slider") {
-                    return "rgba(255, 255, 0, 1)";
-                } else if (value.status == "Sweeper") {
-                    return "rgba(0, 0, 255, 1)";
-                } else if (value.status == "Curveball") {
-                    return "rgba(128, 0, 128, 1)";
-                } else if (value.status == "Knuckleball") {
-                    return "rgba(211, 211, 211, 1)";
-                } else {
-                    return "rgba(128, 128, 128, 1)";
-                }
-            }
+            backgroundColor: pointPitchTypeColor
         }],
     };
 

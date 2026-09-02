@@ -1,12 +1,185 @@
-<!DOCTYPE html>
-<html lang="">
-  <head>
-    <meta charset="utf-8">
-    <title></title>
-  </head>
-  <body>
-    <header></header>
-    <main></main>
-    <footer></footer>
-  </body>
-</html>
+{% extends "inszn_base.html" %}
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/outing_report.css') }}">
+    <script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/chartjs-plugin-annotation.min.js') }}"></script>
+{% endblock %}
+{% block content %}
+
+<header>
+  <h1>Outing Report</h1>
+</header>
+
+<div class="page-content">
+
+  <!-- Upload + Generate Bar -->
+  <div class="upload-bar">
+    <div class="upload-group">
+      <label>Upload CSVs</label>
+      <form id="file_upload" method="POST" action="/upload_outing_csv" enctype="multipart/form-data"
+            style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <input type="file" name="file1" accept=".csv">
+        <input type="file" name="file2" accept=".csv">
+        <input type="submit" value="Upload">
+      </form>
+    </div>
+
+    <div class="select-group">
+      <label for="file1">Report File 1</label>
+      <select id="file1">
+        <option value="">Select file for report</option>
+        {% for filename in filenames %}
+        <option value="{{ filename }}">{{ filename }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="select-group">
+      <label for="file2">Report File 2</label>
+      <select id="file2">
+        <option value="">Select file for report</option>
+        {% for filename in filenames %}
+        <option value="{{ filename }}">{{ filename }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <button id="create_report">Generate Report</button>
+  </div>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- Report Tabs -->
+  <div class="tab">
+    <button class="tablinks active" onclick="openTab(event, 'ChartsTab')">Pitch Mvmt+Release+Velo Charts</button>
+    <button class="tablinks" onclick="openTab(event, 'TableTab')">Table Results</button>
+    <button class="tablinks" onclick="openTab(event, 'LocationsTab')">Pitch Locations</button>
+  </div>
+
+  <div id="ChartsTab" class="tabcontent active">
+    <div class="chart-container">
+      <div class="chart-wrap"><canvas id="movement_chart"></canvas></div>
+      <div class="chart-wrap"><canvas id="release_chart"></canvas></div>
+      <div class="chart-wrap"><canvas id="velo_chart"></canvas></div>
+    </div>
+  </div>
+
+  <div id="TableTab" class="tabcontent">
+    <div class="table-stack">
+
+      <!-- Pitch Mvmt Table -->
+      <div class="report">
+        <div class="report-header"><h3>Pitch Mvmt</h3></div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Pitch Type</th>
+                <th>Pitch #</th>
+                <th>Velo</th>
+                <th>Max Velo</th>
+                <th>IVB</th>
+                <th>HB</th>
+                <th>Rel Z</th>
+                <th>Rel X</th>
+                <th>Ext</th>
+              </tr>
+            </thead>
+            <tbody id="pitch_mvmt_body">
+              <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+              <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+              <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+              <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Strikes Table -->
+      <div class="report">
+        <div class="report-header"><h3>Strikes</h3></div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Pitch Type</th>
+                <th>Zone %</th>
+                <th>2K Zone %</th>
+                <th>Heart %</th>
+              </tr>
+            </thead>
+            <tbody id="strikes_body">
+              <tr><td></td><td></td><td></td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Miss Table -->
+      <div class="report">
+        <div class="report-header"><h3>Miss</h3></div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Pitch Type</th>
+                <th>CSW %</th>
+                <th>Whiff %</th>
+                <th>Z-Whiff %</th>
+                <th>O-Whiff %</th>
+                <th>Chase %</th>
+              </tr>
+            </thead>
+            <tbody id="miss_body">
+              <tr><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Damage Table -->
+      <div class="report">
+        <div class="report-header"><h3>Damage</h3></div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Pitch Type</th>
+                <th>wOBA</th>
+                <th>xwOBA</th>
+                <th>xwOBACON</th>
+                <th>BABIP</th>
+                <th>Hard Hit %</th>
+                <th>GB %</th>
+                <th>FB %</th>
+              </tr>
+            </thead>
+            <tbody id="damage_body">
+              <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="LocationsTab" class="tabcontent">
+    <div class="zone-chart-grid">
+      <div class="chart-wrap zone-chart-wrap"><canvas id="rhh_zone_chart"></canvas></div>
+      <div class="chart-wrap zone-chart-wrap"><canvas id="lhh_zone_chart"></canvas></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/outing_report.js') }}"></script>
+
+{% endblock %}

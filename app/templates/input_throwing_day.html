@@ -1,0 +1,11 @@
+{% extends "inszn_base.html" %}
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/input_throwing_day.css') }}">
+{% endblock %}
+{% block content %}
+<header>
+  <h1>Input Throwing Day</h1>
+</header>
+
+<script src="{{ url_for('static', filename='js/input_throwing_day.js') }}"></script>
+{% endblock %}
