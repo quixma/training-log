@@ -110,6 +110,20 @@ def submit_game_journal():
         cursor = conn.cursor()
         #get session id based on throwing session with same date
         session_id = cursor.execute("select id from throwing_sessions where date = ?", (form_data["date"],)).fetchone()
+        #game_journal hangs off a throwing session, so there's nothing to attach to without one logged that day
+        if session_id is None:
+            conn.close()
+            flash(f"No throwing session logged for {form_data['date']}: log the throwing day first, then the game.")
+            return redirect(url_for('game_form'))
+
+        #one game per throwing session. updateThrowCount below is not idempotent, so a resubmit would
+        #re-add the bullpen/game throws and append another " + game" to session_type.
+        existing = cursor.execute("select id from game_journal where session_id = ?", (session_id[0],)).fetchone()
+        if existing is not None:
+            conn.close()
+            flash(f"A game is already logged for {form_data['date']}: delete the existing entry before logging another.")
+            return redirect(url_for('game_form'))
+
         cursor.execute("INSERT INTO game_journal (id, session_id, date, opponent, get_hot, bullpen_throws, in_game, game_throws, avg_velo, max_velo, ip, hits, er, walks, strikeouts, hr, stuff_grade, execution_grade, recovery_grade, mentality_grade, subjective_notes, feel_notes, delivery_notes, mental_notes, post_outing_notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                        (form_data["id"], session_id[0], form_data["date"], form_data["opponent"], form_data["get_hot"], form_data["bullpen_throws"], form_data["in_game"],form_data["game_throws"], form_data["avg_velo"], form_data["max_velo"], form_data["ip"], form_data["hits"], form_data["er"],form_data["walks"],form_data["strikeouts"],form_data["hr"], form_data["stuff_grade"], form_data["execution_grade"], form_data["recovery_grade"], form_data["mentality_grade"], form_data["subjective_notes"],form_data["feel_notes"],form_data["delivery_notes"], form_data["mental_notes"], form_data["post_outing_notes"]))
         
@@ -141,7 +155,7 @@ def submit_workout_form():
         
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO workout_log (date, energy_value, fatigue_value, motivation_value, focus_value, explosiveness_value, body_notes, workout_completed, armcare_completed, conditioning_completed, workout_notes) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+        cursor.execute('INSERT INTO workout_log (date, energy_value, fatigue_value, motivation_value, focus_value, explosiveness_value, body_notes, workout_completed, spine_completed, armcare_completed, conditioning_completed, workout_notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
                        (form_data["date"], form_data["energy_value"], form_data["fatigue_value"], form_data["motivation_value"], form_data["focus_value"], form_data["explosiveness_value"], form_data["body_notes"], form_data["workout_completed"], form_data["spine_completed"], form_data["armcare_completed"], form_data["conditioning_completed"], form_data["workout_notes"]))
         conn.commit()
         conn.close()

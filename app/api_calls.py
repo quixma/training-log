@@ -240,21 +240,37 @@ def outing_report_data():
         "locations_lhh": locations_lhh,
     })
 
+#metric -> table it lives on. Doubles as the allowlist that keeps a user-supplied string
+#from ever reaching the query as a column name.
+INSZN_CHART_METRICS = {
+    "body_weight": "throwing_sessions",
+    "total_throws": "throwing_sessions",
+    "acr": "throwing_sessions",
+    "avg_velo": "game_journal",
+    "max_velo": "game_journal",
+    "ip": "game_journal",
+}
+
 @app.route('/api/inszn_chart_data', methods = ["POST"])
 def inszn_chart_data():
     data = request.get_json()
-    dict_data = {
-        'metric': data.get('metric'),
-        'time': data.get('time')
-        }
+    metric = data.get('metric')
+
+    try:
+        days = int(data.get('time'))
+    except (TypeError, ValueError):
+        return jsonify({"error": "invalid time range"}), 400
+
     conn= get_db_connection()
     cursor = conn.cursor()
     #get last date for queries
     date = cursor.execute('select date from throwing_sessions order by date desc limit 1').fetchone()
-    #input validation here
-    
-    if(dict_data["metric"] == 'totalThrows7d'):
-        weeks = int(int(dict_data['time']) / 7)
+    if date is None: #nothing logged yet
+        conn.close()
+        return jsonify([])
+
+    if(metric == 'totalThrows7d'):
+        weeks = int(days / 7)
         #groups dates as a whole week, listing in dict as the week starting on monday date, calc sum of total throws for that week
         total_throws = cursor.execute("select DATE(date, 'weekday 0', '-7 days') AS week_start, sum(total_throws) from throwing_sessions GROUP By week_start ORDER By week_start DESC LIMIT ?",(weeks,)).fetchall()
         conn.close()
@@ -265,20 +281,20 @@ def inszn_chart_data():
         for row in total_throws:
             throws_dict["totalThrows7d"].append(row[1])
             throws_dict["date"].append(row[0])
-            
-        return jsonify(throws_dict) 
-    
-    elif(dict_data["metric"] == "body_weight" or dict_data["metric"] == "total_throws" or dict_data["metric"] == "acr"): #query for throwing session table
-        results = cursor.execute(f'select {dict_data["metric"]}, date from throwing_sessions Where date >= datetime(?, "-{dict_data["time"]} days") and {dict_data["metric"]} IS NOT NULL', (date[0],)).fetchall()
+
+        return jsonify(throws_dict)
+
+    table = INSZN_CHART_METRICS.get(metric)
+    if table is None:
         conn.close()
-        return jsonify([dict(row) for row in results])
-    
-    else: #query for game journal table
-        results = cursor.execute(f'select {dict_data["metric"]}, date from game_journal Where date >= datetime(?, "-{dict_data["time"]} days") and {dict_data["metric"]} IS NOT NULL', (date[0],)).fetchall()
-        conn.close()
-        return jsonify([dict(row) for row in results])
-    
-    
+        return jsonify({"error": "unknown metric"}), 400
+
+    #metric/table come from the allowlist above; date and the day offset are bound.
+    #an N-day window ending on the anchor date spans anchor-(N-1) .. anchor
+    results = cursor.execute(f'select {metric}, date from {table} Where date >= date(?, ?) and {metric} IS NOT NULL',
+                             (date[0], f'-{days - 1} days')).fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in results])
 
 @app.route('/api/updateThrowingPlan', methods = ["POST"])
 def updateThrowingPlan():
@@ -287,7 +303,6 @@ def updateThrowingPlan():
     throwing_planID = data.get('throwing_planID')
     
     throwing_plan = {
-        "num_throwing_days": data.get('num_throwing_days'),
         "throwing_sessions": data.get('throwing_sessions'),
         "throwing_notes": data.get('throwing_notes'),
         "pitching_notes": data.get('pitching_notes'),
@@ -409,10 +424,13 @@ def getInsznThrowingPlan():
     conn = get_db_connection()
     cursor = conn.cursor()
     results = cursor.execute("Select * from throwing_plan Where date = ?", (date,)).fetchall()
-    
+    if not results: #no plan on that date, bail before rdict is referenced below
+        conn.close()
+        return jsonify({"error": "No throwing plan found for that date"}), 404
+
     for x in results: #converts sqlite objects into dictionary, since its only one "row" returned dont need to do it like drills where there is multiple
         rdict = dict(x) #just have to add the one row to dict
-        
+
     drills = cursor.execute("Select * from throwing_plan_drills Where sessionId = ?", (rdict["id"],)).fetchall() #gets drills based on id from first query
     pre = cursor.execute("Select * from throwing_plan_prethrow Where sessionID = ?", (rdict["id"],)).fetchall()
     
