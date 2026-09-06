@@ -163,7 +163,7 @@ def inszn_dash_data():
     avg_readiness = cursor.execute("SELECT round(avg(CASE WHEN date >= date(?, '-2 days') THEN arm_readiness END),1) AS ar_last_3_days, round(avg(CASE WHEN date >= date(?, '-6 days') THEN arm_readiness END),1) AS ar_last_7_days FROM throwing_sessions", (date[0],date[0])).fetchall()
     acr = cursor.execute("select acr from throwing_sessions order by date desc limit 1").fetchone()
     prev_throw_day = cursor.execute("select date, session_type, total_throws, working_set_throws, max_velo from throwing_sessions order by date desc LIMIT 1").fetchall()
-    days_last_game = cursor.execute("select CAST(julianday(?) - julianday(max(date)) AS INTEGER) as days_since_last_game from game_journal", (date[0],)).fetchone()
+    days_last_game = cursor.execute("select CAST(julianday('now') - julianday(max(date)) AS INTEGER) as days_since_last_game from game_journal").fetchone()
     avg_velos = cursor.execute("SELECT round(avg(CASE WHEN date >= date(?, '-6 days') THEN avg_velo END),1) AS avg_last_7_days, round(avg(CASE WHEN date >= date(?, '-29 days') THEN avg_velo END),1) AS avg_last_30_days, round(avg(avg_velo),1) as pv_all_time FROM game_journal", (date[0],date[0])).fetchall()
 
     return (peak_velos, avg_readiness, acr, prev_throw_day, days_last_game, avg_velos)
