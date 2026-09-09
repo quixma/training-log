@@ -102,10 +102,10 @@
             <tbody id="workoutlog_body">
               {% for lift, spine, arm, cond in rows %}
               <tr>
-                <td>{{ lift['Date'] }} — {{ lift['Lift'] }}</td>
-                <td>{{ spine['Date'] }} — {{ spine['Spine/Core'] }}</td>
-                <td>{{ arm['Date'] }} — {{ arm['Armcare'] }}</td>
-                <td>{{ cond['Date'] }} — {{ cond['Conditioning'] }}</td>
+                <td data-label="Lift">{{ lift['Date'] }} — {{ lift['Lift'] }}</td>
+                <td data-label="Spine / Core">{{ spine['Date'] }} — {{ spine['Spine/Core'] }}</td>
+                <td data-label="Arm Care">{{ arm['Date'] }} — {{ arm['Armcare'] }}</td>
+                <td data-label="Conditioning">{{ cond['Date'] }} — {{ cond['Conditioning'] }}</td>
               </tr>
               {% endfor %}
             </tbody>
@@ -126,9 +126,10 @@
             </select>
             <select id="body-notes-time">
               <option value="">Select range…</option>
-              <option value="7">Last 7 days</option>
-              <option value="14">Last 14 days</option>
-              <option value="30">Last 30 days</option>
+              <option value="3">Last 3 notes</option>
+              <option value="7">Last 7 notes</option>
+              <option value="14">Last 14 notes</option>
+              <option value="30">Last 30 notes</option>
             </select>
           </div>
         </div>
@@ -143,8 +144,8 @@
             <tbody id="bodynotes_body">
               {% for x in body_notes %}
               <tr>
-                <td>{{ x['Date'] }}</td>
-                <td>{{ x['body_notes'] | safe }}</td>
+                <td data-label="Date">{{ x['Date'] }}</td>
+                <td data-label="Body Notes">{{ x['body_notes'] | safe }}</td>
               </tr>
               {% endfor %}
             </tbody>
@@ -191,13 +192,13 @@
           {% for data in warmups %}
           <tr>
             <td data-label="Name">{{ data["name"] }}</td>
-				<td data-label="rollout_ex">{{ data["rollout_ex"] | safe }}</td>
-				<td data-label="spine_ex">{{ data["spine_ex"] | safe }}</td>
-				<td data-label="hip_ex">{{ data["hip_ex"] | safe }}</td>
-				<td data-label="shoulder_ex">{{ data["shoulder_ex"] | safe }}</td>
-				<td data-label="arm_ex">{{ data["arm_ex"] | safe }}</td>
-				<td data-label="dynamic_ex">{{ data["dynamic_ex"] | safe }}</td>
-				<td data-label="notes">{{ data["notes"] | safe }}</td>
+				<td data-label="Rollout Exercises">{{ data["rollout_ex"] | safe }}</td>
+				<td data-label="Spine Exercises">{{ data["spine_ex"] | safe }}</td>
+				<td data-label="Hip Exercises">{{ data["hip_ex"] | safe }}</td>
+				<td data-label="Shoulder Exercises">{{ data["shoulder_ex"] | safe }}</td>
+				<td data-label="Arm Exercises">{{ data["arm_ex"] | safe }}</td>
+				<td data-label="Dynamic Exercises">{{ data["dynamic_ex"] | safe }}</td>
+				<td data-label="Notes">{{ data["notes"] | safe }}</td>
           </tr>
           {% endfor %}
         </tbody>

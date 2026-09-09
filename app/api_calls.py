@@ -1,7 +1,7 @@
 from app import app
 from app.input_validation import UpdateThrowingPlanModel, PlayerGoalsModel
 from app.models import get_db_connection, get_warmup_by_name, get_workout_by_name, get_workout_names, get_latest_workout, WORKOUT_TYPES
-from app.models import get_throwing_day_by_name
+from app.models import get_throwing_day_by_name, get_bodyNotes
 from pydantic import ValidationError
 from flask import jsonify, request, url_for, redirect, render_template
 import os
@@ -508,6 +508,18 @@ def getInsznThrowingPlan():
     conn.close()
     
     return jsonify(allData)
+
+@app.route("/api/getBodyNotes", methods = ["POST"])
+def getBodyNotes():
+    #same shape as the throwing notes lookup: the newest N notes on or before the chosen date
+    data = request.get_json()
+    date = data.get("date")
+    time = data.get("time")
+
+    if not date or not time:
+        return jsonify({"error": "date and range are both required"}), 400
+
+    return jsonify(get_bodyNotes(date, time))
 
 @app.route("/api/getSelectedWorkout", methods = ["POST"])
 def getSelectedWorkout():

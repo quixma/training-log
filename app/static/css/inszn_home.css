@@ -83,6 +83,7 @@ header h1 span {
   position: sticky;
   top: 0;
   z-index: 100;
+  overflow-x: auto;   /* the tab row scrolls inside itself instead of widening the page */
 }
 
 .tab-right-group {
@@ -787,6 +788,7 @@ td button:hover,
   #Plan > .section-card thead,          /* Throwing Plan  */
   #GameNotes .section-card thead,       /* Game Notes     */
   #Notes .section-card thead,           /* Throwing Notes */
+  #ThrowingDays .section-card thead,    /* Throwing Days  */
   .table-container > .section-card:last-child thead {
     display: none;
   }
@@ -799,6 +801,7 @@ td button:hover,
   #throwing_plan_body tr,
   #game_notes_body tr,
   #throwing_notes_body tr,
+  #throwing_day_body tr,
   #player_goals_body tr {
     display: block;
     border: 1px solid var(--border);
@@ -811,6 +814,7 @@ td button:hover,
   #throwing_plan_body tr:nth-child(even),
   #game_notes_body tr:nth-child(even),
   #throwing_notes_body tr:nth-child(even),
+  #throwing_day_body tr:nth-child(even),
   #player_goals_body tr:nth-child(even) {
     background: var(--bg-card);
   }
@@ -818,6 +822,7 @@ td button:hover,
   #throwing_plan_body td,
   #game_notes_body td,
   #throwing_notes_body td,
+  #throwing_day_body td,
   #player_goals_body td {
     display: block;
     width: auto;
@@ -833,6 +838,7 @@ td button:hover,
   #throwing_plan_body td:last-child,
   #game_notes_body td:last-child,
   #throwing_notes_body td:last-child,
+  #throwing_day_body td:last-child,
   #player_goals_body td:last-child {
     border-bottom: none;
   }
@@ -875,6 +881,7 @@ td button:hover,
   #throwing_plan_body td *,
   #game_notes_body td *,
   #throwing_notes_body td *,
+  #throwing_day_body td *,
   #player_goals_body td * {
     max-width: 100%;
   }

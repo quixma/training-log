@@ -3,8 +3,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const toggleBtn = document.getElementById('sb-btn');
     const content = document.getElementById('content');
 
-    // 1. Check localStorage for saved state on page load
-    const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+    // 1. Check localStorage for saved state on page load. Phone widths start collapsed
+    //    whatever was saved on desktop - 250px of a 390px screen leaves no room for the page.
+    //    The toggle still works, so the nav is one tap away.
+    const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true'
+        || window.matchMedia('(max-width: 900px)').matches;
 
     if (isCollapsed) {
         sidebar.classList.add('collapsed');

@@ -4,6 +4,8 @@ const warmupSelect = document.getElementById('retrieve-warmup')
 const workoutTypeSelect = document.getElementById('retrieve-workout-type')
 const workoutSelect = document.getElementById('retrieve-workout')
 const playerGoalsSelect = document.getElementById('retrieve-player-goals')
+const bodyNotesSelect = document.getElementById('retrieve-body-notes')
+const bodyNotesTimeSelect = document.getElementById('body-notes-time')
 
 //player goals button/modal
 var modalGoals = document.getElementById('editGoals-modal')
@@ -15,6 +17,8 @@ warmupSelect.addEventListener("change", () => GetSelectedWorkout('warmup'));
 workoutTypeSelect.addEventListener("change", GetWorkoutsByType);
 workoutSelect.addEventListener("change", () => GetSelectedWorkout(workoutTypeSelect.value));
 playerGoalsSelect.addEventListener("change", GetPlayerGoals);
+bodyNotesSelect.addEventListener("change", GetBodyNotes);
+bodyNotesTimeSelect.addEventListener("change", GetBodyNotes);
 
 // Close buttons
 document.querySelectorAll('.modal-close').forEach(btn => {
@@ -189,6 +193,55 @@ async function GetWorkoutsByType() {
     UpdateExerciseTable(result.workout);
 }
 
+//body notes: a date anchors the lookup and the range picks how many notes back from it
+async function GetBodyNotes() {
+    const notes_data = {
+        date: bodyNotesSelect.value,
+        time: bodyNotesTimeSelect.value,
+    }
+
+    if (!notes_data.date || !notes_data.time) {
+        console.log("Enter both search criteria")
+        return;
+    }
+    else {
+        const response = await fetch('/api/getBodyNotes',
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', },
+                body: JSON.stringify(notes_data)
+            });
+
+        if (!response.ok) {
+            console.log('Update failed:', await response.text());
+            alert('Update failed. See console.');
+            return;
+        }
+
+        const data = await response.json();
+        UpdateBodyNotesTable(data);
+    }
+}
+
+function UpdateBodyNotesTable(data) {
+    const tbody = document.getElementById('bodynotes_body');
+
+    tbody.innerHTML = "";
+    data.forEach(note => {
+        const row = tbody.insertRow();
+        addCell(row, "Date").textContent = note["Date"];
+        addCell(row, "Body Notes").innerHTML = note["body_notes"]; //pre-formatted with <br> by the backend
+    });
+}
+
+//cells built here have to carry the same data-label the template renders, since the
+//mobile layout turns those labels into each row's headings
+function addCell(row, label) {
+    const cell = row.insertCell();
+    cell.setAttribute('data-label', label);
+    return cell;
+}
+
 //every workout type shares one table and one shape:
 //{workout_name, notes, exercises: [{ex_block, ex_name, sets_reps, ex_notes}, ...]}
 function UpdateExerciseTable(data) {
@@ -210,10 +263,11 @@ function UpdateExerciseTable(data) {
     tbody.innerHTML = "";
     data.exercises.forEach(ex => {
         const row = tbody.insertRow();
-        row.insertCell(0).textContent = ex.ex_block;
-        row.insertCell(1).textContent = ex.ex_name;
-        row.insertCell(2).textContent = ex.sets_reps;
-        row.insertCell(3).innerHTML = ex.ex_notes; //pre-formatted with <br> by the backend
+        //data-label drives the stacked card layout on mobile, so rebuilt cells need it too
+        addCell(row, "Block").textContent = ex.ex_block;
+        addCell(row, "Exercise").textContent = ex.ex_name;
+        addCell(row, "Sets/Reps").textContent = ex.sets_reps;
+        addCell(row, "Notes").innerHTML = ex.ex_notes; //pre-formatted with <br> by the backend
     });
 }
 
@@ -223,12 +277,12 @@ function UpdateWarmupTable(data) {
     tbody.innerHTML = "";
 
     const row = tbody.insertRow();
-    row.insertCell(0).textContent = data.name;
-    row.insertCell(1).innerHTML = data.rollout_ex;
-    row.insertCell(2).innerHTML = data.spine_ex;
-    row.insertCell(3).innerHTML = data.hip_ex;
-    row.insertCell(4).innerHTML = data.shoulder_ex;
-    row.insertCell(5).innerHTML = data.arm_ex;
-    row.insertCell(6).innerHTML = data.dynamic_ex;
-    row.insertCell(7).innerHTML = data.notes;
+    addCell(row, "Name").textContent = data.name;
+    addCell(row, "Rollout Exercises").innerHTML = data.rollout_ex;
+    addCell(row, "Spine Exercises").innerHTML = data.spine_ex;
+    addCell(row, "Hip Exercises").innerHTML = data.hip_ex;
+    addCell(row, "Shoulder Exercises").innerHTML = data.shoulder_ex;
+    addCell(row, "Arm Exercises").innerHTML = data.arm_ex;
+    addCell(row, "Dynamic Exercises").innerHTML = data.dynamic_ex;
+    addCell(row, "Notes").innerHTML = data.notes;
 }

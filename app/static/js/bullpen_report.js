@@ -40,6 +40,8 @@ create_reportBTN.onclick = function () { //generate bullpen report
 function fillTable(data, length) {
     const table = document.getElementById('report_body');
     const tableRows = table.rows.length;
+    //data-label drives the stacked card layout on mobile, taken from this table's header row
+    const headers = [...table.closest('table').querySelectorAll('thead th')].map(th => th.textContent.trim());
 
     for (let i = 0; i < tableRows; i++) { //empty's table values before repopulating 
         for (let j = 0; j < 2; j++) {
@@ -78,6 +80,9 @@ function fillTable(data, length) {
     //populate table- have to iterate over each key of dict (pitch types) and access inner values (avgs)
     Object.keys(data).forEach(key => {
         const row = table.rows[i];
+        [...row.cells].forEach((cell, c) => {
+            if (headers[c]) cell.setAttribute('data-label', headers[c]);
+        });
         row.cells[0].innerText = key;
         row.cells[1].innerText = data[key]["Velocity"];
         row.cells[2].innerText = data[key]["Max Velo"];

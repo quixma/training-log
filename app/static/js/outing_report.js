@@ -391,13 +391,17 @@ const tableGroupings = { strikes: 'hand', miss: 'hand', damage: 'hand' };
 //excluded by the backend, which also leads each grouped table with its Overall row)
 function fillReportTable(bodyId, rows, keys) {
     const body = document.getElementById(bodyId);
+    //data-label drives the stacked card layout on mobile. taking it from this table's own
+    //header row keeps it right for the grouped tables, whose first header follows the toggle.
+    const headers = [...body.closest('table').querySelectorAll('thead th')].map(th => th.textContent.trim());
     body.innerHTML = '';
     rows.forEach(row => {
         const tr = document.createElement('tr');
         if (row.group === 'Overall') tr.classList.add('overall-row');
-        [row.group, ...keys.map(key => row[key])].forEach(val => {
+        [row.group, ...keys.map(key => row[key])].forEach((val, i) => {
             const td = document.createElement('td');
             td.textContent = val;
+            if (headers[i]) td.setAttribute('data-label', headers[i]);
             tr.appendChild(td);
         });
         body.appendChild(tr);
@@ -410,8 +414,9 @@ function renderGroupedTable(table) {
     const grouping = tableGroupings[table];
     const rows = reportData ? reportData[table][grouping] || [] : [];
 
-    fillReportTable(`${table}_body`, rows, GROUPED_TABLE_KEYS[table]);
+    //header first: fillReportTable copies the header text onto each cell as its mobile label
     document.querySelector(`.group-label[data-table="${table}"]`).textContent = GROUP_LABELS[grouping];
+    fillReportTable(`${table}_body`, rows, GROUPED_TABLE_KEYS[table]);
     document.querySelectorAll(`.group-toggle[data-table="${table}"] .group-btn`).forEach(btn => {
         btn.classList.toggle('active', btn.dataset.group === grouping);
     });

@@ -425,8 +425,9 @@ function UpdateThrowingNotesTable(data, length) {
 
         for (let i = 0; i < rows_needed; i++) {
             var new_row = notesTable.insertRow();
-            var cell1 = new_row.insertCell(0);
-            var cell2 = new_row.insertCell(1);
+            //labels match the template's cells so added rows keep their headings on mobile
+            var cell1 = addCell(new_row, "Date");
+            var cell2 = addCell(new_row, "Notes");
             var cell3 = new_row.insertCell(2);
             var cell4 = new_row.insertCell(3);
         }
@@ -481,6 +482,14 @@ async function GetThrowingNotesByDay() {
     }
 }
 
+//cells built here have to carry the same data-label the template renders, since the
+//mobile layout turns those labels into each row's headings
+function addCell(row, label) {
+    const cell = row.insertCell();
+    cell.setAttribute('data-label', label);
+    return cell;
+}
+
 //logged throwing days: pick a day by name, swap its drills and notes into the tab
 async function GetThrowingDay() {
     const name = throwingDayViewSelect.value;
@@ -528,11 +537,12 @@ function UpdateThrowingDayTable(data) {
     tbody.innerHTML = "";
     data.drills.forEach(drill => {
         const row = tbody.insertRow();
-        row.insertCell(0).textContent = drill.set;
-        row.insertCell(1).textContent = drill.drill_name;
-        row.insertCell(2).textContent = drill.ball_weight;
-        row.insertCell(3).textContent = drill.throw_count;
-        row.insertCell(4).innerHTML = drill.drill_notes; //pre-formatted with <br> by the backend
+        //data-label drives the stacked card layout on mobile, so rebuilt cells need it too
+        addCell(row, "Set").textContent = drill.set;
+        addCell(row, "Drill").textContent = drill.drill_name;
+        addCell(row, "Ball").textContent = drill.ball_weight;
+        addCell(row, "Throws").textContent = drill.throw_count;
+        addCell(row, "Notes").innerHTML = drill.drill_notes; //pre-formatted with <br> by the backend
     });
 }
 

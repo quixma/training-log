@@ -467,6 +467,88 @@ tbody td:first-child { color: var(--text-secondary); font-size: 0.8rem; white-sp
   .summary-col { flex-direction: row; flex-wrap: wrap; }
   .summary-col .card { flex: 1 1 calc(50% - 6px); }
 }
+/* ── Mobile: tables read as stacked cards ─────
+   Same treatment the throwing dashboard uses: every wide table here
+   carries data-label on its cells, so the header row becomes noise and
+   each row can stack into a labelled card instead of scrolling sideways. */
+@media (max-width: 900px) {
+  /* every table on this page is labelled, so the header row is redundant once rows stack.
+     scoped by tab, not by .section-card: the warmup and workout tables sit outside their card
+     div in the markup, and a visible thead keeps the table's columns and squeezes the cells. */
+  #workout_survey thead,
+  #warmup_workouts thead,
+  #workouts thead { display: none; }
+
+  #player_goals_body tr,
+  #workoutlog_body tr,
+  #bodynotes_body tr,
+  #warmups_body tr,
+  #workout_body tr {
+    display: block;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 12px;
+    background: var(--bg-card);
+    overflow: hidden;
+  }
+
+  /* the zebra striping reads as broken cards once the rows are blocks */
+  #player_goals_body tr:nth-child(even),
+  #workoutlog_body tr:nth-child(even),
+  #bodynotes_body tr:nth-child(even),
+  #warmups_body tr:nth-child(even),
+  #workout_body tr:nth-child(even) { background: var(--bg-card); }
+
+  #player_goals_body td,
+  #workoutlog_body td,
+  #bodynotes_body td,
+  #warmups_body td,
+  #workout_body td {
+    display: block;
+    width: auto;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    white-space: normal !important;   /* beats nowrap on td:first-child */
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+  }
+
+  #player_goals_body td:last-child,
+  #workoutlog_body td:last-child,
+  #bodynotes_body td:last-child,
+  #warmups_body td:last-child,
+  #workout_body td:last-child { border-bottom: none; }
+
+  /* rich note bodies ({{ ... | safe }}) can carry markup that blows out the width */
+  #player_goals_body td *,
+  #workoutlog_body td *,
+  #bodynotes_body td *,
+  #warmups_body td *,
+  #workout_body td * { max-width: 100%; }
+
+  /* only cells that actually carry a label get a heading, so the empty
+     trailing cell in the warmups row stays blank */
+  td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+
+  /* card controls stack instead of squeezing next to the heading */
+  .section-card-header { padding: 14px 16px; }
+  .section-card-header select,
+  .filter-row select { max-width: 100%; width: 100%; }
+  .filter-row { flex: 1 1 100%; min-width: 0; }
+}
+
 @media (max-width: 600px) {
   header { padding: 24px 20px 18px; }
   .tabcontent { padding: 20px 12px; }

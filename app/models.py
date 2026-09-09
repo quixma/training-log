@@ -421,15 +421,19 @@ def get_bodyNotes_dates():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    dates = cursor.execute("select date from workout_log where body_notes IS NOT NULL").fetchall()    
+    dates = cursor.execute("select date from workout_log where body_notes IS NOT NULL order by date DESC").fetchall()    
     conn.close()
     return dates
 
-def get_bodyNotes():
+def get_bodyNotes(date=None, limit=3):
+    #date anchors the lookup: the newest notes on or before it. the dashboard loads without one.
     conn = get_db_connection()
     cursor = conn.cursor()
-    
-    notes = cursor.execute("select date, body_notes from workout_log where body_notes IS NOT NULL order by date DESC LIMIT 3").fetchall()    
+
+    if date:
+        notes = cursor.execute("select date, body_notes from workout_log where body_notes IS NOT NULL and date <= ? order by date DESC LIMIT ?", (date, limit)).fetchall()
+    else:
+        notes = cursor.execute("select date, body_notes from workout_log where body_notes IS NOT NULL order by date DESC LIMIT ?", (limit,)).fetchall()
     conn.close()
     body_notes = []
     for x in notes:
@@ -491,10 +495,10 @@ def _format_workout(cursor, workout):
     exercises_formatted = []
     for x in exercises:
         ex_notes = x['ex_notes'] or ""
-        exercises_formatted.append({
-            "ex_block": x['ex_block'],
-            "ex_name": x['ex_name'],
-            "sets_reps": x['sets_reps'],
+        exercises_formatted.append({ #blank out the NULLs so the table renders empty cells, not "None"
+            "ex_block": x['ex_block'] or "",
+            "ex_name": x['ex_name'] or "",
+            "sets_reps": x['sets_reps'] or "",
             "ex_notes": ex_notes.replace(".", ".<br>"),
             })
 

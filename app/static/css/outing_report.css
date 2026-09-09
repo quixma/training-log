@@ -389,6 +389,7 @@ header h1 {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 0 24px;
+  overflow-x: auto;   /* the tab row scrolls inside itself instead of widening the page */
 }
 
 .tablinks {
@@ -470,6 +471,70 @@ header h1 {
 
 @media (max-width: 900px) {
   .zone-chart-grid { grid-template-columns: 1fr; }
+}
+
+
+/* ── Mobile: report rows read as stacked cards ─
+   Both report tables are built in JS, which copies each column's header onto its
+   cells as data-label, so the header row is redundant once the rows stack. */
+@media (max-width: 900px) {
+  .report thead { display: none; }
+
+  .report tbody tr {
+    display: block;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 12px;
+    background: var(--bg-card);
+    overflow: hidden;
+  }
+
+  /* zebra striping reads as broken cards once the rows are blocks */
+  .report tbody tr:nth-child(even) { background: var(--bg-card); }
+
+  .report tbody td {
+    display: block;
+    width: auto;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    white-space: normal;   /* the desktop table keeps every cell on one line */
+    word-break: break-word;
+  }
+
+  .report tbody td:last-child { border-bottom: none; }
+
+  td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+
+  /* the templates ship empty placeholder rows so the tables have shape before a
+     report is generated; as cards they would be empty boxes */
+  .report tbody tr:not(:has(td:not(:empty))) { display: none; }
+
+  /* the upload bar's controls carry desktop widths that overflow a phone screen */
+  .upload-bar { padding: 16px; }
+  .upload-group,
+  .select-group { min-width: 0; width: 100%; }
+  .select-group select { min-width: 0; width: 100%; }
+  #file_upload { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+  #file_upload input[type="file"],
+  #file_upload input[type="submit"] { max-width: 100%; width: 100%; box-sizing: border-box; }
+
+  /* the grouping chips clip against the heading in a narrow card header */
+  .report-header { flex-wrap: wrap; padding: 14px 16px; }
+
+  /* keep the Overall row reading as the highlighted card it is */
+  .report tbody tr.overall-row {
+    background: var(--accent-dim);
+    border-color: var(--border-focus);
+  }
 }
 
 /* ── Scrollbar ──────────────────────────────── */
