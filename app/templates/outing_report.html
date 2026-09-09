@@ -20,6 +20,7 @@
             style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
         <input type="file" name="file1" accept=".csv">
         <input type="file" name="file2" accept=".csv">
+        <input type="file" name="file3" accept=".csv">
         <input type="submit" value="Upload">
       </form>
     </div>
@@ -27,7 +28,7 @@
     <div class="select-group">
       <label for="file1">Report File 1</label>
       <select id="file1">
-        <option value="">Select file for report</option>
+        <option value="">Select pitch type file</option>
         {% for filename in filenames %}
         <option value="{{ filename }}">{{ filename }}</option>
         {% endfor %}
@@ -37,7 +38,17 @@
     <div class="select-group">
       <label for="file2">Report File 2</label>
       <select id="file2">
-        <option value="">Select file for report</option>
+        <option value="">Select batter hand file</option>
+        {% for filename in filenames %}
+        <option value="{{ filename }}">{{ filename }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="select-group">
+      <label for="file3">Report File 3</label>
+      <select id="file3">
+        <option value="">Select pbp file</option>
         {% for filename in filenames %}
         <option value="{{ filename }}">{{ filename }}</option>
         {% endfor %}
@@ -55,6 +66,33 @@
       {% endfor %}
     {% endif %}
   {% endwith %}
+
+  <!-- Outing Summary: sits outside every tabcontent so it stays put when tabs are switched -->
+  <div class="report">
+    <div class="report-header"><h3>Outing Summary</h3></div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Split</th>
+            <th>FPS %</th>
+            <th>Ahead %</th>
+            <th>Early+Ahead %</th>
+            <th>2K SO %</th>
+            <th>K %</th>
+            <th>BB %</th>
+            <th>K-BB %</th>
+            <th>CSW %</th>
+          </tr>
+        </thead>
+        <tbody id="summary_body">
+          <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
   <!-- Report Tabs -->
   <div class="tab">
@@ -104,12 +142,18 @@
 
       <!-- Strikes Table -->
       <div class="report">
-        <div class="report-header"><h3>Strikes</h3></div>
+        <div class="report-header">
+          <h3>Strikes</h3>
+          <div class="group-toggle" data-table="strikes">
+            <button type="button" class="group-btn" data-group="pitch">Pitch Type</button>
+            <button type="button" class="group-btn active" data-group="hand">Batter Hand</button>
+          </div>
+        </div>
         <div style="overflow-x:auto;">
           <table>
             <thead>
               <tr>
-                <th>Pitch Type</th>
+                <th class="group-label" data-table="strikes">Batter Hand</th>
                 <th>Zone %</th>
                 <th>2K Zone %</th>
                 <th>Heart %</th>
@@ -124,21 +168,28 @@
 
       <!-- Miss Table -->
       <div class="report">
-        <div class="report-header"><h3>Miss</h3></div>
+        <div class="report-header">
+          <h3>Miss</h3>
+          <div class="group-toggle" data-table="miss">
+            <button type="button" class="group-btn" data-group="pitch">Pitch Type</button>
+            <button type="button" class="group-btn active" data-group="hand">Batter Hand</button>
+          </div>
+        </div>
         <div style="overflow-x:auto;">
           <table>
             <thead>
               <tr>
-                <th>Pitch Type</th>
+                <th class="group-label" data-table="miss">Batter Hand</th>
                 <th>CSW %</th>
                 <th>Whiff %</th>
+                <th>2K SwStr %</th>
                 <th>Z-Whiff %</th>
                 <th>O-Whiff %</th>
                 <th>Chase %</th>
               </tr>
             </thead>
             <tbody id="miss_body">
-              <tr><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+              <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
             </tbody>
           </table>
         </div>
@@ -146,12 +197,18 @@
 
       <!-- Damage Table -->
       <div class="report">
-        <div class="report-header"><h3>Damage</h3></div>
+        <div class="report-header">
+          <h3>Damage</h3>
+          <div class="group-toggle" data-table="damage">
+            <button type="button" class="group-btn" data-group="pitch">Pitch Type</button>
+            <button type="button" class="group-btn active" data-group="hand">Batter Hand</button>
+          </div>
+        </div>
         <div style="overflow-x:auto;">
           <table>
             <thead>
               <tr>
-                <th>Pitch Type</th>
+                <th class="group-label" data-table="damage">Batter Hand</th>
                 <th>wOBA</th>
                 <th>xwOBA</th>
                 <th>xwOBACON</th>

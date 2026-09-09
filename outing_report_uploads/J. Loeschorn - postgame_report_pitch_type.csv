@@ -1,0 +1,12 @@
+SplitBy,playerId,Pitch Type - Ungrouped,Pitch Type - Ungrouped_Sort,entityKey,2K K%,SwingingStrike% w/ 2K,Early+Ahead%,Ahead%,FPStk%,K%-BB% (Pit),BB%,K%,CSW%,Fly%,Ground%,HardHit%,BABIP,xWOBAcon,xWOBA,wOBA,Chase%,OZMiss% - P,IZ Ms%,IZ%,Miss%,Heart%,2K IZ%,P,MxVel,Extension,RelSide,RelHeight,HorzBrk,IndVertBrk,Vel,splitByName
+TOTAL,,,,,100.0%,,83.3%,80.0%,83.3%,16.7%,16.7%,33.3%,45.0%,33.3%,0.0%,66.7%,.667,.605,.419,.412,14.3%,100.0%,22.2%,65.0%,30.0%,40.0%,60.0%,20,91.9,6.93,-3.1,5.3,1.2,8.7,84.3,
+
+SplitBy,playerId,Pitch Type - Ungrouped,Pitch Type - Ungrouped_Sort,entityKey,2K K%,SwingingStrike% w/ 2K,Early+Ahead%,Ahead%,FPStk%,K%-BB% (Pit),BB%,K%,CSW%,Fly%,Ground%,HardHit%,BABIP,xWOBAcon,xWOBA,wOBA,Chase%,OZMiss% - P,IZ Ms%,IZ%,Miss%,Heart%,2K IZ%,P,MxVel,Extension,RelSide,RelHeight,HorzBrk,IndVertBrk,Vel,splitByName
+Fastball (4S)^0,700380,Fastball (4S),0,Fastball (4S),-,0.0%,0.0%,0.0%,50.0%,-100.0%,100.0%,0.0%,33.3%,-,-,-,-,-,.697,.697,0.0%,-,-,50.0%,-,33.3%,50.0%,6,91.9,7.03,-3.1,5.3,16.6,14.1,90.4,SplitBy
+Fastball (2S) / Sinker^1,700380,Fastball (2S) / Sinker,1,Fastball (2S) / Sinker,-,-,-,-,-,-,-,-,0.0%,-,-,-,-,-,-,-,0.0%,-,-,0.0%,-,0.0%,-,1,89.5,7.11,-3.1,5.1,16.3,5.2,89.5,SplitBy
+Cutter^2,700380,Cutter,2,Cutter,100.0%,100.0%,100.0%,100.0%,-,50.0%,0.0%,50.0%,50.0%,0.0%,0.0%,100.0%,1.000,.858,.429,.443,-,-,50.0%,100.0%,50.0%,50.0%,100.0%,2,87.5,6.88,-3.1,5.3,-2.7,11.1,87.2,SplitBy
+Slider^3,700380,Slider,3,Slider,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,0,-,-,-,-,-,-,-,SplitBy
+Curveball^4,700380,Curveball,4,Curveball,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,0,-,-,-,-,-,-,-,SplitBy
+Change^5,700380,Change,5,Change,-,0.0%,-,-,-,-,-,-,33.3%,-,-,-,-,-,-,-,0.0%,-,50.0%,66.7%,50.0%,33.3%,100.0%,3,85.1,7.02,-2.9,5.2,14.0,7.7,84.2,SplitBy
+Sweeper^7,700380,Sweeper,7,Sweeper,100.0%,100.0%,100.0%,100.0%,100.0%,33.3%,0.0%,33.3%,62.5%,50.0%,0.0%,50.0%,.500,.479,.319,.295,50.0%,100.0%,0.0%,75.0%,16.7%,50.0%,0.0%,8,80.1,6.80,-3.1,5.4,-16.1,4.8,78.4,SplitBy
+Unknown^9,700380,Unknown,9,Unknown,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,0,-,-,-,-,-,-,-,SplitBy

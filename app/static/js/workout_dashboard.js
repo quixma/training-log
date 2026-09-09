@@ -1,10 +1,8 @@
 
 //initialize drop down menu selectors
 const warmupSelect = document.getElementById('retrieve-warmup')
-const armcareSelect = document.getElementById('retrieve-armcare')
-const spineSelect = document.getElementById('retrieve-spine')
-const liftSelect = document.getElementById('retrieve-lift')
-const conditioningSelect = document.getElementById('retrieve-conditioning')
+const workoutTypeSelect = document.getElementById('retrieve-workout-type')
+const workoutSelect = document.getElementById('retrieve-workout')
 const playerGoalsSelect = document.getElementById('retrieve-player-goals')
 
 //player goals button/modal
@@ -14,10 +12,8 @@ var saveGoalsBtn = document.getElementById('saveGoals')
 
 //add event listeners to query on change
 warmupSelect.addEventListener("change", () => GetSelectedWorkout('warmup'));
-armcareSelect.addEventListener("change", () => GetSelectedWorkout('armcare'));
-spineSelect.addEventListener("change", () => GetSelectedWorkout('back'));
-liftSelect.addEventListener("change", () => GetSelectedWorkout('lift'));
-conditioningSelect.addEventListener("change", () => GetSelectedWorkout('conditioning'));
+workoutTypeSelect.addEventListener("change", GetWorkoutsByType);
+workoutSelect.addEventListener("change", () => GetSelectedWorkout(workoutTypeSelect.value));
 playerGoalsSelect.addEventListener("change", GetPlayerGoals);
 
 // Close buttons
@@ -60,7 +56,7 @@ editGoals_Btn.onclick = function () { //log new player plan goals
 saveGoalsBtn.onclick = function () {
     const newGoals = {
         date: document.getElementById("goals-date").value,
-        plan_type: document.getElementById("goals-plan-type").value,
+        plan_type: "workout", //this dashboard owns the workout goals
         gym: document.getElementById("goals-gym").value,
         back: document.getElementById("goals-back").value,
         nutrition: document.getElementById("goals-nutrition").value
@@ -130,10 +126,10 @@ window.addEventListener('click', function (event) {
 });
 
 
+//tabName is 'warmup' or a workout_type value ('Lift', 'Back/Core', ...)
 async function GetSelectedWorkout(tabName) {
-    //get tab name for table, select correct value from the list correlated with tabName
-    const selects = { warmup: warmupSelect, armcare: armcareSelect, back: spineSelect, lift: liftSelect, conditioning: conditioningSelect };
-    const data = { type: tabName, value: selects[tabName].value };
+    const select = tabName === 'warmup' ? warmupSelect : workoutSelect;
+    const data = { type: tabName, value: select.value };
 
     if (!data.value) {
         console.log("Enter a search criteria")
@@ -160,27 +156,55 @@ async function GetSelectedWorkout(tabName) {
             UpdateWarmupTable(result);
         }
         else {
-            UpdateExerciseTable(tabName, result);
+            UpdateExerciseTable(result);
         }
     }
 }
 
-//tab name -> ids of the elements that need to be updated for that tab
-const EXERCISE_TABLES = {
-    armcare: { tabId: 'armcare_workouts', tbodyId: 'armcare_body' },
-    back: { tabId: 'back_workouts', tbodyId: 'spine_body' },
-    lift: { tabId: 'lifts_workouts', tbodyId: 'lift_body' },
-    conditioning: { tabId: 'conditioning_workouts', tbodyId: 'conditioning_body' },
-};
+//switching workout type swaps in that type's name list and its most recent workout
+async function GetWorkoutsByType() {
+    const response = await fetch('/api/getWorkoutsByType',
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', },
+            body: JSON.stringify({ type: workoutTypeSelect.value })
+        });
 
-//shared shape across armcare/back/lift/conditioning: {workout_name, notes, exercises: [{ex_block, ex_name, sets_reps, ex_notes}, ...]}
-function UpdateExerciseTable(tabName, data) {
-    const config = EXERCISE_TABLES[tabName];
-    const tbody = document.getElementById(config.tbodyId);
-    const metaSpan = document.querySelector(`#${config.tabId} .workout-meta`);
+    if (!response.ok) {
+        console.log('Update failed:', await response.text());
+        alert('Update failed. See console.');
+        return;
+    }
+
+    const result = await response.json();
+
+    workoutSelect.innerHTML = '<option value="">Select Workout to View</option>';
+    result.names.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        workoutSelect.appendChild(option);
+    });
+
+    UpdateExerciseTable(result.workout);
+}
+
+//every workout type shares one table and one shape:
+//{workout_name, notes, exercises: [{ex_block, ex_name, sets_reps, ex_notes}, ...]}
+function UpdateExerciseTable(data) {
+    const tbody = document.getElementById('workout_body');
+    const metaSpan = document.getElementById('workout-meta');
 
     if (metaSpan) {
         metaSpan.textContent = data.workout_name || "";
+    }
+
+    //session-level notes ride along with every workout payload; hide the panel when there are none
+    const notesPanel = document.getElementById('workout-notes');
+    const notesText = document.getElementById('workout-notes-text');
+    if (notesPanel && notesText) {
+        notesText.innerHTML = data.notes || ""; //pre-formatted with <br> by the backend
+        notesPanel.classList.toggle('hidden', !data.notes);
     }
 
     tbody.innerHTML = "";

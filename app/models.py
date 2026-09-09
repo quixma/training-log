@@ -43,6 +43,7 @@ def get_throwing_plan():
         sessions = row['throwing_sessions'] or ""
         th_notes = row['throwing_notes'] or ""
         p_notes = row['pitching_notes'] or ""
+        m_notes = row['mental_notes'] or ""
         d_notes = row['drill_notes'] or ""
         pt_notes = row['prethrow_notes'] or ""
         
@@ -52,6 +53,7 @@ def get_throwing_plan():
             "sessions_html": sessions.replace(".", ".<br>"),
             "th_notes_html": th_notes.replace(".", ".<br>"),
             "p_notes_html": p_notes.replace(".", ".<br>"),
+            "m_notes_html": m_notes.replace(".", ".<br>"),
             "d_notes_html": d_notes.replace(".", ".<br>"),
             "pt_notes_html": pt_notes.replace(".", ".<br>"),
             "id": row['id'],
@@ -77,23 +79,22 @@ def get_inszn_throwing_plan_dates():
     conn.close()
     return throwing_plan_dates
 
-def get_player_goals(plan_type=None):
+#goals come in two kinds and each dashboard owns one: pitching goals on the throwing dashboard,
+#workout goals on the workout dashboard. every caller names the kind it wants.
+PLAN_TYPES = ('pitching', 'workout')
+
+def get_player_goals(plan_type):
     conn = get_db_connection()
     cursor = conn.cursor()
-    if plan_type:
-        goals = cursor.execute('Select * from player_goals Where plan_type = ? order by id desc limit 1', (plan_type,)).fetchone()
-    else:
-        goals = cursor.execute('Select * from player_goals order by id desc limit 1').fetchone()
+    goals = cursor.execute('Select * from player_goals Where plan_type = ? order by id desc limit 1', (plan_type,)).fetchone()
     conn.close()
     return goals
 
-def get_player_goals_dates(plan_type=None):
+def get_player_goals_dates(plan_type):
     conn = get_db_connection()
     cursor = conn.cursor()
-    if plan_type:
-        dates = cursor.execute('Select date from player_goals Where plan_type = ? order by id desc', (plan_type,)).fetchall()
-    else:
-        dates = cursor.execute('Select date from player_goals order by id desc').fetchall()
+    #group by date so saving twice in one day leaves one dropdown option, not two
+    dates = cursor.execute('Select date from player_goals Where plan_type = ? group by date order by max(id) desc', (plan_type,)).fetchall()
     conn.close()
     return dates
 
@@ -117,6 +118,28 @@ def get_outing_report_files():
 
     return filenames
 
+#session types offered by the throwing forms. get_throwing_day_types() below returns only the types
+#already logged, so the input dropdowns render from this list instead to keep every option available.
+THROWING_SESSION_TYPES = (
+    ("recovery", "Recovery"),
+    ("recovery+", "Recovery+"),
+    ("game_prep", "Game Prep"),
+    ("hybrid_a", "Hybrid A"),
+    ("hybrid_b_pitching", "Hybrid B Pitching"),
+    ("hybrid_b_delivery", "Hybrid B Delivery"),
+    ("extension_day", "Extension LT"),
+    ("mound_blend", "Mound Blend"),
+    ("plyo_velo", "Plyo Velo"),
+    ("pitch_design", "Pitch Design"),
+    ("command_training", "Command Training"),
+    ("bullpen", "Bullpen"),
+    ("live_abs", "Live ABs"),
+)
+
+#ball weights the drill rows offer, shared by the throwing journal and the throwing day form
+THROWING_BALL_WEIGHTS = ("3", "3.5", "4", "5", "6", "7", "9", "11", "16", "21", "32", "48", "64",
+                         "jav", "football", "club", "volleyball", "tennis")
+
 def get_throwing_day_types():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -124,6 +147,71 @@ def get_throwing_day_types():
     throwing_days = cursor.fetchall()
     conn.close()
     return throwing_days
+
+#logged throwing days (the /submit_throwing_day form), read back for the home dashboard tab.
+#session_type is stored as the form value, so display it with its THROWING_SESSION_TYPES label
+_SESSION_TYPE_LABELS = dict(THROWING_SESSION_TYPES)
+
+def _format_throwing_day(cursor, day):
+    #shared card shape: the day row plus its drills, plyo block first, with notes
+    #line-broken the way the templates render them
+    drills = cursor.execute("select drill_type, drill_name, ball_weight, throw_count, drill_notes from throwing_day_drills where session_id = ? order by case drill_type when 'plyo' then 0 else 1 end, ID", (day['id'],)).fetchall()
+
+    drills_formatted = []
+    for x in drills:
+        drill_notes = x['drill_notes'] or ""
+        drills_formatted.append({ #blank out the NULLs so the table renders empty cells, not "None"
+            "set": "Plyo" if x['drill_type'] == 'plyo' else "Throwing",
+            "drill_name": x['drill_name'] or "",
+            "ball_weight": x['ball_weight'] or "",
+            "throw_count": x['throw_count'] or "",
+            "drill_notes": drill_notes.replace(".", ".<br>"),
+            })
+
+    notes = day['notes'] or ""
+
+    return {
+        "day_name": day['day_name'],
+        "date": day['date'],
+        "session_type": _SESSION_TYPE_LABELS.get(day['session_type'], day['session_type']),
+        "notes": notes.replace(".", ".<br>"),
+        "drills": drills_formatted,
+        }
+
+def get_throwing_day_names():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    names = cursor.execute("select day_name from throwing_days where day_name IS NOT NULL order by date DESC").fetchall()
+    conn.close()
+    return names
+
+def get_latest_throwing_day():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    day = cursor.execute("select id, date, day_name, session_type, notes from throwing_days order by ID desc limit 1").fetchone()
+    if day is None: #nothing logged yet, hand the template an empty card instead of crashing
+        conn.close()
+        return {"day_name": None, "date": None, "session_type": None, "notes": "", "drills": []}
+
+    day_formatted = _format_throwing_day(cursor, day)
+    conn.close()
+    return day_formatted
+
+def get_throwing_day_by_name(name):
+    #names repeat across dates, so this returns the most recently logged one
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    day = cursor.execute("select id, date, day_name, session_type, notes from throwing_days where day_name = ? order by ID desc limit 1", (name,)).fetchone()
+    if day is None:
+        conn.close()
+        return None
+
+    day_formatted = _format_throwing_day(cursor, day)
+    conn.close()
+    return day_formatted
 
 def get_game_notes():
     conn = get_db_connection()
@@ -391,26 +479,14 @@ def get_warmups():
     
     return warmups_formatted
 
-def get_armcare_names():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    names = cursor.execute("select workout_name from armcare_workouts where workout_name IS NOT NULL order by date DESC").fetchall()
-    conn.close()
-    return names
+#every workout type lives in one table now; these labels are the form dropdown, the dashboard filter,
+#and the workouts.workout_type CHECK constraint, so they have to stay in step with the schema
+WORKOUT_TYPES = ('Lift', 'Armcare', 'Back/Core', 'Individual Workout', 'Mobility', 'Conditioning')
 
-def get_armcare_workout():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    workout = cursor.execute("select Id, date, workout_name, notes from armcare_workouts order by Id desc limit 1").fetchone()
-    if workout is None: #no workouts logged yet, hand the template an empty card instead of crashing
-        conn.close()
-        return {"workout_name": None, "notes": "", "exercises": []}
-    exercises = cursor.execute("select ex_block, ex_name, sets_reps, ex_notes from armcare_workout_ex where session_id = ? order by ID", (workout['Id'],)).fetchall()
-    conn.close()
-
-    notes = workout['notes'] or ""
+def _format_workout(cursor, workout):
+    #shared card shape for every workout type: the session row plus its exercises, with notes
+    #line-broken the way the templates render them
+    exercises = cursor.execute("select ex_block, ex_name, sets_reps, ex_notes from workout_ex where session_id = ? order by ID", (workout['ID'],)).fetchall()
 
     exercises_formatted = []
     for x in exercises:
@@ -422,130 +498,48 @@ def get_armcare_workout():
             "ex_notes": ex_notes.replace(".", ".<br>"),
             })
 
-    armcare_workout = {
+    notes = workout['notes'] or ""
+
+    return {
         "workout_name": workout['workout_name'],
         "notes": notes.replace(".", ".<br>"),
         "exercises": exercises_formatted,
         }
 
-    return armcare_workout
-
-def get_back_names():
+def get_workout_names(workout_type):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    names = cursor.execute("select workout_name from back_workouts where workout_name IS NOT NULL order by date DESC").fetchall()
+    names = cursor.execute("select workout_name from workouts where workout_type = ? and workout_name IS NOT NULL order by date DESC", (workout_type,)).fetchall()
     conn.close()
     return names
 
-def get_back_workout():
+def get_latest_workout(workout_type):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    workout = cursor.execute("select Id, date, workout_name, notes from back_workouts order by Id desc limit 1").fetchone()
-    if workout is None: #no workouts logged yet, hand the template an empty card instead of crashing
+    workout = cursor.execute("select ID, date, workout_name, notes from workouts where workout_type = ? order by ID desc limit 1", (workout_type,)).fetchone()
+    if workout is None: #none of this type logged yet, hand the template an empty card instead of crashing
         conn.close()
         return {"workout_name": None, "notes": "", "exercises": []}
-    exercises = cursor.execute("select ex_block, ex_name, sets_reps, ex_notes from back_workout_ex where session_id = ? order by ID", (workout['Id'],)).fetchall()
+
+    workout_formatted = _format_workout(cursor, workout)
     conn.close()
+    return workout_formatted
 
-    notes = workout['notes'] or ""
-
-    exercises_formatted = []
-    for x in exercises:
-        ex_notes = x['ex_notes'] or ""
-        exercises_formatted.append({
-            "ex_block": x['ex_block'],
-            "ex_name": x['ex_name'],
-            "sets_reps": x['sets_reps'],
-            "ex_notes": ex_notes.replace(".", ".<br>"),
-            })
-
-    back_workout = {
-        "workout_name": workout['workout_name'],
-        "notes": notes.replace(".", ".<br>"),
-        "exercises": exercises_formatted,
-        }
-
-    return back_workout
-
-def get_lift_names():
+def get_workout_by_name(workout_type, name):
+    #names repeat across dates, so this returns the most recently logged one
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    names = cursor.execute("select workout_name from lift_workouts where workout_name IS NOT NULL order by date DESC").fetchall()
-    conn.close()
-    return names
-
-def get_lift_workout():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    workout = cursor.execute("select ID, date, workout_name, notes from lift_workouts order by ID desc limit 1").fetchone()
-    if workout is None: #no workouts logged yet, hand the template an empty card instead of crashing
+    workout = cursor.execute("select ID, date, workout_name, notes from workouts where workout_type = ? and workout_name = ? order by ID desc limit 1", (workout_type, name)).fetchone()
+    if workout is None:
         conn.close()
-        return {"workout_name": None, "notes": "", "exercises": []}
-    exercises = cursor.execute("select ex_block, ex_name, sets_reps, ex_notes from lift_workout_ex where session_id = ? order by ID", (workout['ID'],)).fetchall()
+        return None
+
+    workout_formatted = _format_workout(cursor, workout)
     conn.close()
-
-    notes = workout['notes'] or ""
-
-    exercises_formatted = []
-    for x in exercises:
-        ex_notes = x['ex_notes'] or ""
-        exercises_formatted.append({
-            "ex_block": x['ex_block'],
-            "ex_name": x['ex_name'],
-            "sets_reps": x['sets_reps'],
-            "ex_notes": ex_notes.replace(".", ".<br>"),
-            })
-
-    lift_workout = {
-        "workout_name": workout['workout_name'],
-        "notes": notes.replace(".", ".<br>"),
-        "exercises": exercises_formatted,
-        }
-
-    return lift_workout
-
-def get_conditioning_names():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    names = cursor.execute("select workout_name from conditioning_workouts where workout_name IS NOT NULL order by date DESC").fetchall()
-    conn.close()
-    return names
-
-def get_conditioning_workout():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    workout = cursor.execute("select ID, date, workout_name, notes from conditioning_workouts order by ID desc limit 1").fetchone()
-    if workout is None: #no workouts logged yet, hand the template an empty card instead of crashing
-        conn.close()
-        return {"workout_name": None, "notes": "", "exercises": []}
-    exercises = cursor.execute("select ex_block, ex_name, sets_reps, ex_notes from conditioning_workout_ex where session_id = ? order by ID", (workout['ID'],)).fetchall()
-    conn.close()
-
-    notes = workout['notes'] or ""
-
-    exercises_formatted = []
-    for x in exercises:
-        ex_notes = x['ex_notes'] or ""
-        exercises_formatted.append({
-            "ex_block": x['ex_block'],
-            "ex_name": x['ex_name'],
-            "sets_reps": x['sets_reps'],
-            "ex_notes": ex_notes.replace(".", ".<br>"),
-            })
-
-    conditioning_workout = {
-        "workout_name": workout['workout_name'],
-        "notes": notes.replace(".", ".<br>"),
-        "exercises": exercises_formatted,
-        }
-
-    return conditioning_workout
+    return workout_formatted
 
 def get_warmup_by_name(workout):
     conn = get_db_connection()
@@ -577,127 +571,3 @@ def get_warmup_by_name(workout):
         }
 
     return warmup_formatted
-
-def get_armcare_by_name(workout):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    workout = cursor.execute("select Id, date, workout_name, notes from armcare_workouts where workout_name = ?",(workout,)).fetchone()
-    if workout is None:
-        conn.close()
-        return None
-    exercises = cursor.execute("select ex_block, ex_name, sets_reps, ex_notes from armcare_workout_ex where session_id = ? order by ID", (workout['Id'],)).fetchall()
-    conn.close()
-
-    notes = workout['notes'] or ""
-
-    exercises_formatted = []
-    for x in exercises:
-        ex_notes = x['ex_notes'] or ""
-        exercises_formatted.append({
-            "ex_block": x['ex_block'],
-            "ex_name": x['ex_name'],
-            "sets_reps": x['sets_reps'],
-            "ex_notes": ex_notes.replace(".", ".<br>"),
-            })
-
-    armcare_workout = {
-        "workout_name": workout['workout_name'],
-        "notes": notes.replace(".", ".<br>"),
-        "exercises": exercises_formatted,
-        }
-
-    return armcare_workout
-
-def get_back_by_name(workout):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    workout = cursor.execute("select Id, date, workout_name, notes from back_workouts where workout_name = ?", (workout,)).fetchone()
-    if workout is None:
-        conn.close()
-        return None
-    exercises = cursor.execute("select ex_block, ex_name, sets_reps, ex_notes from back_workout_ex where session_id = ? order by ID", (workout['Id'],)).fetchall()
-    conn.close()
-
-    notes = workout['notes'] or ""
-
-    exercises_formatted = []
-    for x in exercises:
-        ex_notes = x['ex_notes'] or ""
-        exercises_formatted.append({
-            "ex_block": x['ex_block'],
-            "ex_name": x['ex_name'],
-            "sets_reps": x['sets_reps'],
-            "ex_notes": ex_notes.replace(".", ".<br>"),
-            })
-
-    back_workout = {
-        "workout_name": workout['workout_name'],
-        "notes": notes.replace(".", ".<br>"),
-        "exercises": exercises_formatted,
-        }
-
-    return back_workout
-
-def get_lift_by_name(workout):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    workout = cursor.execute("select ID, date, workout_name, notes from lift_workouts where workout_name = ?",(workout,)).fetchone()
-    if workout is None:
-        conn.close()
-        return None
-    exercises = cursor.execute("select ex_block, ex_name, sets_reps, ex_notes from lift_workout_ex where session_id = ? order by ID", (workout['ID'],)).fetchall()
-    conn.close()
-
-    notes = workout['notes'] or ""
-
-    exercises_formatted = []
-    for x in exercises:
-        ex_notes = x['ex_notes'] or ""
-        exercises_formatted.append({
-            "ex_block": x['ex_block'],
-            "ex_name": x['ex_name'],
-            "sets_reps": x['sets_reps'],
-            "ex_notes": ex_notes.replace(".", ".<br>"),
-            })
-
-    lift_workout = {
-        "workout_name": workout['workout_name'],
-        "notes": notes.replace(".", ".<br>"),
-        "exercises": exercises_formatted,
-        }
-
-    return lift_workout
-
-def get_conditioning_by_name(workout):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    workout = cursor.execute("select ID, date, workout_name, notes from conditioning_workouts where workout_name = ?",(workout,)).fetchone()
-    if workout is None:
-        conn.close()
-        return None
-    exercises = cursor.execute("select ex_block, ex_name, sets_reps, ex_notes from conditioning_workout_ex where session_id = ? order by ID", (workout['ID'],)).fetchall()
-    conn.close()
-
-    notes = workout['notes'] or ""
-
-    exercises_formatted = []
-    for x in exercises:
-        ex_notes = x['ex_notes'] or ""
-        exercises_formatted.append({
-            "ex_block": x['ex_block'],
-            "ex_name": x['ex_name'],
-            "sets_reps": x['sets_reps'],
-            "ex_notes": ex_notes.replace(".", ".<br>"),
-            })
-
-    conditioning_workout = {
-        "workout_name": workout['workout_name'],
-        "notes": notes.replace(".", ".<br>"),
-        "exercises": exercises_formatted,
-        }
-
-    return conditioning_workout

@@ -27,19 +27,9 @@
       <label for="session-type">Session Type</label>
       <select id="session-type" name="session_type" required>
         <option value="">Select Type</option>
-        <option value="recovery">Recovery</option>
-        <option value="recovery+">Recovery+</option>
-        <option value="game_prep">Game Prep</option>
-        <option value="hybrid_a">Hybrid A</option>
-        <option value="hybrid_b_pitching">Hybrid B Pitching</option>
-		  <option value="hybrid_b_delivery">Hybrid B Delivery</option>
-        <option value="extension_day">Extension LT</option>
-        <option value="mound_blend">Mound Blend</option>
-        <option value="plyo_velo">Plyo Velo</option>
-        <option value="pitch_design">Pitch Design</option>
-        <option value="command_training">Command Training</option>
-        <option value="bullpen">Bullpen</option>
-        <option value="live_abs">Live ABs</option>
+        {% for value, label in session_types %}
+        <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
       </select>
     </div>
   </div>
@@ -83,24 +73,9 @@
       <input type="text" name="drill_name[]" placeholder="Drill Name">
       <select name="drill_ball_weight[]">
         <option value="">Ball Weight</option>
-        <option>3</option>
-        <option>3.5</option>
-        <option>4</option>
-        <option>5</option>
-        <option>6</option>
-        <option>7</option>
-        <option>9</option>
-        <option>11</option>
-        <option>16</option>
-        <option>21</option>
-        <option>32</option>
-        <option>48</option>
-        <option>64</option>
-        <option>jav</option>
-        <option>football</option>
-        <option>club</option>
-        <option>volleyball</option>
-        <option>tennis</option>
+        {% for weight in ball_weights %}
+        <option value="{{ weight }}">{{ weight }}</option>
+        {% endfor %}
       </select>
       <input type="number" step="0.01" name="drill_velocity[]" placeholder="Max Velo">
       <input type="number" name="throw_count[]" placeholder="Throw Count">

@@ -15,6 +15,7 @@
   <button class="tablinks" onclick="openTab(event, 'Dashboard')">Throwing Dashboard</button>
   <button class="tablinks" onclick="openTab(event, 'GameNotes')">Game Notes</button>
   <button class="tablinks" onclick="openTab(event, 'Notes')">Throwing Notes</button>
+  <button class="tablinks" onclick="openTab(event, 'ThrowingDays')">Throwing Days</button>
   <div class="tab-right-group">
     <button class="tablinks" onclick="window.location.href='{{ url_for('training_calendar') }}'">Training Calendar</button>
     <button class="tablinks" onclick="window.location.href='{{ url_for('workout_dashboard') }}'">Workout Dashboard</button>
@@ -51,11 +52,11 @@
         </thead>
         <tbody id="player_goals_body">
           <tr>
-            <td data-label="Date">{{ player_goals["date"] if player_goals else "" }}</td>
-            <td data-label="Pitching">{{ player_goals["pitching"] if player_goals else "" }}</td>
-            <td data-label="Arsenal">{{ player_goals["arsenal"] if player_goals else "" }}</td>
-            <td data-label="Delivery">{{ player_goals["delivery"] if player_goals else "" }}</td>
-            <td data-label="Execution">{{ player_goals["execution"] if player_goals else "" }}</td>
+            <td data-label="Date">{{ (player_goals["date"] or "") if player_goals else "" }}</td>
+            <td data-label="Pitching">{{ (player_goals["pitching"] or "") if player_goals else "" }}</td>
+            <td data-label="Arsenal">{{ (player_goals["arsenal"] or "") if player_goals else "" }}</td>
+            <td data-label="Delivery">{{ (player_goals["delivery"] or "") if player_goals else "" }}</td>
+            <td data-label="Execution">{{ (player_goals["execution"] or "") if player_goals else "" }}</td>
           </tr>
         </tbody>
       </table>
@@ -81,6 +82,7 @@
             <th>Session Breakdown</th>
             <th>Throwing Notes</th>
             <th>Pitching Notes</th>
+            <th>Mental Notes</th>
             <th></th>
           </tr>
         </thead>
@@ -91,6 +93,7 @@
 				<td data-label="Session breakdown">{{ data["sessions_html"] | safe }}</td>
 				<td data-label="Throwing notes">{{ data["th_notes_html"] | safe }}</td>
 				<td data-label="Pitching notes">{{ data["p_notes_html"] | safe }}</td>
+				<td data-label="Mental notes">{{ data["m_notes_html"] | safe }}</td>
             <td><button id="editTP">Edit Plan</button></td>
           </tr>
           {% endfor %}
@@ -461,6 +464,57 @@
 </div><!-- end #Notes -->
 
 
+<!-- ══ THROWING DAYS TAB ═════════════════════ -->
+<!-- logged throwing days from the throwing day form; the name select swaps in that day's drills -->
+<div id="ThrowingDays" class="tabcontent">
+
+  <div class="section-card">
+    <div class="section-card-header">
+      <h3>Throwing Days</h3>
+      <span class="day-meta" id="throwing-day-meta">
+        {% if throwing_day["date"] %}{{ throwing_day["date"] }} &middot; {{ throwing_day["session_type"] }}{% endif %}
+      </span>
+      <select id="retrieve-throwing-day">
+        <option value="">Select Throwing Day to View</option>
+        {% for data in throwing_day_names %}
+        <option value='{{ data["day_name"] }}'>{{ data["day_name"] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <!-- day-level notes; hidden when the day has none -->
+    <div class="day-notes{% if not throwing_day["notes"] %} hidden{% endif %}" id="throwing-day-notes">
+      <h4>Day Breakdown / Notes</h4>
+      <p id="throwing-day-notes-text">{{ throwing_day["notes"] | safe }}</p>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Set</th>
+            <th>Drill</th>
+            <th>Ball</th>
+            <th>Throws</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="throwing_day_body">
+          {% for drill in throwing_day["drills"] %}
+          <tr>
+            <td data-label="Set">{{ drill["set"] }}</td>
+            <td data-label="Drill">{{ drill["drill_name"] }}</td>
+            <td data-label="Ball">{{ drill["ball_weight"] }}</td>
+            <td data-label="Throws">{{ drill["throw_count"] }}</td>
+            <td data-label="Notes">{{ drill["drill_notes"] | safe }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- end #ThrowingDays -->
+
+
 <!-- ── Edit Throwing Plan Modal ──────────────── -->
 <div id="editTP-modal" class="modal">
   <div class="modal-inner">
@@ -482,6 +536,10 @@
         <textarea id="pitching-notes" name="pitching_notes" rows="4"></textarea>
       </div>
       <div class="field-group">
+        <label for="mental-notes">Mental Notes</label>
+        <textarea id="mental-notes" name="mental_notes" rows="4"></textarea>
+      </div>
+      <div class="field-group">
         <label for="drill-notes">Drill Notes</label>
         <textarea id="drill-notes" name="drill_notes" rows="4"></textarea>
       </div>
@@ -501,13 +559,6 @@
       <div class="field-group">
         <label for="goals-date">Date</label>
         <input type="date" id="goals-date" name="date">
-      </div>
-      <div class="field-group">
-        <label for="goals-plan-type">Plan Type</label>
-        <select id="goals-plan-type" name="plan_type">
-          <option value="inszn" selected>In Season</option>
-          <option value="offszn">Off Season</option>
-        </select>
       </div>
       <div class="field-group">
         <label for="goals-pitching">Pitching</label>

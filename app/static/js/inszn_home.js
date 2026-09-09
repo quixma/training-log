@@ -32,6 +32,7 @@ const throwingDaySelect = document.getElementById('throwing-day-type');
 const throwingDayTimeSelect = document.getElementById('throwing-day-time');
 const gameNoteSelect = document.getElementById('retrieve-game-notes');
 const playerGoalsSelect = document.getElementById('retrieve-player-goals');
+const throwingDayViewSelect = document.getElementById('retrieve-throwing-day');
 
 //add event listeners
 throwingPlanSelect.addEventListener("change", GetThrowingPlan);
@@ -41,6 +42,7 @@ throwingDaySelect.addEventListener("change", GetThrowingNotesByDay);
 throwingDayTimeSelect.addEventListener("change", GetThrowingNotesByDay);
 gameNoteSelect.addEventListener("change", GetGameNotes);
 playerGoalsSelect.addEventListener("change", GetPlayerGoals);
+throwingDayViewSelect.addEventListener("change", GetThrowingDay);
 
 //chart event listeners
 metricSelect.addEventListener("change", getData);
@@ -86,18 +88,21 @@ editTP_Btn.onclick = function () { //edit throwing plan
     const throwing_sessions_modal = document.getElementById("throwing-days");
     const throwing_notes_modal = document.getElementById("throwing-notes");
     const pitching_notes_modal = document.getElementById("pitching-notes");
+    const mental_notes_modal = document.getElementById("mental-notes");
     const drill_notes_modal = document.getElementById("drill-notes");
 
     //gets current table values displayed in html
     const throwing_sessions = rowTP.children[1].innerText;
     const throwing_notes = rowTP.children[2].innerText;
     const pitching_notes = rowTP.children[3].innerText;
+    const mental_notes = rowTP.children[4].innerText;
     const drill_notes = drill_row.children[0].innerText;
 
     //populates modal fields for editing
     throwing_sessions_modal.value = throwing_sessions;
     throwing_notes_modal.value = throwing_notes;
     pitching_notes_modal.value = pitching_notes;
+    mental_notes_modal.value = mental_notes;
     drill_notes_modal.value = drill_notes;
 }
 
@@ -107,6 +112,7 @@ saveTP_Btn.onclick = function () {
         throwing_sessions: document.getElementById("throwing-days").value,
         throwing_notes: document.getElementById("throwing-notes").value,
         pitching_notes: document.getElementById("pitching-notes").value,
+        mental_notes: document.getElementById("mental-notes").value,
         drill_notes: document.getElementById("drill-notes").value
     }
 
@@ -148,7 +154,7 @@ editGoals_Btn.onclick = function () { //log new player plan goals
 saveGoalsBtn.onclick = function () {
     const newGoals = {
         date: document.getElementById("goals-date").value,
-        plan_type: document.getElementById("goals-plan-type").value,
+        plan_type: "pitching", //this dashboard owns the pitching goals; workout goals have their own page
         pitching: document.getElementById("goals-pitching").value,
         arsenal: document.getElementById("goals-arsenal").value,
         delivery: document.getElementById("goals-delivery").value,
@@ -190,7 +196,7 @@ async function GetPlayerGoals() {
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', },
-                body: JSON.stringify({ date: date })
+                body: JSON.stringify({ plan_type: "pitching", date: date })
             });
 
         if (!response.ok) {
@@ -313,6 +319,7 @@ function UpdateThrowingPlanTable(tp, dr, length, pre, pre_length) {
     row.cells[1].innerText = tp["throwing_sessions"];
     row.cells[2].innerText = tp['throwing_notes'];
     row.cells[3].innerText = tp['pitching_notes'];
+    row.cells[4].innerText = tp['mental_notes'];
     drillNotes_row.cells[0].innerText = tp['drill_notes'];
     prethrowNotes_row.cells[0].innerText = tp['prethrow_notes'];
 
@@ -472,6 +479,61 @@ async function GetThrowingNotesByDay() {
         UpdateThrowingNotesTable(data, data.length);
 
     }
+}
+
+//logged throwing days: pick a day by name, swap its drills and notes into the tab
+async function GetThrowingDay() {
+    const name = throwingDayViewSelect.value;
+
+    if (!name) {
+        console.log("Enter a search criteria")
+        return;
+    }
+    else {
+        const response = await fetch('/api/getThrowingDay',
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', },
+                body: JSON.stringify({ value: name })
+            });
+
+        // Check if response is ok before parsing, display to html
+        if (!response.ok) {
+            console.log('Update failed:', await response.text());
+            alert('Update failed. See console.');
+            return;
+        }
+
+        const data = await response.json();
+        UpdateThrowingDayTable(data);
+    }
+}
+
+//throwing day shape: {day_name, date, session_type, notes, drills: [{set, drill_name, ball_weight, throw_count, drill_notes}, ...]}
+function UpdateThrowingDayTable(data) {
+    const tbody = document.getElementById('throwing_day_body');
+    const metaSpan = document.getElementById('throwing-day-meta');
+    const notesPanel = document.getElementById('throwing-day-notes');
+    const notesText = document.getElementById('throwing-day-notes-text');
+
+    if (metaSpan) {
+        metaSpan.textContent = data.date ? `${data.date} \u00b7 ${data.session_type}` : "";
+    }
+
+    if (notesPanel && notesText) {
+        notesText.innerHTML = data.notes || ""; //pre-formatted with <br> by the backend
+        notesPanel.classList.toggle('hidden', !data.notes);
+    }
+
+    tbody.innerHTML = "";
+    data.drills.forEach(drill => {
+        const row = tbody.insertRow();
+        row.insertCell(0).textContent = drill.set;
+        row.insertCell(1).textContent = drill.drill_name;
+        row.insertCell(2).textContent = drill.ball_weight;
+        row.insertCell(3).textContent = drill.throw_count;
+        row.insertCell(4).innerHTML = drill.drill_notes; //pre-formatted with <br> by the backend
+    });
 }
 
 //Chart Section

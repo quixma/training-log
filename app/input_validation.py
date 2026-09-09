@@ -38,6 +38,7 @@ class ThrowingPlanModel(BaseModel):
     throwing_sessions: Optional[str]
     throwing_notes: Optional[str]
     pitching_notes: Optional[str]
+    mental_notes: Optional[str]
     prethrow_notes: Optional[str]
     drill_notes: Optional[str]
     prethrow_drills: list[ThrowingPlanPrethrowDrillEntry]
@@ -47,11 +48,12 @@ class UpdateThrowingPlanModel(BaseModel):
     throwing_sessions: Optional[str]
     throwing_notes: Optional[str]
     pitching_notes: Optional[str]
+    mental_notes: Optional[str]
     drill_notes: Optional[str]
 
 class PlayerGoalsModel(BaseModel):
     date: date
-    plan_type: Literal['offszn', 'inszn', 'workout']
+    plan_type: Literal['pitching', 'workout']
     pitching: Optional[str]
     arsenal: Optional[str]
     delivery: Optional[str]

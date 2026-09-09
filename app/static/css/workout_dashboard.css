@@ -212,6 +212,28 @@ header h1 span { color: var(--accent); }
   color: var(--text-secondary);
 }
 
+/* ── Workout Notes ──────────────────────────── */
+.workout-notes {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+}
+.workout-notes.hidden { display: none; }
+.workout-notes h4 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-label);
+  margin-bottom: 6px;
+}
+.workout-notes p {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
 /* ── Tables ─────────────────────────────────── */
 .table-scroll { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }

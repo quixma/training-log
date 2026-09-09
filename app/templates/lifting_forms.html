@@ -4,20 +4,57 @@
 {% endblock %}
 {% block content %}
 <header>
-  <h1><span>//</span> Lifting Forms <span>//</span></h1>
+  <h1><span>//</span> Workout Forms <span>//</span></h1>
 </header>
 
 <!-- Tab Nav -->
 <div class="tab">
-  <button class="tablinks active" onclick="openTab(event, 'warmup_form')">Warmup Form</button>
-  <button class="tablinks" onclick="openTab(event, 'lift_form')">Lift Form</button>
-  <button class="tablinks" onclick="openTab(event, 'armcare_form')">Arm Care Form</button>
-  <button class="tablinks" onclick="openTab(event, 'back_form')">Back Routine Form</button>
-  <button class="tablinks" onclick="openTab(event, 'conditioning_form')">Conditioning Form</button>
+  <button class="tablinks active" onclick="openTab(event, 'workout_form')">Workout Form</button>
+  <button class="tablinks" onclick="openTab(event, 'warmup_form')">Warmup Form</button>
+  <button class="tablinks" onclick="openTab(event, 'throwing_day_form')">Throwing Form</button>
+</div>
+
+<!-- ══ WORKOUT INPUT FORM TAB ══════════════════════════════ -->
+<!-- one form for every workout type; the dropdown picks which workout_type the row is filed under -->
+<div id="workout_form" class="tabcontent active">
+<form id="workout-form" method="POST" action="/submit_workout">
+	 <label for="date">Date</label>
+    <input type="date" id="date" name="date" required>
+
+    <label for="workout-type">Workout Type</label>
+    <select id="workout-type" name="workout_type" required>
+      {% for workout_type in workout_types %}
+      <option value="{{ workout_type }}">{{ workout_type }}</option>
+      {% endfor %}
+    </select>
+
+    <label for="workout-name">Workout Name</label>
+    <textarea id="workout-name" name="workout_name" rows="1"></textarea>
+
+    <div id="ex-container-workout" class="ex-container">
+    <div class="ex-row">
+    	<input type="text" name="ex_block[]" placeholder="Block">
+      <input type="text" name="ex_name[]" placeholder="Exercise Name">
+      <input type="text" name="sets_reps[]" placeholder="Sets/Reps">
+      <input type="text" name="ex_notes[]" placeholder="Exercise Notes">
+    </div>
+  	</div>
+  <div class="btn-group">
+    <button type="button" onclick="addExRow('ex-container-workout')">+ Add Exercise </button>
+    <button type="button" class="btn-delete" onclick="deleteExRow('ex-container-workout')">Remove Exercise</button>
+  </div>
+
+     <div class="field-group">
+    	<label for="notes">Notes</label>
+    	<textarea id="notes" name="notes" rows="5"></textarea>
+     </div>
+
+	<button type="submit">Save Workout</button>
+</form>
 </div>
 
 <!-- ══ WARMUP FORM TAB ══════════════════════════════ -->
-<div id="warmup_form" class="tabcontent active">
+<div id="warmup_form" class="tabcontent">
 <form id="warmup-form" method="POST" action="/submit_warmup">
 	 <label for="date">Date</label>
     <input type="date" id="date" name="date" required>
@@ -52,128 +89,69 @@
 </form>
 </div>
 
-<!-- ══ ARM CARE FORM TAB ══════════════════════════════ -->
-<div id="armcare_form" class="tabcontent">
-<form id="armcare-form" method="POST" action="/submit_armcare">
-	 <label for="date">Date</label>
-    <input type="date" id="date" name="date" required>
-    
-    <label for="armcare-name">Armcare Name</label>
-    <textarea id="armcare-name" name="armcare_name" rows="1"></textarea>
-    
-    <div id="ex-container-armcare" class="ex-container">
-    <div class="ex-row">
-      <input type="text" name="ex_block[]" placeholder="Block">
-      <input type="text" name="ex_name[]" placeholder="Exercise Name">
-      <input type="text" name="sets_reps[]" placeholder="Sets/Reps">
-      <input type="text" name="ex_notes[]" placeholder="Exercise Notes">
+<!-- ══ THROWING DAY FORM TAB ══════════════════════════════ -->
+<!-- plyo and throwing drills post as two parallel sets of arrays; the backend files them into one
+     table under drill_type. Throw count is free text so a prescribed range like 5-10 survives. -->
+<div id="throwing_day_form" class="tabcontent">
+<form id="throwing-day-form" method="POST" action="/submit_throwing_day">
+	 <label for="throwing-date">Date</label>
+    <input type="date" id="throwing-date" name="date" required>
+
+    <label for="day-name">Throwing Day Name</label>
+    <textarea id="day-name" name="day_name" rows="1"></textarea>
+
+    <label for="session-type">Session Type</label>
+    <select id="session-type" name="session_type" required>
+      <option value="">Select Type</option>
+      {% for value, label in session_types %}
+      <option value="{{ value }}">{{ label }}</option>
+      {% endfor %}
+    </select>
+
+    <div class="form-section-title">Plyo Set</div>
+    <div id="drill-container-plyo" class="drill-container">
+    <div class="plyo-drill-row">
+      <input type="text" name="plyo_drill_name[]" placeholder="Drill Name">
+      <select name="plyo_ball_weight[]">
+        <option value="">Ball Weight</option>
+        {% for weight in ball_weights %}
+        <option value="{{ weight }}">{{ weight }}</option>
+        {% endfor %}
+      </select>
+      <input type="text" name="plyo_throw_count[]" placeholder="Throw Count (e.g. 5-10)">
+      <input type="text" name="plyo_drill_notes[]" placeholder="Drill Notes">
     </div>
   	</div>
   <div class="btn-group">
-    <button type="button" onclick="addExRow('ex-container-armcare')">+ Add Exercise </button>
-    <button type="button" class="btn-delete" onclick="deleteExRow('ex-container-armcare')">Remove Exercise</button>
+    <button type="button" onclick="addDrillRow('drill-container-plyo', 'plyo-drill-row', 'plyo')">+ Add Drill </button>
+    <button type="button" class="btn-delete" onclick="deleteDrillRow('drill-container-plyo', 'plyo-drill-row')">Remove Drill</button>
   </div>
 
-  <div class="field-group">
-    <label for="notes">Notes</label>
-    <textarea id="notes" name="notes" rows="5"></textarea>
-  </div>
-    
-	<button type="submit">Save Armcare Workout</button>
-</form>
-</div>
-
-<!-- ══ BACK ROUTINE FORM TAB ══════════════════════════════ -->
-<div id="back_form" class="tabcontent">
-<form id="back-form" method="POST" action="/submit_back">
-	 <label for="date">Date</label>
-    <input type="date" id="date" name="date" required>
-    
-    <label for="back-name">Back Routine Name</label>
-    <textarea id="back-name" name="back_name" rows="1"></textarea>
-    
-    <div id="ex-container-back" class="ex-container">
-    <div class="ex-row-back">
-      <input type="text" name="ex_block[]" placeholder="Block">
-      <input type="text" name="ex_name[]" placeholder="Exercise Name">
-      <input type="text" name="sets_reps[]" placeholder="Sets/Reps">
-      <input type="text" name="ex_notes[]" placeholder="Exercise Notes">
+    <div class="form-section-title">Throwing Drills</div>
+    <div id="drill-container-throwing" class="drill-container">
+    <div class="throwing-drill-row">
+      <input type="text" name="throwing_drill_name[]" placeholder="Drill Name">
+      <select name="throwing_ball_weight[]">
+        <option value="">Ball Weight</option>
+        {% for weight in ball_weights %}
+        <option value="{{ weight }}">{{ weight }}</option>
+        {% endfor %}
+      </select>
+      <input type="text" name="throwing_throw_count[]" placeholder="Throw Count (e.g. 5-10)">
+      <input type="text" name="throwing_drill_notes[]" placeholder="Drill Notes">
     </div>
   	</div>
   <div class="btn-group">
-    <button type="button" onclick="addExRow('ex-container-back', 'ex-row-back')">+ Add Exercise </button>
-    <button type="button" class="btn-delete" onclick="deleteExRow('ex-container-back', 'ex-row-back')">Remove Exercise</button>
+    <button type="button" onclick="addDrillRow('drill-container-throwing', 'throwing-drill-row', 'throwing')">+ Add Drill </button>
+    <button type="button" class="btn-delete" onclick="deleteDrillRow('drill-container-throwing', 'throwing-drill-row')">Remove Drill</button>
   </div>
 
-  <div class="field-group">
-    <label for="notes">Notes</label>
-    <textarea id="notes" name="notes" rows="5"></textarea>
-  </div>
-
-	<button type="submit">Save Back Workout</button>
-</form>
-</div>
-
-<!-- ══ LIFT INPUT FORM TAB ══════════════════════════════ -->
-<div id="lift_form" class="tabcontent">
-<form id="lift-form" method="POST" action="/submit_lift">
-	 <label for="date">Date</label>
-    <input type="date" id="date" name="date" required>
-    
-    <label for="lift-name">Lift Name</label>
-    <textarea id="lift-name" name="lift_name" rows="1"></textarea>
-    
-    <div id="ex-container-lift" class="ex-container">
-    <div class="ex-row">
-    	<input type="text" name="ex_block[]" placeholder="Block">
-      <input type="text" name="ex_name[]" placeholder="Exercise Name">
-      <input type="text" name="sets_reps[]" placeholder="Sets/Reps">
-      <input type="text" name="ex_notes[]" placeholder="Exercise Notes">
-    </div>
-  	</div>
-  <div class="btn-group">
-    <button type="button" onclick="addExRow('ex-container-lift')">+ Add Exercise </button>
-    <button type="button" class="btn-delete" onclick="deleteExRow('ex-container-lift')">Remove Exercise</button>
-  </div>
-    
      <div class="field-group">
-    	<label for="notes">Notes</label>
-    	<textarea id="notes" name="notes" rows="5"></textarea>
+    	<label for="throwing-notes">Day Breakdown / Notes</label>
+    	<textarea id="throwing-notes" name="notes" rows="6"></textarea>
      </div>
 
-	<button type="submit">Save Lift</button>
-</form>
-</div>
-
-<!-- ══ CONDITIONING INPUT FORM TAB ══════════════════════════════ -->
-<div id="conditioning_form" class="tabcontent">
-<form id="conditioning-form" method="POST" action="/submit_conditioning">
-	 <label for="date">Date</label>
-    <input type="date" id="date" name="date" required>
-    
-    <label for="conditioning-name">Conditioning Day Name</label>
-    <textarea id="conditioning-name" name="conditioning_name" rows="1"></textarea>
-    
-    <div id="ex-container-conditioning" class="ex-container">
-    <div class="ex-row">
-    	<input type="text" name="ex_block[]" placeholder="Block">
-      <input type="text" name="ex_name[]" placeholder="Exercise Name">
-      <input type="text" name="sets_reps[]" placeholder="Sets/Reps">
-      <input type="text" name="ex_notes[]" placeholder="Exercise Notes">
-    </div>
-  	</div>
-  	
-  <div class="btn-group">
-    <button type="button" onclick="addExRow('ex-container-conditioning')">+ Add Exercise </button>
-    <button type="button" class="btn-delete" onclick="deleteExRow('ex-container-conditioning')">Remove Exercise</button>
-  </div>
-  
-     <div class="field-group">
-    	<label for="notes">Notes</label>
-    	<textarea id="notes" name="notes" rows="5"></textarea>
-     </div>
-
-	<button type="submit">Save Conditioning Day</button>
+	<button type="submit">Save Throwing Day</button>
 </form>
 </div>
 

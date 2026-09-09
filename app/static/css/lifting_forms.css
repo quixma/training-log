@@ -256,8 +256,7 @@ header h1 span {
   margin-bottom: 10px;
 }
 
-.ex-row,
-.ex-row-back {
+.ex-row {
   display: grid;
   grid-template-columns: 56px 1fr 90px;
   gap: 0 10px;
@@ -268,18 +267,52 @@ header h1 span {
   transition: border-color var(--transition);
 }
 
-.ex-row input,
-.ex-row-back input {
+.ex-row input {
   margin-bottom: 0;
 }
 
-.ex-row input[name="ex_notes[]"],
-.ex-row-back input[name="ex_notes[]"] {
+.ex-row input[name="ex_notes[]"] {
   grid-column: 1 / -1;
 }
 
-.ex-row:hover,
-.ex-row-back:hover {
+.ex-row:hover {
+  border-color: rgba(232,56,59,0.3);
+}
+
+/* ── Throwing Day Drill Rows ────────────────── */
+.drill-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.plyo-drill-row,
+.throwing-drill-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 0 10px;
+  padding: 12px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--transition);
+}
+
+.plyo-drill-row input,
+.plyo-drill-row select,
+.throwing-drill-row input,
+.throwing-drill-row select {
+  margin-bottom: 0;
+}
+
+.plyo-drill-row input[name$="_drill_notes[]"],
+.throwing-drill-row input[name$="_drill_notes[]"] {
+  grid-column: 1 / -1;
+}
+
+.plyo-drill-row:hover,
+.throwing-drill-row:hover {
   border-color: rgba(232,56,59,0.3);
 }
 
@@ -364,6 +397,7 @@ header h1 span {
   .tabcontent { padding: 24px 12px; }
   .tabcontent form { padding: 28px 22px; }
   .warmup-grid { grid-template-columns: 1fr; }
-  .ex-row,
-  .ex-row-back { grid-template-columns: 44px 1fr 70px; gap: 0 8px; }
+  .ex-row { grid-template-columns: 44px 1fr 70px; gap: 0 8px; }
+  .plyo-drill-row,
+  .throwing-drill-row { grid-template-columns: 1fr; gap: 8px 0; }
 }

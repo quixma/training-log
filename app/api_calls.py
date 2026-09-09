@@ -1,6 +1,7 @@
 from app import app
 from app.input_validation import UpdateThrowingPlanModel, PlayerGoalsModel
-from app.models import get_db_connection, get_warmup_by_name, get_armcare_by_name, get_back_by_name, get_lift_by_name, get_conditioning_by_name
+from app.models import get_db_connection, get_warmup_by_name, get_workout_by_name, get_workout_names, get_latest_workout, WORKOUT_TYPES
+from app.models import get_throwing_day_by_name
 from pydantic import ValidationError
 from flask import jsonify, request, url_for, redirect, render_template
 import os
@@ -123,59 +124,111 @@ OUTING_PITCH_TYPE_COLORS = {
     "Knuckleball": "rgba(211, 211, 211, 1)",
 }
 
+#the two postgame report exports split the same outing different ways: one row per pitch type, or one
+#row per batter hand. Both carry a TOTAL row, so any table below can be shown under either grouping.
+OUTING_SPLIT_COLUMNS = {"pitch": "Pitch Type - Ungrouped", "hand": "Batter Hand"}
+
+#split values the export writes vs. what the report shows
+OUTING_SPLIT_LABELS = {"Lefty": "LHH", "Righty": "RHH"}
+
+#table key -> postgame report column, one map per table on the Table Results tab
+OUTING_MVMT_COLUMNS = {
+    "pitch_count": "P",
+    "velo": "Vel",
+    "max_velo": "MxVel",
+    "ivb": "IndVertBrk",
+    "hb": "HorzBrk",
+    "rel_z": "RelHeight",
+    "rel_x": "RelSide",
+    "ext": "Extension",
+}
+
+OUTING_STRIKES_COLUMNS = {
+    "zone_pct": "IZ%",
+    "two_k_zone_pct": "2K IZ%",
+    "heart_pct": "Heart%",
+}
+
+OUTING_MISS_COLUMNS = {
+    "csw_pct": "CSW%",
+    "whiff_pct": "Miss%",
+    "two_k_swstr_pct": "SwingingStrike% w/ 2K",
+    "z_whiff_pct": "IZ Ms%",
+    "o_whiff_pct": "OZMiss% - P",
+    "chase_pct": "Chase%",
+}
+
+OUTING_DAMAGE_COLUMNS = {
+    "woba": "wOBA",
+    "xwoba": "xWOBA",
+    "xwobacon": "xWOBAcon",
+    "babip": "BABIP",
+    "hard_hit_pct": "HardHit%",
+    "gb_pct": "Ground%",
+    "fb_pct": "Fly%",
+}
+
+#rate stats the export prints as .XXX. pandas only reads them as floats when the export happens to have
+#no dashes in the column, so reformat those back to match how the rest of the report shows them.
+OUTING_RATE_COLUMNS = {"wOBA", "xWOBA", "xWOBAcon", "BABIP"}
+
+#the summary table above the tabs; these columns only exist on the batter hand export
+OUTING_SUMMARY_COLUMNS = {
+    "fps_pct": "FPStk%",
+    "ahead_pct": "Ahead%",
+    "early_ahead_pct": "Early+Ahead%",
+    "two_k_so_pct": "2K K%",
+    "k_pct": "K%",
+    "bb_pct": "BB%",
+    "k_minus_bb_pct": "K%-BB% (Pit)",
+    "csw_pct": "CSW%",
+}
+
 def _read_outing_postgame_report(path):
-    #the export repeats its header line before each mini-table (TOTAL, then per-pitch-type) and
+    #the export repeats its header line before each mini-table (TOTAL, then the split rows) and
     #separates them with a blank line, so strip anything that isn't the first header or a data row
     with open(path) as f:
         lines = f.read().splitlines()
 
     header = lines[0]
     data_lines = [line for line in lines[1:] if line.strip() != '' and line != header]
-    df = pd.read_csv(io.StringIO(header + '\n' + '\n'.join(data_lines)))
+    return pd.read_csv(io.StringIO(header + '\n' + '\n'.join(data_lines)))
 
-    #drop TOTAL and any pitch type with zero pitches thrown; every table below is broken out per pitch type
-    pitch_type_rows = df.loc[(df['SplitBy'] != 'TOTAL') & (df['P'] > 0)]
+def _outing_table_row(row, label, columns):
+    #the export writes '-' for a metric it can't compute; keep those as-is so the table shows the dash,
+    #and unbox numpy scalars on the way out since jsonify can't serialize them
+    values = {"group": label}
+    for key, column in columns.items():
+        value = row[column]
+        if pd.isna(value):
+            value = '-'
+        elif column in OUTING_RATE_COLUMNS and pd.api.types.is_number(value):
+            value = f"{value:.3f}".lstrip('0')
+        values[key] = value.item() if hasattr(value, 'item') else value
+    return values
 
-    pitch_mvmt = [{
-        "pitch_type": row["Pitch Type - Ungrouped"],
-        "pitch_count": row["P"],
-        "velo": row["Vel"],
-        "max_velo": row["MxVel"],
-        "ivb": row["IndVertBrk"],
-        "hb": row["HorzBrk"],
-        "rel_z": row["RelHeight"],
-        "rel_x": row["RelSide"],
-        "ext": row["Extension"],
-    } for _, row in pitch_type_rows.iterrows()]
+def _outing_table(df, split, columns, include_total = True):
+    #one row per split value, led by an Overall row off the export's TOTAL row.
+    #splits with zero pitches thrown are dropped - the export lists every pitch type in the arsenal.
+    rows = []
 
-    strikes = [{
-        "pitch_type": row["Pitch Type - Ungrouped"],
-        "zone_pct": row["IZ%"],
-        "two_k_zone_pct": row["2K IZ%"],
-        "heart_pct": row["Heart%"],
-    } for _, row in pitch_type_rows.iterrows()]
+    total = df.loc[df['SplitBy'] == 'TOTAL']
+    if include_total and not total.empty:
+        rows.append(_outing_table_row(total.iloc[0], 'Overall', columns))
 
-    miss = [{
-        "pitch_type": row["Pitch Type - Ungrouped"],
-        "csw_pct": row["CSW%"],
-        "whiff_pct": row["Miss%"],
-        "z_whiff_pct": row["IZ Ms%"],
-        "o_whiff_pct": row["OZMiss% - P"],
-        "chase_pct": row["Chase%"],
-    } for _, row in pitch_type_rows.iterrows()]
+    pitches = pd.to_numeric(df['P'], errors = 'coerce').fillna(0)
+    split_rows = df.loc[(df['SplitBy'] != 'TOTAL') & (pitches > 0)]
+    for _, row in split_rows.iterrows():
+        split_value = row[OUTING_SPLIT_COLUMNS[split]]
+        rows.append(_outing_table_row(row, OUTING_SPLIT_LABELS.get(split_value, split_value), columns))
 
-    damage = [{
-        "pitch_type": row["Pitch Type - Ungrouped"],
-        "woba": row["wOBA"],
-        "xwoba": row["xWOBA"],
-        "xwobacon": row["xWOBAcon"],
-        "babip": row["BABIP"],
-        "hard_hit_pct": row["HardHit%"],
-        "gb_pct": row["Ground%"],
-        "fb_pct": row["Fly%"],
-    } for _, row in pitch_type_rows.iterrows()]
+    return rows
 
-    return pitch_mvmt, strikes, miss, damage
+def _outing_grouped_table(postgame_dfs, columns):
+    #same table under both groupings, so the page can toggle between them without another request.
+    #both keys are always present; a grouping whose export wasn't selected comes back empty.
+    return {split: _outing_table(postgame_dfs[split], split, columns) if split in postgame_dfs else []
+            for split in OUTING_SPLIT_COLUMNS}
 
 def _read_outing_pbp(path):
     df = pd.read_csv(path)
@@ -186,7 +239,7 @@ def _read_outing_pbp(path):
     df['pitch_type'] = df['pitchTypeFull'].fillna('Unknown')
 
     movement_df = df.dropna(subset=['HorzBrk', 'IndVertBrk'])
-    movement = [{"pitch_type": r.pitch_type, "hb": r.HorzBrk, "ivb": r.IndVertBrk} for r in movement_df.itertuples()]
+    movement = [{"pitch_type": r.pitch_type, "hb": r.HorzBrk, "ivb": r.IndVertBrk, "velo": r.Vel} for r in movement_df.itertuples()]
 
     #RelX/RelZ come from this file in inches; convert to feet to line up with the postgame report's release units
     release_df = df.dropna(subset=['RelX', 'RelZ'])
@@ -210,29 +263,36 @@ def _read_outing_pbp(path):
 @app.route('/api/outing_report_data', methods = ["POST"])
 def outing_report_data():
     data = request.get_json()
-    file1 = data.get('file1')
-    file2 = data.get('file2')
 
+    #the three exports are told apart by their header columns rather than by which slot they came from,
+    #so the dropdowns can be filled in any order
     files = {}
-    for filename in (file1, file2):
+    for filename in (data.get('file1'), data.get('file2'), data.get('file3')):
+        if not filename:
+            continue
         path = os.path.join(OUTING_REPORT_FOLDER, filename)
         header_cols = pd.read_csv(path, nrows=0).columns
-        if 'SplitBy' in header_cols:
-            files['postgame'] = path
-        elif 'playGuid' in header_cols:
+        if 'playGuid' in header_cols:
             files['pbp'] = path
+        elif OUTING_SPLIT_COLUMNS['pitch'] in header_cols:
+            files['pitch'] = path
+        elif OUTING_SPLIT_COLUMNS['hand'] in header_cols:
+            files['hand'] = path
 
-    if 'postgame' not in files or 'pbp' not in files:
-        return jsonify({"error": "Select one postgame report file and one pBp file."}), 400
+    if 'pbp' not in files or not ('pitch' in files or 'hand' in files):
+        return jsonify({"error": "Select the pBp file and at least one postgame report file."}), 400
 
-    pitch_mvmt, strikes, miss, damage = _read_outing_postgame_report(files['postgame'])
+    #whichever postgame exports were selected; tables for a missing one come back empty
+    postgame_dfs = {split: _read_outing_postgame_report(files[split]) for split in ('pitch', 'hand') if split in files}
+
     movement, release, velo, locations_rhh, locations_lhh = _read_outing_pbp(files['pbp'])
 
     return jsonify({
-        "pitch_mvmt": pitch_mvmt,
-        "strikes": strikes,
-        "miss": miss,
-        "damage": damage,
+        "summary": _outing_table(postgame_dfs['hand'], 'hand', OUTING_SUMMARY_COLUMNS) if 'hand' in postgame_dfs else [],
+        "pitch_mvmt": _outing_table(postgame_dfs['pitch'], 'pitch', OUTING_MVMT_COLUMNS, include_total = False) if 'pitch' in postgame_dfs else [],
+        "strikes": _outing_grouped_table(postgame_dfs, OUTING_STRIKES_COLUMNS),
+        "miss": _outing_grouped_table(postgame_dfs, OUTING_MISS_COLUMNS),
+        "damage": _outing_grouped_table(postgame_dfs, OUTING_DAMAGE_COLUMNS),
         "movement": movement,
         "release": release,
         "velo": velo,
@@ -306,6 +366,7 @@ def updateThrowingPlan():
         "throwing_sessions": data.get('throwing_sessions'),
         "throwing_notes": data.get('throwing_notes'),
         "pitching_notes": data.get('pitching_notes'),
+        "mental_notes": data.get('mental_notes'),
         "drill_notes": data.get('drill_notes')
         }
     try:
@@ -316,8 +377,8 @@ def updateThrowingPlan():
     
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE throwing_plan SET throwing_sessions = ?, throwing_notes = ?, pitching_notes = ?, drill_notes = ? WHERE id = ?",
-                   ( throwing_plan['throwing_sessions'], throwing_plan['throwing_notes'], throwing_plan['pitching_notes'], throwing_plan['drill_notes'], throwing_planID))
+    cursor.execute("UPDATE throwing_plan SET throwing_sessions = ?, throwing_notes = ?, pitching_notes = ?, mental_notes = ?, drill_notes = ? WHERE id = ?",
+                   ( throwing_plan['throwing_sessions'], throwing_plan['throwing_notes'], throwing_plan['pitching_notes'], throwing_plan['mental_notes'], throwing_plan['drill_notes'], throwing_planID))
     conn.commit()
     
     if cursor.rowcount == 0:
@@ -454,22 +515,43 @@ def getSelectedWorkout():
     table = data.get("type")
     workout = data.get("value")
     
+    #warmups keep their own table and shape; every other type is a workout_type value
     if table == "warmup":
         result = get_warmup_by_name(workout)
-    elif table == "armcare":
-        result = get_armcare_by_name(workout)
-    elif table == "back":
-        result = get_back_by_name(workout)
-    elif table == "lift":
-        result = get_lift_by_name(workout)
-    elif table == "conditioning":
-        result = get_conditioning_by_name(workout)
+    elif table in WORKOUT_TYPES:
+        result = get_workout_by_name(table, workout)
     else:
         return jsonify({"error": "unknown workout type"}), 400
 
     if result is None:
         return jsonify({"error": "workout not found"}), 404
     return jsonify(result)
+
+@app.route("/api/getThrowingDay", methods = ["POST"])
+def getThrowingDay():
+    #the home dashboard's throwing days tab swaps days without a page load
+    data = request.get_json()
+    name = data.get("value")
+
+    result = get_throwing_day_by_name(name)
+    if result is None:
+        return jsonify({"error": "throwing day not found"}), 404
+    return jsonify(result)
+
+@app.route("/api/getWorkoutsByType", methods = ["POST"])
+def getWorkoutsByType():
+    #the dashboard's one workout tab switches type without a page load, so it needs that type's
+    #name list and its most recent workout together
+    data = request.get_json()
+    workout_type = data.get("type")
+
+    if workout_type not in WORKOUT_TYPES:
+        return jsonify({"error": "unknown workout type"}), 400
+
+    return jsonify({
+        "names": [row["workout_name"] for row in get_workout_names(workout_type)],
+        "workout": get_latest_workout(workout_type),
+    })
 
 @app.route("/api/addPlayerGoals", methods = ["POST"])
 def addPlayerGoals():
@@ -509,10 +591,8 @@ def getPlayerGoals():
 
     conn = get_db_connection()
     cursor = conn.cursor()
-    if plan_type:
-        result = cursor.execute("Select * from player_goals Where plan_type = ? and date = ? order by id desc limit 1", (plan_type, date)).fetchone()
-    else:
-        result = cursor.execute("Select * from player_goals Where date = ? order by id desc limit 1", (date,)).fetchone()
+    #each dashboard asks for its own kind of goals
+    result = cursor.execute("Select * from player_goals Where plan_type = ? and date = ? order by id desc limit 1", (plan_type, date)).fetchone()
     conn.close()
 
     if result is None:

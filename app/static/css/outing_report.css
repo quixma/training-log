@@ -262,6 +262,8 @@ header h1 {
 .report-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   padding: 18px 24px;
   border-bottom: 1px solid var(--border);
 }
@@ -324,6 +326,52 @@ header h1 {
   font-size: 0.9rem;
   letter-spacing: 0.04em;
   color: var(--text-primary);
+}
+
+/* Overall row: the outing total, set apart from the rows it's made up of */
+.report tbody tr.overall-row {
+  background: var(--accent-dim);
+  border-bottom: 2px solid var(--border-focus);
+}
+
+.report tbody tr.overall-row td:first-child {
+  color: var(--accent);
+}
+
+/* ── Grouping Toggle (Strikes / Miss / Damage) ── */
+.group-toggle {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+}
+
+.group-btn {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: color var(--transition), background var(--transition);
+  white-space: nowrap;
+}
+
+.group-btn:hover {
+  color: var(--text-primary);
+}
+
+.group-btn.active {
+  color: var(--text-primary);
+  background: var(--accent-dim);
+  box-shadow: inset 0 0 0 1px var(--border-focus);
 }
 
 /* ── Table Results Tab ──────────────────────── */
