@@ -93,6 +93,7 @@
           <table>
             <thead>
               <tr>
+                <th>Date</th>
                 <th>Lift</th>
                 <th>Spine / Core</th>
                 <th>Arm Care</th>
@@ -100,12 +101,13 @@
               </tr>
             </thead>
             <tbody id="workoutlog_body">
-              {% for lift, spine, arm, cond in rows %}
+              {% for row in rows %}
               <tr>
-                <td data-label="Lift">{{ lift['Date'] }} — {{ lift['Lift'] }}</td>
-                <td data-label="Spine / Core">{{ spine['Date'] }} — {{ spine['Spine/Core'] }}</td>
-                <td data-label="Arm Care">{{ arm['Date'] }} — {{ arm['Armcare'] }}</td>
-                <td data-label="Conditioning">{{ cond['Date'] }} — {{ cond['Conditioning'] }}</td>
+                <td data-label="Date">{{ row['Date'] }}</td>
+                <td data-label="Lift">{{ row['Lift'] }}</td>
+                <td data-label="Spine / Core">{{ row['Spine/Core'] }}</td>
+                <td data-label="Arm Care">{{ row['Armcare'] }}</td>
+                <td data-label="Conditioning">{{ row['Conditioning'] }}</td>
               </tr>
               {% endfor %}
             </tbody>
@@ -162,7 +164,8 @@
 <div id="warmup_workouts" class="tabcontent">
   
   <!-- Warmup options dropdown -->
-  <div class="section-card">
+  <!-- data-record-id tracks which warmup is on screen so the edit modal knows what it is editing -->
+  <div class="section-card" id="warmup-card" data-record-id="{{ warmups[0]["id"] if warmups else "" }}">
     <div class="section-card-header">
       <h3>Warmups</h3>
       <select id="retrieve-warmup">
@@ -171,6 +174,7 @@
         <option value='{{ data["name"] }}'>{{ data["name"] }}</option>
         {% endfor %}
       </select>
+      <button id="editWarmup" class="btn-action">Edit Warmup</button>
     </div>
 	</div>
 	<div class="table-scroll">
@@ -208,7 +212,7 @@
 <!-- ══ WORKOUTS TAB ══════════════════════════════ -->
 <!-- one tab for every workout type; the type select refetches that type's names and latest workout -->
 <div id="workouts" class="tabcontent">
-  <div class="section-card">
+  <div class="section-card" id="workout-card" data-record-id="{{ workout["id"] if workout["id"] else "" }}">
     <div class="section-card-header">
       <h3>Workouts</h3>
       <span class="workout-meta" id="workout-meta">{{ workout["workout_name"] }}</span>
@@ -223,6 +227,7 @@
         <option value='{{ data["workout_name"] }}'>{{ data["workout_name"] }}</option>
         {% endfor %}
       </select>
+      <button id="editWorkout" class="btn-action">Edit Workout</button>
     </div>
     <!-- session-level notes; hidden when the workout has none -->
     <div class="workout-notes{% if not workout["notes"] %} hidden{% endif %}" id="workout-notes">
@@ -284,5 +289,109 @@
   </div>
 </div>
 
+<!-- ── Edit Workout Modal ───────────────────── -->
+<!-- edits the workout the Workouts tab is showing, exercise rows included -->
+<div id="editWorkout-modal" class="modal">
+  <div class="modal-inner">
+    <div class="modal-header">
+      <h2>Edit Workout</h2>
+      <button class="modal-close" data-modal="editWorkout-modal">&#x2715;</button>
+    </div>
+    <div class="modal-content">
+      <div class="field-group">
+        <label for="edit-workout-date">Date</label>
+        <input type="date" id="edit-workout-date">
+      </div>
+      <div class="field-group">
+        <label for="edit-workout-type">Workout Type</label>
+        <select id="edit-workout-type">
+          {% for workout_type in workout_types %}
+          <option value="{{ workout_type }}">{{ workout_type }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field-group">
+        <label for="edit-workout-name">Workout Name</label>
+        <textarea id="edit-workout-name" rows="1"></textarea>
+      </div>
+      <div class="field-group">
+        <label>Exercises</label>
+        <div id="edit-ex-rows" class="modal-rows"></div>
+      </div>
+      <div class="modal-btn-group">
+        <button type="button" id="addExRow">+ Add Exercise</button>
+        <button type="button" class="btn-remove-row" id="removeExRow">Remove Exercise</button>
+      </div>
+      <div class="field-group">
+        <label for="edit-workout-notes">Notes</label>
+        <textarea id="edit-workout-notes" rows="5"></textarea>
+      </div>
+      <button id="saveWorkout" class="btn-save">Save Workout</button>
+      <button id="deleteWorkout" class="btn-danger">Delete Workout</button>
+    </div>
+  </div>
+</div>
+
+<!-- one exercise row, cloned per exercise when the modal opens -->
+<template id="ex-row-template">
+  <div class="modal-row">
+    <input type="text" class="row-ex-block" placeholder="Block">
+    <input type="text" class="row-ex-name" placeholder="Exercise Name">
+    <input type="text" class="row-sets-reps" placeholder="Sets/Reps">
+    <input type="text" class="row-ex-notes row-notes" placeholder="Exercise Notes">
+  </div>
+</template>
+
+<!-- ── Edit Warmup Modal ────────────────────── -->
+<div id="editWarmup-modal" class="modal">
+  <div class="modal-inner">
+    <div class="modal-header">
+      <h2>Edit Warmup</h2>
+      <button class="modal-close" data-modal="editWarmup-modal">&#x2715;</button>
+    </div>
+    <div class="modal-content">
+      <div class="field-group">
+        <label for="edit-warmup-date">Date</label>
+        <input type="date" id="edit-warmup-date">
+      </div>
+      <div class="field-group">
+        <label for="edit-warmup-name">Warmup Name</label>
+        <textarea id="edit-warmup-name" rows="1"></textarea>
+      </div>
+      <div class="field-group">
+        <label for="edit-warmup-rollout">Rollout/Soft Tissue</label>
+        <textarea id="edit-warmup-rollout" rows="3"></textarea>
+      </div>
+      <div class="field-group">
+        <label for="edit-warmup-spine">Spine</label>
+        <textarea id="edit-warmup-spine" rows="3"></textarea>
+      </div>
+      <div class="field-group">
+        <label for="edit-warmup-hip">Hips/Lower Leg</label>
+        <textarea id="edit-warmup-hip" rows="3"></textarea>
+      </div>
+      <div class="field-group">
+        <label for="edit-warmup-shoulder">Shoulder</label>
+        <textarea id="edit-warmup-shoulder" rows="3"></textarea>
+      </div>
+      <div class="field-group">
+        <label for="edit-warmup-arm">Arm</label>
+        <textarea id="edit-warmup-arm" rows="3"></textarea>
+      </div>
+      <div class="field-group">
+        <label for="edit-warmup-dynamic">Dynamic/Misc</label>
+        <textarea id="edit-warmup-dynamic" rows="3"></textarea>
+      </div>
+      <div class="field-group">
+        <label for="edit-warmup-notes">Notes</label>
+        <textarea id="edit-warmup-notes" rows="4"></textarea>
+      </div>
+      <button id="saveWarmup" class="btn-save">Save Warmup</button>
+      <button id="deleteWarmup" class="btn-danger">Delete Warmup</button>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/record_edit.js') }}"></script>
 <script src="{{ url_for('static', filename='js/workout_dashboard.js') }}"></script>
 {% endblock %}

@@ -1,6 +1,7 @@
 import sqlite3
 import os
-from itertools import zip_longest
+import io
+import pandas as pd
 
 def get_db_connection():
     conn = sqlite3.connect('training_log.db')
@@ -171,6 +172,7 @@ def _format_throwing_day(cursor, day):
     notes = day['notes'] or ""
 
     return {
+        "id": day['id'],
         "day_name": day['day_name'],
         "date": day['date'],
         "session_type": _SESSION_TYPE_LABELS.get(day['session_type'], day['session_type']),
@@ -193,7 +195,7 @@ def get_latest_throwing_day():
     day = cursor.execute("select id, date, day_name, session_type, notes from throwing_days order by ID desc limit 1").fetchone()
     if day is None: #nothing logged yet, hand the template an empty card instead of crashing
         conn.close()
-        return {"day_name": None, "date": None, "session_type": None, "notes": "", "drills": []}
+        return {"id": None, "day_name": None, "date": None, "session_type": None, "notes": "", "drills": []}
 
     day_formatted = _format_throwing_day(cursor, day)
     conn.close()
@@ -375,46 +377,35 @@ def get_RatingsAvgs():
     avg_focus = cursor.execute("SELECT avg(focus_value) FROM (Select focus_value from workout_log WHERE date >= date(?, '-6 days') order by date desc)", (date[0],)).fetchone()
     
     conn.close()
-    return (avg_energy[0], avg_fatigue[0], avg_motivation[0], avg_focus[0])
+    #round for display; the averages come back as long floats
+    avgs = tuple(round(x[0], 1) if x[0] is not None else None
+                 for x in (avg_energy, avg_fatigue, avg_motivation, avg_focus))
+    return avgs
 
 def get_WorkoutsCompleted():
     conn = get_db_connection()
     cursor = conn.cursor()
-    
+
     date = cursor.execute('select date from workout_log order by date desc limit 1').fetchone()
-    lifts_completed = cursor.execute("Select date, workout_completed from workout_log WHERE date >= date(?, '-6 days') AND workout_completed IS NOT NULL order by date desc", (date[0],)).fetchall()
-    spine_completed = cursor.execute("Select date, spine_completed from workout_log WHERE date >= date(?, '-6 days') AND spine_completed IS NOT NULL order by date desc", (date[0],)).fetchall()
-    armcare_completed = cursor.execute("Select date, armcare_completed from workout_log WHERE date >= date(?, '-6 days') AND armcare_completed IS NOT NULL order by date desc", (date[0],)).fetchall()
-    conditioning_completed = cursor.execute("Select date, conditioning_completed from workout_log WHERE date >= date(?, '-6 days') AND conditioning_completed IS NOT NULL order by date desc", (date[0],)).fetchall()
+    #one row per date, with whatever was completed that day in its own column
+    completed = cursor.execute("""Select date, workout_completed, spine_completed, armcare_completed, conditioning_completed
+                                  from workout_log
+                                  WHERE date >= date(?, '-6 days')
+                                    AND (workout_completed IS NOT NULL OR spine_completed IS NOT NULL
+                                         OR armcare_completed IS NOT NULL OR conditioning_completed IS NOT NULL)
+                                  order by date desc""", (date[0],)).fetchall()
     conn.close()
-    
-    lifts = []
-    for x in lifts_completed:
-        lifts.append({
+
+    rows = []
+    for x in completed:
+        rows.append({
             "Date": x[0],
-            "Lift": x[1]
+            "Lift": x[1] or "",
+            "Spine/Core": x[2] or "",
+            "Armcare": x[3] or "",
+            "Conditioning": x[4] or ""
             })
-    spine = []
-    for x in spine_completed:
-        spine.append({
-            "Date": x[0],
-            "Spine/Core": x[1]
-            })
-    armcare = []
-    for x in armcare_completed:
-        armcare.append({
-            "Date": x[0],
-            "Armcare": x[1]
-            })
-    conditioning = []
-    for x in conditioning_completed:
-        conditioning.append({
-            "Date": x[0],
-            "Conditioning": x[1]
-            })
-    #pads the shortest one with empty dicts to make all match same length for displaying.
-    rows = list(zip_longest(lifts, spine, armcare, conditioning, fillvalue={'Date': '', 'Lift': '', 'Spine/Core': '', 'Armcare': '', 'Conditioning': ''}))
-    
+
     return rows
 
 def get_bodyNotes_dates():
@@ -457,7 +448,7 @@ def get_warmups():
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    warmups = cursor.execute("select name, rollout_ex, spine_ex, hip_ex, shoulder_ex, arm_ex, dynamic_ex, notes from warmups where name IS NOT NULL order by date DESC LIMIT 1").fetchall()
+    warmups = cursor.execute("select Id, name, rollout_ex, spine_ex, hip_ex, shoulder_ex, arm_ex, dynamic_ex, notes from warmups where name IS NOT NULL order by date DESC LIMIT 1").fetchall()
     conn.close()
     
     warmups_formatted = []
@@ -471,6 +462,7 @@ def get_warmups():
         notes = x['notes'] or ""
         
         warmups_formatted.append({
+            "id": x["Id"],
             "name": x["name"],
             "rollout_ex": r_ex.replace(".", ".<br>"),
             "spine_ex": sp_ex.replace(".", ".<br>"),
@@ -505,6 +497,7 @@ def _format_workout(cursor, workout):
     notes = workout['notes'] or ""
 
     return {
+        "id": workout['ID'],
         "workout_name": workout['workout_name'],
         "notes": notes.replace(".", ".<br>"),
         "exercises": exercises_formatted,
@@ -525,7 +518,7 @@ def get_latest_workout(workout_type):
     workout = cursor.execute("select ID, date, workout_name, notes from workouts where workout_type = ? order by ID desc limit 1", (workout_type,)).fetchone()
     if workout is None: #none of this type logged yet, hand the template an empty card instead of crashing
         conn.close()
-        return {"workout_name": None, "notes": "", "exercises": []}
+        return {"id": None, "workout_name": None, "notes": "", "exercises": []}
 
     workout_formatted = _format_workout(cursor, workout)
     conn.close()
@@ -549,7 +542,7 @@ def get_warmup_by_name(workout):
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    warmups = cursor.execute("select name, rollout_ex, spine_ex, hip_ex, shoulder_ex, arm_ex, dynamic_ex, notes from warmups where name = ?", (workout,)).fetchone()
+    warmups = cursor.execute("select Id, name, rollout_ex, spine_ex, hip_ex, shoulder_ex, arm_ex, dynamic_ex, notes from warmups where name = ? order by Id desc limit 1", (workout,)).fetchone()
     if warmups is None:
         conn.close()
         return None
@@ -564,6 +557,7 @@ def get_warmup_by_name(workout):
     notes = warmups['notes'] or ""
 
     warmup_formatted = {
+        "id": warmups["Id"],
         "name": warmups["name"],
         "rollout_ex": r_ex.replace(".", ".<br>"),
         "spine_ex": sp_ex.replace(".", ".<br>"),
@@ -575,3 +569,323 @@ def get_warmup_by_name(workout):
         }
 
     return warmup_formatted
+
+
+#── editing saved records ────────────────────────────────────────────────
+#the getters above line-break notes for display; these hand back the stored text
+#untouched so the edit modals round-trip what is actually in the database
+
+def _blank_nulls(row, columns):
+    return {column: row[column] or "" for column in columns}
+
+#the other direction, for values coming back from a form or modal: a field left empty
+#is stored as NULL rather than as an empty string
+def blank_to_none(values):
+    return {key: None if value == "" else value for key, value in values.items()}
+
+def get_workout_for_edit(workout_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    workout = cursor.execute("select ID, date, workout_type, workout_name, notes from workouts where ID = ?", (workout_id,)).fetchone()
+    if workout is None:
+        conn.close()
+        return None
+
+    exercises = cursor.execute("select ex_block, ex_name, sets_reps, ex_notes from workout_ex where session_id = ? order by ID", (workout_id,)).fetchall()
+    conn.close()
+
+    return {
+        "id": workout["ID"],
+        "date": workout["date"],
+        "workout_type": workout["workout_type"],
+        "workout_name": workout["workout_name"] or "",
+        "notes": workout["notes"] or "",
+        "exercises": [_blank_nulls(x, ("ex_block", "ex_name", "sets_reps", "ex_notes")) for x in exercises],
+        }
+
+def get_warmup_for_edit(warmup_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    warmup = cursor.execute("select Id, date, name, rollout_ex, spine_ex, hip_ex, shoulder_ex, arm_ex, dynamic_ex, notes from warmups where Id = ?", (warmup_id,)).fetchone()
+    conn.close()
+    if warmup is None:
+        return None
+
+    formatted = _blank_nulls(warmup, ("name", "rollout_ex", "spine_ex", "hip_ex", "shoulder_ex", "arm_ex", "dynamic_ex", "notes"))
+    formatted["id"] = warmup["Id"]
+    formatted["date"] = warmup["date"]
+    return formatted
+
+def get_throwing_day_for_edit(day_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    day = cursor.execute("select id, date, day_name, session_type, notes from throwing_days where id = ?", (day_id,)).fetchone()
+    if day is None:
+        conn.close()
+        return None
+
+    drills = cursor.execute("select drill_type, drill_name, ball_weight, throw_count, drill_notes from throwing_day_drills where session_id = ? order by ID", (day_id,)).fetchall()
+    conn.close()
+
+    #the modal edits the two blocks separately, the way the input form posts them
+    drills_by_type = {"plyo": [], "throwing": []}
+    for x in drills:
+        drills_by_type[x["drill_type"]].append(_blank_nulls(x, ("drill_name", "ball_weight", "throw_count", "drill_notes")))
+
+    return {
+        "id": day["id"],
+        "date": day["date"],
+        "day_name": day["day_name"] or "",
+        "session_type": day["session_type"] or "",
+        "notes": day["notes"] or "",
+        "plyo_drills": drills_by_type["plyo"],
+        "throwing_drills": drills_by_type["throwing"],
+        }
+
+def update_workout(workout_id, workout, exercises):
+    #the exercise rows are replaced wholesale so their stored order matches the modal's order
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("UPDATE workouts SET date = ?, workout_type = ?, workout_name = ?, notes = ? WHERE ID = ?",
+                   (workout["date"], workout["workout_type"], workout["workout_name"], workout["notes"], workout_id))
+    if cursor.rowcount == 0:
+        conn.close()
+        return False
+
+    cursor.execute("DELETE FROM workout_ex WHERE session_id = ?", (workout_id,))
+    for x in exercises:
+        cursor.execute("INSERT INTO workout_ex (session_id, ex_block, ex_name, sets_reps, ex_notes) VALUES (?,?,?,?,?)",
+                       (workout_id, x["ex_block"], x["ex_name"], x["sets_reps"], x["ex_notes"]))
+    conn.commit()
+    conn.close()
+    return True
+
+def update_warmup(warmup_id, warmup):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("UPDATE warmups SET date = ?, name = ?, rollout_ex = ?, spine_ex = ?, hip_ex = ?, shoulder_ex = ?, arm_ex = ?, dynamic_ex = ?, notes = ? WHERE Id = ?",
+                   (warmup["date"], warmup["name"], warmup["rollout_ex"], warmup["spine_ex"], warmup["hip_ex"],
+                    warmup["shoulder_ex"], warmup["arm_ex"], warmup["dynamic_ex"], warmup["notes"], warmup_id))
+    updated = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return updated
+
+def update_throwing_day(day_id, day, drills_by_type):
+    #same wholesale replacement as the workout exercises, one pass per drill block
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("UPDATE throwing_days SET date = ?, day_name = ?, session_type = ?, notes = ? WHERE id = ?",
+                   (day["date"], day["day_name"], day["session_type"], day["notes"], day_id))
+    if cursor.rowcount == 0:
+        conn.close()
+        return False
+
+    cursor.execute("DELETE FROM throwing_day_drills WHERE session_id = ?", (day_id,))
+    for drill_type in ('plyo', 'throwing'):
+        for x in drills_by_type[drill_type]:
+            cursor.execute("INSERT INTO throwing_day_drills (session_id, drill_type, drill_name, ball_weight, throw_count, drill_notes) VALUES (?,?,?,?,?,?)",
+                           (day_id, drill_type, x["drill_name"], x["ball_weight"], x["throw_count"], x["drill_notes"]))
+    conn.commit()
+    conn.close()
+    return True
+
+def _delete_record(table, id_column, record_id):
+    #foreign keys are off by default in sqlite, so turn them on for the child-row cascades
+    conn = get_db_connection()
+    conn.execute("PRAGMA foreign_keys = ON")
+    cursor = conn.cursor()
+
+    cursor.execute(f"DELETE FROM {table} WHERE {id_column} = ?", (record_id,))
+    deleted = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return deleted
+
+def delete_workout(workout_id):
+    return _delete_record("workouts", "ID", workout_id)
+
+def delete_warmup(warmup_id):
+    return _delete_record("warmups", "Id", warmup_id)
+
+def delete_throwing_day(day_id):
+    return _delete_record("throwing_days", "id", day_id)
+
+
+#── outing report data ───────────────────────────────────────────────────
+#the postgame CSV exports and the pitch-by-pitch file are read and shaped here;
+#/api/outing_report_data assembles its response out of these pieces
+
+OUTING_REPORT_FOLDER = "/home/quixma/Desktop/CS/training-log/outing_report_uploads" #has to change for pi version
+
+#pBp pitch type names -> chart color, shared across the movement/release/velo/zone charts
+OUTING_PITCH_TYPE_COLORS = {
+    "Four Seamer": "rgb(255, 0, 0)",
+    "Fastball": "rgb(255, 0, 0)",
+    "Two Seamer": "rgba(255, 140, 0, 1)",
+    "Sinker": "rgba(255, 165, 0, 1)",
+    "Cutter": "rgba(0, 0, 0, 1)",
+    "Changeup": "rgba(0, 255, 0, 1)",
+    "Splitter": "rgba(255, 192, 203, 1)",
+    "Slider": "rgba(255, 255, 0, 1)",
+    "Sweeper": "rgba(0, 0, 255, 1)",
+    "Curveball": "rgba(128, 0, 128, 1)",
+    "Knuckle Curve": "rgba(153, 50, 204, 1)",
+    "Knuckleball": "rgba(211, 211, 211, 1)",
+}
+
+#the two postgame report exports split the same outing different ways: one row per pitch type, or one
+#row per batter hand. Both carry a TOTAL row, so any table below can be shown under either grouping.
+OUTING_SPLIT_COLUMNS = {"pitch": "Pitch Type - Ungrouped", "hand": "Batter Hand"}
+
+#split values the export writes vs. what the report shows
+OUTING_SPLIT_LABELS = {"Lefty": "LHH", "Righty": "RHH"}
+
+#table key -> postgame report column, one map per table on the Table Results tab
+OUTING_MVMT_COLUMNS = {
+    "pitch_count": "P",
+    "velo": "Vel",
+    "max_velo": "MxVel",
+    "ivb": "IndVertBrk",
+    "hb": "HorzBrk",
+    "rel_z": "RelHeight",
+    "rel_x": "RelSide",
+    "ext": "Extension",
+}
+
+OUTING_STRIKES_COLUMNS = {
+    "zone_pct": "IZ%",
+    "two_k_zone_pct": "2K IZ%",
+    "heart_pct": "Heart%",
+}
+
+OUTING_MISS_COLUMNS = {
+    "csw_pct": "CSW%",
+    "whiff_pct": "Miss%",
+    "two_k_swstr_pct": "SwingingStrike% w/ 2K",
+    "z_whiff_pct": "IZ Ms%",
+    "o_whiff_pct": "OZMiss% - P",
+    "chase_pct": "Chase%",
+}
+
+OUTING_DAMAGE_COLUMNS = {
+    "woba": "wOBA",
+    "xwoba": "xWOBA",
+    "xwobacon": "xWOBAcon",
+    "babip": "BABIP",
+    "hard_hit_pct": "HardHit%",
+    "gb_pct": "Ground%",
+    "fb_pct": "Fly%",
+}
+
+#rate stats the export prints as .XXX. pandas only reads them as floats when the export happens to have
+#no dashes in the column, so reformat those back to match how the rest of the report shows them.
+OUTING_RATE_COLUMNS = {"wOBA", "xWOBA", "xWOBAcon", "BABIP"}
+
+#the summary table above the tabs; these columns only exist on the batter hand export
+OUTING_SUMMARY_COLUMNS = {
+    "fps_pct": "FPStk%",
+    "ahead_pct": "Ahead%",
+    "early_ahead_pct": "Early+Ahead%",
+    "two_k_so_pct": "2K K%",
+    "k_pct": "K%",
+    "bb_pct": "BB%",
+    "k_minus_bb_pct": "K%-BB% (Pit)",
+    "csw_pct": "CSW%",
+}
+
+def read_outing_postgame_report(path):
+    #the export repeats its header line before each mini-table (TOTAL, then the split rows) and
+    #separates them with a blank line, so strip anything that isn't the first header or a data row
+    with open(path) as f:
+        lines = f.read().splitlines()
+
+    header = lines[0]
+    data_lines = [line for line in lines[1:] if line.strip() != '' and line != header]
+    return pd.read_csv(io.StringIO(header + '\n' + '\n'.join(data_lines)))
+
+def _outing_table_row(row, label, columns):
+    #the export writes '-' for a metric it can't compute; keep those as-is so the table shows the dash,
+    #and unbox numpy scalars on the way out since jsonify can't serialize them
+    values = {"group": label}
+    for key, column in columns.items():
+        value = row[column]
+        if pd.isna(value):
+            value = '-'
+        elif column in OUTING_RATE_COLUMNS and pd.api.types.is_number(value):
+            value = f"{value:.3f}".lstrip('0')
+        values[key] = value.item() if hasattr(value, 'item') else value
+    return values
+
+def outing_table(df, split, columns, include_total = True):
+    #one row per split value, led by an Overall row off the export's TOTAL row.
+    #splits with zero pitches thrown are dropped - the export lists every pitch type in the arsenal.
+    rows = []
+
+    total = df.loc[df['SplitBy'] == 'TOTAL']
+    if include_total and not total.empty:
+        rows.append(_outing_table_row(total.iloc[0], 'Overall', columns))
+
+    pitches = pd.to_numeric(df['P'], errors = 'coerce').fillna(0)
+    split_rows = df.loc[(df['SplitBy'] != 'TOTAL') & (pitches > 0)]
+    for _, row in split_rows.iterrows():
+        split_value = row[OUTING_SPLIT_COLUMNS[split]]
+        rows.append(_outing_table_row(row, OUTING_SPLIT_LABELS.get(split_value, split_value), columns))
+
+    return rows
+
+def outing_grouped_table(postgame_dfs, columns):
+    #same table under both groupings, so the page can toggle between them without another request.
+    #both keys are always present; a grouping whose export wasn't selected comes back empty.
+    return {split: outing_table(postgame_dfs[split], split, columns) if split in postgame_dfs else []
+            for split in OUTING_SPLIT_COLUMNS}
+
+def read_outing_pbp(path):
+    df = pd.read_csv(path)
+
+    numeric_cols = ['Vel', 'IndVertBrk', 'HorzBrk', 'RelX', 'RelZ', 'PX', 'PZ']
+    for col in numeric_cols:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+    df['pitch_type'] = df['pitchTypeFull'].fillna('Unknown')
+
+    movement_df = df.dropna(subset=['HorzBrk', 'IndVertBrk'])
+    movement = [{"pitch_type": r.pitch_type, "hb": r.HorzBrk, "ivb": r.IndVertBrk, "velo": r.Vel} for r in movement_df.itertuples()]
+
+    #RelX/RelZ come from this file in inches; convert to feet to line up with the postgame report's release units
+    release_df = df.dropna(subset=['RelX', 'RelZ'])
+    release = [{"pitch_type": r.pitch_type, "rel_x": r.RelX / 12, "rel_z": r.RelZ / 12} for r in release_df.itertuples()]
+
+    velo_df = df.dropna(subset=['Vel']).reset_index(drop=True)
+    velo = [{"pitch_type": row.pitch_type, "pitch_num": i + 1, "velo": row.Vel} for i, row in enumerate(velo_df.itertuples())]
+
+    zone_df = df.dropna(subset=['PX', 'PZ'])
+    locations_rhh = []
+    locations_lhh = []
+    for r in zone_df.itertuples():
+        point = {"x": r.PX, "y": r.PZ, "pitch_type": r.pitch_type, "velo": r.Vel, "ivb": r.IndVertBrk, "hb": r.HorzBrk, "result": r.pitchResult}
+        if r.batterHand == 'L':
+            locations_lhh.append(point)
+        else:
+            locations_rhh.append(point)
+
+    return movement, release, velo, locations_rhh, locations_lhh
+
+
+#── chart data ───────────────────────────────────────────────────────────
+
+#metric -> table it lives on. Doubles as the allowlist that keeps a user-supplied string
+#from ever reaching the query as a column name.
+INSZN_CHART_METRICS = {
+    "body_weight": "throwing_sessions",
+    "total_throws": "throwing_sessions",
+    "acr": "throwing_sessions",
+    "avg_velo": "game_journal",
+    "max_velo": "game_journal",
+    "ip": "game_journal",
+}

@@ -24,6 +24,21 @@ var modalGoals = document.getElementById('editGoals-modal')
 var editGoals_Btn = document.getElementById('editGoals')
 var saveGoalsBtn = document.getElementById('saveGoals')
 
+//edit modal for the logged throwing day currently on screen. the card carries the day's
+//id in data-record-id, refreshed whenever the table swaps in a different day
+const throwingDayCard = document.getElementById('throwing-day-card')
+const editThrowingDayBtn = document.getElementById('editThrowingDay')
+const saveThrowingDayBtn = document.getElementById('saveThrowingDay')
+const deleteThrowingDayBtn = document.getElementById('deleteThrowingDay')
+
+//pairs each drill row field with its key in the throwing day payload
+const DRILL_FIELDS = {
+    '.row-drill-name': 'drill_name',
+    '.row-ball-weight': 'ball_weight',
+    '.row-throw-count': 'throw_count',
+    '.row-drill-notes': 'drill_notes',
+}
+
 //throwing plan and notes labels
 const throwingPlanSelect = document.getElementById('retrieve-throwing-plan');
 const throwingNoteSelect = document.getElementById('retrieve-throwing-notes');
@@ -67,6 +82,7 @@ GetThrowingNotesByDay();
 GetGameNotes();
 GetPlayerGoals();
 getData(); //chart api data
+syncEditButton(editThrowingDayBtn, throwingDayCard);
 
 
 //tab control on home screen
@@ -182,6 +198,51 @@ saveGoalsBtn.onclick = function () {
             console.error('Save failed:', error);
             alert('Save failed. See console.');
         });
+}
+
+//── edit the logged throwing day on screen ───────────────────────────────
+editThrowingDayBtn.onclick = async function () {
+    const record = await fetchRecordForEdit('throwing_day', throwingDayCard.dataset.recordId);
+    if (!record) {
+        return;
+    }
+
+    document.getElementById("edit-day-date").value = record.date;
+    document.getElementById("edit-day-name").value = record.day_name;
+    document.getElementById("edit-day-session-type").value = record.session_type;
+    document.getElementById("edit-day-notes").value = record.notes;
+    fillModalRows('edit-plyo-rows', 'drill-row-template', record.plyo_drills, DRILL_FIELDS);
+    fillModalRows('edit-throwing-rows', 'drill-row-template', record.throwing_drills, DRILL_FIELDS);
+
+    openModal('editThrowingDay-modal');
+}
+
+document.getElementById('addPlyoRow').onclick = () => addModalRow('edit-plyo-rows', 'drill-row-template');
+document.getElementById('removePlyoRow').onclick = () => removeModalRow('edit-plyo-rows');
+document.getElementById('addThrowingRow').onclick = () => addModalRow('edit-throwing-rows', 'drill-row-template');
+document.getElementById('removeThrowingRow').onclick = () => removeModalRow('edit-throwing-rows');
+
+saveThrowingDayBtn.onclick = function () {
+    const updatedDay = {
+        id: Number(throwingDayCard.dataset.recordId),
+        date: document.getElementById("edit-day-date").value,
+        day_name: document.getElementById("edit-day-name").value,
+        session_type: document.getElementById("edit-day-session-type").value,
+        notes: document.getElementById("edit-day-notes").value,
+        plyo_drills: readModalRows('edit-plyo-rows', DRILL_FIELDS),
+        throwing_drills: readModalRows('edit-throwing-rows', DRILL_FIELDS)
+    }
+
+    submitRecordChange('/api/updateThrowingDay', updatedDay, 'Update failed.');
+}
+
+deleteThrowingDayBtn.onclick = function () {
+    if (!confirm("Delete this throwing day and its drills? This cannot be undone.")) {
+        return;
+    }
+
+    submitRecordChange('/api/deleteRecord',
+        { record_type: 'throwing_day', id: Number(throwingDayCard.dataset.recordId) }, 'Delete failed.');
 }
 
 async function GetPlayerGoals() {
@@ -522,6 +583,10 @@ async function GetThrowingDay() {
 function UpdateThrowingDayTable(data) {
     const tbody = document.getElementById('throwing_day_body');
     const metaSpan = document.getElementById('throwing-day-meta');
+
+    //the edit modal acts on whatever is on screen, so the card's id moves with the table
+    throwingDayCard.dataset.recordId = data.id || "";
+    syncEditButton(editThrowingDayBtn, throwingDayCard);
     const notesPanel = document.getElementById('throwing-day-notes');
     const notesText = document.getElementById('throwing-day-notes-text');
 

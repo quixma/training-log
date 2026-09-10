@@ -61,3 +61,44 @@ class PlayerGoalsModel(BaseModel):
     gym: Optional[str]
     back: Optional[str]
     nutrition: Optional[str]
+
+class WorkoutExerciseEntry(BaseModel):
+    ex_block: Optional[str]
+    ex_name: Optional[str]
+    sets_reps: Optional[str]
+    ex_notes: Optional[str]
+
+class UpdateWorkoutModel(BaseModel):
+    id: int
+    date: date
+    workout_type: Literal['Lift', 'Armcare', 'Back/Core', 'Individual Workout', 'Mobility', 'Conditioning']
+    workout_name: Optional[str]
+    notes: Optional[str]
+    exercises: list[WorkoutExerciseEntry]
+
+class UpdateWarmupModel(BaseModel):
+    id: int
+    date: date
+    name: Optional[str]
+    rollout_ex: Optional[str]
+    spine_ex: Optional[str]
+    hip_ex: Optional[str]
+    shoulder_ex: Optional[str]
+    arm_ex: Optional[str]
+    dynamic_ex: Optional[str]
+    notes: Optional[str]
+
+class ThrowingDayDrillEntry(BaseModel):
+    drill_name: Optional[str]
+    ball_weight: Optional[str]
+    throw_count: Optional[str]
+    drill_notes: Optional[str]
+
+class UpdateThrowingDayModel(BaseModel):
+    id: int
+    date: date
+    day_name: Optional[str]
+    session_type: Literal["recovery", "recovery+", "game_prep", "hybrid_a", "hybrid_b_pitching", "hybrid_b_delivery", "extension_day", "mound_blend", "plyo_velo", "pitch_design", "command_training", "bullpen", "live_abs"]
+    notes: Optional[str]
+    plyo_drills: list[ThrowingDayDrillEntry]
+    throwing_drills: list[ThrowingDayDrillEntry]

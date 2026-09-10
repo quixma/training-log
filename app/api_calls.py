@@ -1,11 +1,16 @@
 from app import app
-from app.input_validation import UpdateThrowingPlanModel, PlayerGoalsModel
+from app.input_validation import UpdateThrowingPlanModel, PlayerGoalsModel, UpdateWorkoutModel, UpdateWarmupModel, UpdateThrowingDayModel
 from app.models import get_db_connection, get_warmup_by_name, get_workout_by_name, get_workout_names, get_latest_workout, WORKOUT_TYPES
 from app.models import get_throwing_day_by_name, get_bodyNotes
+from app.models import get_workout_for_edit, get_warmup_for_edit, get_throwing_day_for_edit
+from app.models import update_workout, update_warmup, update_throwing_day
+from app.models import delete_workout, delete_warmup, delete_throwing_day, blank_to_none
+from app.models import OUTING_REPORT_FOLDER, OUTING_SPLIT_COLUMNS, OUTING_MVMT_COLUMNS, OUTING_STRIKES_COLUMNS
+from app.models import OUTING_MISS_COLUMNS, OUTING_DAMAGE_COLUMNS, OUTING_SUMMARY_COLUMNS, INSZN_CHART_METRICS
+from app.models import read_outing_postgame_report, outing_table, outing_grouped_table, read_outing_pbp
 from pydantic import ValidationError
 from flask import jsonify, request, url_for, redirect, render_template
 import os
-import io
 import pandas as pd
 import math
 import numpy as np
@@ -105,161 +110,6 @@ def report_data():
         }
     
     return jsonify(allData)
-
-OUTING_REPORT_FOLDER = "/home/quixma/Desktop/CS/training-log/outing_report_uploads" #has to change for pi version
-
-#pBp pitch type names -> chart color, shared across the movement/release/velo/zone charts
-OUTING_PITCH_TYPE_COLORS = {
-    "Four Seamer": "rgb(255, 0, 0)",
-    "Fastball": "rgb(255, 0, 0)",
-    "Two Seamer": "rgba(255, 140, 0, 1)",
-    "Sinker": "rgba(255, 165, 0, 1)",
-    "Cutter": "rgba(0, 0, 0, 1)",
-    "Changeup": "rgba(0, 255, 0, 1)",
-    "Splitter": "rgba(255, 192, 203, 1)",
-    "Slider": "rgba(255, 255, 0, 1)",
-    "Sweeper": "rgba(0, 0, 255, 1)",
-    "Curveball": "rgba(128, 0, 128, 1)",
-    "Knuckle Curve": "rgba(153, 50, 204, 1)",
-    "Knuckleball": "rgba(211, 211, 211, 1)",
-}
-
-#the two postgame report exports split the same outing different ways: one row per pitch type, or one
-#row per batter hand. Both carry a TOTAL row, so any table below can be shown under either grouping.
-OUTING_SPLIT_COLUMNS = {"pitch": "Pitch Type - Ungrouped", "hand": "Batter Hand"}
-
-#split values the export writes vs. what the report shows
-OUTING_SPLIT_LABELS = {"Lefty": "LHH", "Righty": "RHH"}
-
-#table key -> postgame report column, one map per table on the Table Results tab
-OUTING_MVMT_COLUMNS = {
-    "pitch_count": "P",
-    "velo": "Vel",
-    "max_velo": "MxVel",
-    "ivb": "IndVertBrk",
-    "hb": "HorzBrk",
-    "rel_z": "RelHeight",
-    "rel_x": "RelSide",
-    "ext": "Extension",
-}
-
-OUTING_STRIKES_COLUMNS = {
-    "zone_pct": "IZ%",
-    "two_k_zone_pct": "2K IZ%",
-    "heart_pct": "Heart%",
-}
-
-OUTING_MISS_COLUMNS = {
-    "csw_pct": "CSW%",
-    "whiff_pct": "Miss%",
-    "two_k_swstr_pct": "SwingingStrike% w/ 2K",
-    "z_whiff_pct": "IZ Ms%",
-    "o_whiff_pct": "OZMiss% - P",
-    "chase_pct": "Chase%",
-}
-
-OUTING_DAMAGE_COLUMNS = {
-    "woba": "wOBA",
-    "xwoba": "xWOBA",
-    "xwobacon": "xWOBAcon",
-    "babip": "BABIP",
-    "hard_hit_pct": "HardHit%",
-    "gb_pct": "Ground%",
-    "fb_pct": "Fly%",
-}
-
-#rate stats the export prints as .XXX. pandas only reads them as floats when the export happens to have
-#no dashes in the column, so reformat those back to match how the rest of the report shows them.
-OUTING_RATE_COLUMNS = {"wOBA", "xWOBA", "xWOBAcon", "BABIP"}
-
-#the summary table above the tabs; these columns only exist on the batter hand export
-OUTING_SUMMARY_COLUMNS = {
-    "fps_pct": "FPStk%",
-    "ahead_pct": "Ahead%",
-    "early_ahead_pct": "Early+Ahead%",
-    "two_k_so_pct": "2K K%",
-    "k_pct": "K%",
-    "bb_pct": "BB%",
-    "k_minus_bb_pct": "K%-BB% (Pit)",
-    "csw_pct": "CSW%",
-}
-
-def _read_outing_postgame_report(path):
-    #the export repeats its header line before each mini-table (TOTAL, then the split rows) and
-    #separates them with a blank line, so strip anything that isn't the first header or a data row
-    with open(path) as f:
-        lines = f.read().splitlines()
-
-    header = lines[0]
-    data_lines = [line for line in lines[1:] if line.strip() != '' and line != header]
-    return pd.read_csv(io.StringIO(header + '\n' + '\n'.join(data_lines)))
-
-def _outing_table_row(row, label, columns):
-    #the export writes '-' for a metric it can't compute; keep those as-is so the table shows the dash,
-    #and unbox numpy scalars on the way out since jsonify can't serialize them
-    values = {"group": label}
-    for key, column in columns.items():
-        value = row[column]
-        if pd.isna(value):
-            value = '-'
-        elif column in OUTING_RATE_COLUMNS and pd.api.types.is_number(value):
-            value = f"{value:.3f}".lstrip('0')
-        values[key] = value.item() if hasattr(value, 'item') else value
-    return values
-
-def _outing_table(df, split, columns, include_total = True):
-    #one row per split value, led by an Overall row off the export's TOTAL row.
-    #splits with zero pitches thrown are dropped - the export lists every pitch type in the arsenal.
-    rows = []
-
-    total = df.loc[df['SplitBy'] == 'TOTAL']
-    if include_total and not total.empty:
-        rows.append(_outing_table_row(total.iloc[0], 'Overall', columns))
-
-    pitches = pd.to_numeric(df['P'], errors = 'coerce').fillna(0)
-    split_rows = df.loc[(df['SplitBy'] != 'TOTAL') & (pitches > 0)]
-    for _, row in split_rows.iterrows():
-        split_value = row[OUTING_SPLIT_COLUMNS[split]]
-        rows.append(_outing_table_row(row, OUTING_SPLIT_LABELS.get(split_value, split_value), columns))
-
-    return rows
-
-def _outing_grouped_table(postgame_dfs, columns):
-    #same table under both groupings, so the page can toggle between them without another request.
-    #both keys are always present; a grouping whose export wasn't selected comes back empty.
-    return {split: _outing_table(postgame_dfs[split], split, columns) if split in postgame_dfs else []
-            for split in OUTING_SPLIT_COLUMNS}
-
-def _read_outing_pbp(path):
-    df = pd.read_csv(path)
-
-    numeric_cols = ['Vel', 'IndVertBrk', 'HorzBrk', 'RelX', 'RelZ', 'PX', 'PZ']
-    for col in numeric_cols:
-        df[col] = pd.to_numeric(df[col], errors='coerce')
-    df['pitch_type'] = df['pitchTypeFull'].fillna('Unknown')
-
-    movement_df = df.dropna(subset=['HorzBrk', 'IndVertBrk'])
-    movement = [{"pitch_type": r.pitch_type, "hb": r.HorzBrk, "ivb": r.IndVertBrk, "velo": r.Vel} for r in movement_df.itertuples()]
-
-    #RelX/RelZ come from this file in inches; convert to feet to line up with the postgame report's release units
-    release_df = df.dropna(subset=['RelX', 'RelZ'])
-    release = [{"pitch_type": r.pitch_type, "rel_x": r.RelX / 12, "rel_z": r.RelZ / 12} for r in release_df.itertuples()]
-
-    velo_df = df.dropna(subset=['Vel']).reset_index(drop=True)
-    velo = [{"pitch_type": row.pitch_type, "pitch_num": i + 1, "velo": row.Vel} for i, row in enumerate(velo_df.itertuples())]
-
-    zone_df = df.dropna(subset=['PX', 'PZ'])
-    locations_rhh = []
-    locations_lhh = []
-    for r in zone_df.itertuples():
-        point = {"x": r.PX, "y": r.PZ, "pitch_type": r.pitch_type, "velo": r.Vel, "ivb": r.IndVertBrk, "hb": r.HorzBrk, "result": r.pitchResult}
-        if r.batterHand == 'L':
-            locations_lhh.append(point)
-        else:
-            locations_rhh.append(point)
-
-    return movement, release, velo, locations_rhh, locations_lhh
-
 @app.route('/api/outing_report_data', methods = ["POST"])
 def outing_report_data():
     data = request.get_json()
@@ -283,34 +133,22 @@ def outing_report_data():
         return jsonify({"error": "Select the pBp file and at least one postgame report file."}), 400
 
     #whichever postgame exports were selected; tables for a missing one come back empty
-    postgame_dfs = {split: _read_outing_postgame_report(files[split]) for split in ('pitch', 'hand') if split in files}
+    postgame_dfs = {split: read_outing_postgame_report(files[split]) for split in ('pitch', 'hand') if split in files}
 
-    movement, release, velo, locations_rhh, locations_lhh = _read_outing_pbp(files['pbp'])
+    movement, release, velo, locations_rhh, locations_lhh = read_outing_pbp(files['pbp'])
 
     return jsonify({
-        "summary": _outing_table(postgame_dfs['hand'], 'hand', OUTING_SUMMARY_COLUMNS) if 'hand' in postgame_dfs else [],
-        "pitch_mvmt": _outing_table(postgame_dfs['pitch'], 'pitch', OUTING_MVMT_COLUMNS, include_total = False) if 'pitch' in postgame_dfs else [],
-        "strikes": _outing_grouped_table(postgame_dfs, OUTING_STRIKES_COLUMNS),
-        "miss": _outing_grouped_table(postgame_dfs, OUTING_MISS_COLUMNS),
-        "damage": _outing_grouped_table(postgame_dfs, OUTING_DAMAGE_COLUMNS),
+        "summary": outing_table(postgame_dfs['hand'], 'hand', OUTING_SUMMARY_COLUMNS) if 'hand' in postgame_dfs else [],
+        "pitch_mvmt": outing_table(postgame_dfs['pitch'], 'pitch', OUTING_MVMT_COLUMNS, include_total = False) if 'pitch' in postgame_dfs else [],
+        "strikes": outing_grouped_table(postgame_dfs, OUTING_STRIKES_COLUMNS),
+        "miss": outing_grouped_table(postgame_dfs, OUTING_MISS_COLUMNS),
+        "damage": outing_grouped_table(postgame_dfs, OUTING_DAMAGE_COLUMNS),
         "movement": movement,
         "release": release,
         "velo": velo,
         "locations_rhh": locations_rhh,
         "locations_lhh": locations_lhh,
     })
-
-#metric -> table it lives on. Doubles as the allowlist that keeps a user-supplied string
-#from ever reaching the query as a column name.
-INSZN_CHART_METRICS = {
-    "body_weight": "throwing_sessions",
-    "total_throws": "throwing_sessions",
-    "acr": "throwing_sessions",
-    "avg_velo": "game_journal",
-    "max_velo": "game_journal",
-    "ip": "game_journal",
-}
-
 @app.route('/api/inszn_chart_data', methods = ["POST"])
 def inszn_chart_data():
     data = request.get_json()
@@ -612,3 +450,127 @@ def getPlayerGoals():
 
     return jsonify(dict(result))
 
+
+
+#── editing saved workouts, warmups and throwing days ────────────────────
+#the view tabs show one record at a time and carry its id, so the edit modals
+#fetch the stored text by that id, save it back, or drop the record entirely.
+#record_type names which of the three the request is about
+
+@app.route("/api/getRecordForEdit", methods = ["POST"])
+def getRecordForEdit():
+    data = request.get_json()
+    record_type = data.get("record_type")
+    record_id = data.get("id")
+
+    if not record_id:
+        return jsonify({"error": "record id is required"}), 400
+
+    if record_type == "workout":
+        result = get_workout_for_edit(record_id)
+    elif record_type == "warmup":
+        result = get_warmup_for_edit(record_id)
+    elif record_type == "throwing_day":
+        result = get_throwing_day_for_edit(record_id)
+    else:
+        return jsonify({"error": "unknown record type"}), 400
+
+    if result is None:
+        return jsonify({"error": "record not found"}), 404
+    return jsonify(result)
+@app.route("/api/updateWorkout", methods = ["POST"])
+def updateWorkout():
+    data = request.get_json()
+    workout = {
+        "id": data.get("id"),
+        "date": data.get("date"),
+        "workout_type": data.get("workout_type"),
+        "workout_name": data.get("workout_name"),
+        "notes": data.get("notes"),
+        "exercises": data.get("exercises") or [],
+        }
+    try:
+        UpdateWorkoutModel(**workout)
+    except ValidationError as e:
+        return jsonify(e.errors()), 400
+
+    #skip rows the user emptied out rather than removed
+    exercises = [blank_to_none(x) for x in workout["exercises"] if any(x.values())]
+    if not update_workout(workout["id"], blank_to_none({key: workout[key] for key in ("date", "workout_type", "workout_name", "notes")}), exercises):
+        return jsonify({"error": "No row updated"}), 404
+
+    return jsonify({"status": "update complete"}), 200
+
+@app.route("/api/updateWarmup", methods = ["POST"])
+def updateWarmup():
+    data = request.get_json()
+    warmup = {
+        "id": data.get("id"),
+        "date": data.get("date"),
+        "name": data.get("name"),
+        "rollout_ex": data.get("rollout_ex"),
+        "spine_ex": data.get("spine_ex"),
+        "hip_ex": data.get("hip_ex"),
+        "shoulder_ex": data.get("shoulder_ex"),
+        "arm_ex": data.get("arm_ex"),
+        "dynamic_ex": data.get("dynamic_ex"),
+        "notes": data.get("notes"),
+        }
+    try:
+        UpdateWarmupModel(**warmup)
+    except ValidationError as e:
+        return jsonify(e.errors()), 400
+
+    fields = blank_to_none({key: value for key, value in warmup.items() if key != "id"})
+    if not update_warmup(warmup["id"], fields):
+        return jsonify({"error": "No row updated"}), 404
+
+    return jsonify({"status": "update complete"}), 200
+
+@app.route("/api/updateThrowingDay", methods = ["POST"])
+def updateThrowingDay():
+    data = request.get_json()
+    day = {
+        "id": data.get("id"),
+        "date": data.get("date"),
+        "day_name": data.get("day_name"),
+        "session_type": data.get("session_type"),
+        "notes": data.get("notes"),
+        "plyo_drills": data.get("plyo_drills") or [],
+        "throwing_drills": data.get("throwing_drills") or [],
+        }
+    try:
+        UpdateThrowingDayModel(**day)
+    except ValidationError as e:
+        return jsonify(e.errors()), 400
+
+    drills_by_type = { #skip rows the user emptied out rather than removed
+        "plyo": [blank_to_none(x) for x in day["plyo_drills"] if any(x.values())],
+        "throwing": [blank_to_none(x) for x in day["throwing_drills"] if any(x.values())],
+        }
+    if not update_throwing_day(day["id"], blank_to_none({key: day[key] for key in ("date", "day_name", "session_type", "notes")}), drills_by_type):
+        return jsonify({"error": "No row updated"}), 404
+
+    return jsonify({"status": "update complete"}), 200
+
+@app.route("/api/deleteRecord", methods = ["POST"])
+def deleteRecord():
+    data = request.get_json()
+    record_type = data.get("record_type")
+    record_id = data.get("id")
+
+    if not record_id:
+        return jsonify({"error": "record id is required"}), 400
+
+    if record_type == "workout":
+        deleted = delete_workout(record_id)
+    elif record_type == "warmup":
+        deleted = delete_warmup(record_id)
+    elif record_type == "throwing_day":
+        deleted = delete_throwing_day(record_id)
+    else:
+        return jsonify({"error": "unknown record type"}), 400
+
+    if not deleted:
+        return jsonify({"error": "No row deleted"}), 404
+    return jsonify({"status": "delete complete"}), 200

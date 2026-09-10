@@ -46,7 +46,8 @@ def inszn_home():
                            peak_velo = peak_velo, avg_readiness = avg_readiness, acr = acr, throws_breakdown = throws_breakdown,
                            prev_throw_day = prev_throw_day, days_last_game = days_last_game, throws4wk = throws4wk, workingthrows4wk = workingthrows4wk, avg_velos = avg_velos,
                            game_notes = game_notes, game_dates = game_dates, player_goals = player_goals, player_goals_dates = player_goals_dates,
-                           throwing_day_names = throwing_day_names, throwing_day = throwing_day)
+                           throwing_day_names = throwing_day_names, throwing_day = throwing_day,
+                           session_types = THROWING_SESSION_TYPES, ball_weights = THROWING_BALL_WEIGHTS)
 
 @app.route('/inszn_throwing_form', methods=["GET", "POST"])
 def inszn_throwing_form():

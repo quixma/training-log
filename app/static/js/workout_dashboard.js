@@ -12,6 +12,25 @@ var modalGoals = document.getElementById('editGoals-modal')
 var editGoals_Btn = document.getElementById('editGoals')
 var saveGoalsBtn = document.getElementById('saveGoals')
 
+//edit modals for the workout and warmup currently on screen. the cards carry the record's
+//id in data-record-id, refreshed whenever the tables swap in a different record
+const workoutCard = document.getElementById('workout-card')
+const warmupCard = document.getElementById('warmup-card')
+const editWorkoutBtn = document.getElementById('editWorkout')
+const editWarmupBtn = document.getElementById('editWarmup')
+const saveWorkoutBtn = document.getElementById('saveWorkout')
+const saveWarmupBtn = document.getElementById('saveWarmup')
+const deleteWorkoutBtn = document.getElementById('deleteWorkout')
+const deleteWarmupBtn = document.getElementById('deleteWarmup')
+
+//pairs each exercise row field with its key in the workout payload
+const EXERCISE_FIELDS = {
+    '.row-ex-block': 'ex_block',
+    '.row-ex-name': 'ex_name',
+    '.row-sets-reps': 'sets_reps',
+    '.row-ex-notes': 'ex_notes',
+}
+
 //add event listeners to query on change
 warmupSelect.addEventListener("change", () => GetSelectedWorkout('warmup'));
 workoutTypeSelect.addEventListener("change", GetWorkoutsByType);
@@ -34,6 +53,8 @@ document.querySelectorAll('.modal').forEach(modal => {
 });
 
 GetPlayerGoals();
+syncEditButton(editWorkoutBtn, workoutCard);
+syncEditButton(editWarmupBtn, warmupCard);
 
 //tab control on home screen
 function openTab(evt, tabName) {
@@ -87,6 +108,93 @@ saveGoalsBtn.onclick = function () {
             console.error('Save failed:', error);
             alert('Save failed. See console.');
         });
+}
+
+//── edit the workout on screen ───────────────────────────────────────────
+editWorkoutBtn.onclick = async function () {
+    const record = await fetchRecordForEdit('workout', workoutCard.dataset.recordId);
+    if (!record) {
+        return;
+    }
+
+    document.getElementById("edit-workout-date").value = record.date;
+    document.getElementById("edit-workout-type").value = record.workout_type;
+    document.getElementById("edit-workout-name").value = record.workout_name;
+    document.getElementById("edit-workout-notes").value = record.notes;
+    fillModalRows('edit-ex-rows', 'ex-row-template', record.exercises, EXERCISE_FIELDS);
+
+    openModal('editWorkout-modal');
+}
+
+document.getElementById('addExRow').onclick = () => addModalRow('edit-ex-rows', 'ex-row-template');
+document.getElementById('removeExRow').onclick = () => removeModalRow('edit-ex-rows');
+
+saveWorkoutBtn.onclick = function () {
+    const updatedWorkout = {
+        id: Number(workoutCard.dataset.recordId),
+        date: document.getElementById("edit-workout-date").value,
+        workout_type: document.getElementById("edit-workout-type").value,
+        workout_name: document.getElementById("edit-workout-name").value,
+        notes: document.getElementById("edit-workout-notes").value,
+        exercises: readModalRows('edit-ex-rows', EXERCISE_FIELDS)
+    }
+
+    submitRecordChange('/api/updateWorkout', updatedWorkout, 'Update failed.');
+}
+
+deleteWorkoutBtn.onclick = function () {
+    if (!confirm("Delete this workout and its exercises? This cannot be undone.")) {
+        return;
+    }
+
+    submitRecordChange('/api/deleteRecord',
+        { record_type: 'workout', id: Number(workoutCard.dataset.recordId) }, 'Delete failed.');
+}
+
+//── edit the warmup on screen ────────────────────────────────────────────
+editWarmupBtn.onclick = async function () {
+    const record = await fetchRecordForEdit('warmup', warmupCard.dataset.recordId);
+    if (!record) {
+        return;
+    }
+
+    document.getElementById("edit-warmup-date").value = record.date;
+    document.getElementById("edit-warmup-name").value = record.name;
+    document.getElementById("edit-warmup-rollout").value = record.rollout_ex;
+    document.getElementById("edit-warmup-spine").value = record.spine_ex;
+    document.getElementById("edit-warmup-hip").value = record.hip_ex;
+    document.getElementById("edit-warmup-shoulder").value = record.shoulder_ex;
+    document.getElementById("edit-warmup-arm").value = record.arm_ex;
+    document.getElementById("edit-warmup-dynamic").value = record.dynamic_ex;
+    document.getElementById("edit-warmup-notes").value = record.notes;
+
+    openModal('editWarmup-modal');
+}
+
+saveWarmupBtn.onclick = function () {
+    const updatedWarmup = {
+        id: Number(warmupCard.dataset.recordId),
+        date: document.getElementById("edit-warmup-date").value,
+        name: document.getElementById("edit-warmup-name").value,
+        rollout_ex: document.getElementById("edit-warmup-rollout").value,
+        spine_ex: document.getElementById("edit-warmup-spine").value,
+        hip_ex: document.getElementById("edit-warmup-hip").value,
+        shoulder_ex: document.getElementById("edit-warmup-shoulder").value,
+        arm_ex: document.getElementById("edit-warmup-arm").value,
+        dynamic_ex: document.getElementById("edit-warmup-dynamic").value,
+        notes: document.getElementById("edit-warmup-notes").value
+    }
+
+    submitRecordChange('/api/updateWarmup', updatedWarmup, 'Update failed.');
+}
+
+deleteWarmupBtn.onclick = function () {
+    if (!confirm("Delete this warmup? This cannot be undone.")) {
+        return;
+    }
+
+    submitRecordChange('/api/deleteRecord',
+        { record_type: 'warmup', id: Number(warmupCard.dataset.recordId) }, 'Delete failed.');
 }
 
 async function GetPlayerGoals() {
@@ -248,6 +356,10 @@ function UpdateExerciseTable(data) {
     const tbody = document.getElementById('workout_body');
     const metaSpan = document.getElementById('workout-meta');
 
+    //the edit modal acts on whatever is on screen, so the card's id moves with the table
+    workoutCard.dataset.recordId = data.id || "";
+    syncEditButton(editWorkoutBtn, workoutCard);
+
     if (metaSpan) {
         metaSpan.textContent = data.workout_name || "";
     }
@@ -275,6 +387,9 @@ function UpdateExerciseTable(data) {
 function UpdateWarmupTable(data) {
     const tbody = document.getElementById('warmups_body');
     tbody.innerHTML = "";
+
+    warmupCard.dataset.recordId = data.id || "";
+    syncEditButton(editWarmupBtn, warmupCard);
 
     const row = tbody.insertRow();
     addCell(row, "Name").textContent = data.name;

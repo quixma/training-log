@@ -312,6 +312,8 @@ td button,
 }
 
 td button:hover,
+.btn-action.hidden { display: none; } /* nothing on screen to edit */
+
 .btn-action:hover {
   border-color: var(--accent);
   color: var(--accent);
@@ -465,7 +467,8 @@ td button:hover,
 
 /* Modal save button */
 .modal-content button#saveTP,
-.modal-content button#saveGoals {
+.modal-content button#saveGoals,
+.modal-content button.btn-save {
   align-self: stretch;
   padding: 14px;
   background: var(--accent);
@@ -484,7 +487,8 @@ td button:hover,
 }
 
 .modal-content button#saveTP:hover,
-.modal-content button#saveGoals:hover {
+.modal-content button#saveGoals:hover,
+.modal-content button.btn-save:hover {
   background: #f04044;
   box-shadow: 0 6px 28px rgba(232,56,59,0.5);
   transform: translateY(-1px);
@@ -932,4 +936,77 @@ td button:hover,
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
+}
+/* ── Modal Repeater Rows (edit workout / throwing day) ── */
+.modal-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-row {
+  display: grid;
+  grid-template-columns: 70px 1fr 100px;   /* block / exercise / sets-reps */
+  gap: 10px;
+  padding: 12px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--transition);
+}
+
+.modal-row.drill-row { grid-template-columns: 2fr 1fr 1fr; }
+.modal-row:hover { border-color: rgba(232,56,59,0.3); }
+.modal-row .row-notes { grid-column: 1 / -1; }
+
+/* the row inputs sit in a grid, so they keep the modal's field styling but no stacking margin */
+.modal-row input,
+.modal-row select { margin-bottom: 0; }
+
+.modal-btn-group { display: flex; gap: 10px; }
+.modal-btn-group button {
+  padding: 8px 16px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.modal-btn-group button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+.modal-btn-group button.btn-remove-row:hover {
+  border-color: #ef444480;
+  color: #f87171;
+  background: rgba(239,68,68,0.08);
+}
+
+/* destructive action sits under the save button, muted until hovered */
+.modal-content button.btn-danger {
+  align-self: stretch;
+  padding: 12px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.modal-content button.btn-danger:hover {
+  border-color: #ef444480;
+  color: #f87171;
+  background: rgba(239,68,68,0.08);
 }

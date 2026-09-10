@@ -468,7 +468,8 @@
 <!-- logged throwing days from the throwing day form; the name select swaps in that day's drills -->
 <div id="ThrowingDays" class="tabcontent">
 
-  <div class="section-card">
+  <!-- data-record-id tracks which day is on screen so the edit modal knows what it is editing -->
+  <div class="section-card" id="throwing-day-card" data-record-id="{{ throwing_day["id"] if throwing_day["id"] else "" }}">
     <div class="section-card-header">
       <h3>Throwing Days</h3>
       <span class="day-meta" id="throwing-day-meta">
@@ -480,6 +481,7 @@
         <option value='{{ data["day_name"] }}'>{{ data["day_name"] }}</option>
         {% endfor %}
       </select>
+      <button id="editThrowingDay" class="btn-action">Edit Day</button>
     </div>
     <!-- day-level notes; hidden when the day has none -->
     <div class="day-notes{% if not throwing_day["notes"] %} hidden{% endif %}" id="throwing-day-notes">
@@ -581,6 +583,74 @@
   </div>
 </div>
 
+<!-- ── Edit Throwing Day Modal ──────────────── -->
+<!-- edits the logged day the Throwing Days tab is showing, both drill blocks included -->
+<div id="editThrowingDay-modal" class="modal">
+  <div class="modal-inner">
+    <div class="modal-header">
+      <h2>Edit Throwing Day</h2>
+      <button class="modal-close" data-modal="editThrowingDay-modal">&#x2715;</button>
+    </div>
+    <div class="modal-content">
+      <div class="field-group">
+        <label for="edit-day-date">Date</label>
+        <input type="date" id="edit-day-date">
+      </div>
+      <div class="field-group">
+        <label for="edit-day-name">Throwing Day Name</label>
+        <textarea id="edit-day-name" rows="1"></textarea>
+      </div>
+      <div class="field-group">
+        <label for="edit-day-session-type">Session Type</label>
+        <select id="edit-day-session-type">
+          <option value="">Select Type</option>
+          {% for value, label in session_types %}
+          <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Plyo Set</label>
+        <div id="edit-plyo-rows" class="modal-rows"></div>
+      </div>
+      <div class="modal-btn-group">
+        <button type="button" id="addPlyoRow">+ Add Drill</button>
+        <button type="button" class="btn-remove-row" id="removePlyoRow">Remove Drill</button>
+      </div>
+      <div class="field-group">
+        <label>Throwing Drills</label>
+        <div id="edit-throwing-rows" class="modal-rows"></div>
+      </div>
+      <div class="modal-btn-group">
+        <button type="button" id="addThrowingRow">+ Add Drill</button>
+        <button type="button" class="btn-remove-row" id="removeThrowingRow">Remove Drill</button>
+      </div>
+      <div class="field-group">
+        <label for="edit-day-notes">Day Breakdown / Notes</label>
+        <textarea id="edit-day-notes" rows="5"></textarea>
+      </div>
+      <button id="saveThrowingDay" class="btn-save">Save Throwing Day</button>
+      <button id="deleteThrowingDay" class="btn-danger">Delete Throwing Day</button>
+    </div>
+  </div>
+</div>
+
+<!-- one drill row, cloned per drill into either block when the modal opens -->
+<template id="drill-row-template">
+  <div class="modal-row drill-row">
+    <input type="text" class="row-drill-name" placeholder="Drill Name">
+    <select class="row-ball-weight">
+      <option value="">Ball Weight</option>
+      {% for weight in ball_weights %}
+      <option value="{{ weight }}">{{ weight }}</option>
+      {% endfor %}
+    </select>
+    <input type="text" class="row-throw-count" placeholder="Throw Count (e.g. 5-10)">
+    <input type="text" class="row-drill-notes row-notes" placeholder="Drill Notes">
+  </div>
+</template>
+
+<script src="{{ url_for('static', filename='js/record_edit.js') }}"></script>
 <script src="{{ url_for('static', filename='js/inszn_home.js') }}"></script>
 
 {% endblock %}
