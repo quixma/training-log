@@ -98,7 +98,51 @@ function openModal(id) {
     document.getElementById(id).classList.add('active');
 }
 
-//player goals modal
+//-------------PLAYER GOALS  FUNCTIONS-------------
+async function GetPlayerGoals() {
+    date = playerGoalsSelect.value;
+
+    if (!date) {
+        console.log("Enter a search criteria")
+        return;
+    }
+    else {
+        const response = await fetch('/api/getPlayerGoals',
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', },
+                body: JSON.stringify({ plan_type: "pitching", date: date })
+            });
+
+        if (!response.ok) {
+            console.log('Update failed:', await response.text());
+            alert('Update failed. See console.');
+            return;
+        }
+
+        const data = await response.json();
+        UpdatePlayerGoalsTable(data);
+    }
+}
+function UpdatePlayerGoalsTable(data) {
+    const table = document.getElementById('player_goals_body');
+    const row = table.rows[0];
+
+    row.cells[0].innerText = data["date"];
+    row.cells[1].innerText = data["pitching"];
+    row.cells[2].innerText = data["arsenal"];
+    row.cells[3].innerText = data["delivery"];
+    row.cells[4].innerText = data["execution"];
+}
+
+window.addEventListener('click', function (event) {
+    if (event.target == modalGoals) {
+        modalGoals.style.display = "none";
+    }
+    if (event.target == modalTP) {
+        modalTP.style.display = "none";
+    }
+});
 editGoals_Btn.onclick = function () { //log new player plan goals
     openModal('editGoals-modal');
 
@@ -143,6 +187,72 @@ saveGoalsBtn.onclick = function () {
         });
 }
 
+//-------------THROWING PLAN FUNCTIONS-------------
+//updating and displaying throwing plan tab
+async function GetThrowingPlan() { //update for pre throw as well.
+    date = throwingPlanSelect.value;
+    if (!date) {
+        console.log("Enter a search criteria")
+        return;
+    }
+    else {
+        const response = await fetch('/api/getInsznThrowingPlan',
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', },
+                body: JSON.stringify(date)
+            });
+
+        // Check if response is ok before parsing, display to html
+        if (!response.ok) {
+            console.log('Update failed:', await response.text());
+            alert('Update failed. See console.');
+            return;
+        }
+
+        const data = await response.json();
+        tp = data.tp;
+        dr = data.drills;
+        pre = data.prethrow;
+        UpdateThrowingPlanTable(tp, dr.drills, pre.drills) //dr.drills subarray of actual drills inside object passed back from flask
+    }
+}
+function UpdateThrowingPlanTable(tp, dr, pre) {
+    const table = document.getElementById('throwing_plan_body');
+    const drillTable = document.getElementById('drills_body');
+    const drillNotesTable = document.getElementById('drill_notes_body');
+    const prethrowTable = document.getElementById('prethrowdrills_body');
+    const prethrowNotesTable = document.getElementById('prethrow_notes_body');
+
+    const drillNotes_row = drillNotesTable.rows[0];
+    const prethrowNotes_row = prethrowNotesTable.rows[0];
+    const row = table.rows[0];
+
+    rowTP.setAttribute('id', tp.id); //updates id of throwing plan table row to the currently displayed throwing plan, so if you edit an old one, routes update to correct throwing plan
+
+    row.cells[0].innerText = tp["date"];
+    row.cells[1].innerText = tp["throwing_sessions"];
+    row.cells[2].innerText = tp['throwing_notes'];
+    row.cells[3].innerText = tp['pitching_notes'];
+    row.cells[4].innerText = tp['mental_notes'];
+    drillNotes_row.cells[0].innerText = tp['drill_notes'];
+    prethrowNotes_row.cells[0].innerText = tp['prethrow_notes'];
+
+    drillTable.innerHTML = "";
+    dr.forEach(dr => {
+        const row = drillTable.insertRow();
+        addCell(row, "Drill Name").innerText = dr.drill_name;
+        addCell(row, "Drill Type").innerText = dr.drill_type;
+        addCell(row, "Throw Count").innerText = dr.throw_count;
+    })
+
+    prethrowTable.innerHTML = "";
+    pre.forEach(pre => {
+        const row = prethrowTable.insertRow();
+        addCell(row, "Drill Name").innerText = pre.drill_name;
+        addCell(row, "Drill Type").innerText = pre.drill_type;
+    })
+}
 editTP_Btn.onclick = function () { //edit throwing plan
     openModal('editTP-modal');
 
@@ -201,7 +311,7 @@ saveTP_Btn.onclick = function () {
         });
 }
 
-//── edit the logged throwing day on screen ───────────────────────────────
+//-------------EDIT/SAVE/DELETE THROWING DAY-----------
 editThrowingDayBtn.onclick = async function () {
     const record = await fetchRecordForEdit('throwing_day', throwingDayCard.dataset.recordId);
     if (!record) {
@@ -246,52 +356,8 @@ deleteThrowingDayBtn.onclick = function () {
         { record_type: 'throwing_day', id: Number(throwingDayCard.dataset.recordId) }, 'Delete failed.');
 }
 
-async function GetPlayerGoals() {
-    date = playerGoalsSelect.value;
 
-    if (!date) {
-        console.log("Enter a search criteria")
-        return;
-    }
-    else {
-        const response = await fetch('/api/getPlayerGoals',
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', },
-                body: JSON.stringify({ plan_type: "pitching", date: date })
-            });
-
-        if (!response.ok) {
-            console.log('Update failed:', await response.text());
-            alert('Update failed. See console.');
-            return;
-        }
-
-        const data = await response.json();
-        UpdatePlayerGoalsTable(data);
-    }
-}
-function UpdatePlayerGoalsTable(data) {
-    const table = document.getElementById('player_goals_body');
-    const row = table.rows[0];
-
-    row.cells[0].innerText = data["date"];
-    row.cells[1].innerText = data["pitching"];
-    row.cells[2].innerText = data["arsenal"];
-    row.cells[3].innerText = data["delivery"];
-    row.cells[4].innerText = data["execution"];
-}
-
-window.addEventListener('click', function (event) {
-    if (event.target == modalGoals) {
-        modalGoals.style.display = "none";
-    }
-    if (event.target == modalTP) {
-        modalTP.style.display = "none";
-    }
-});
-
-//updating and displaying game notes tab
+//----------GAME NOTES FUNCTIONS-----------
 async function GetGameNotes() {
     date = gameNoteSelect.value;
     if (!date) {
@@ -333,116 +399,7 @@ function UpdateGameNotesTable(data) {
 
 }
 
-//updating and displaying throwing plan tab
-async function GetThrowingPlan() { //update for pre throw as well.
-    date = throwingPlanSelect.value;
-    if (!date) {
-        console.log("Enter a search criteria")
-        return;
-    }
-    else {
-        const response = await fetch('/api/getInsznThrowingPlan',
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', },
-                body: JSON.stringify(date)
-            });
-
-        // Check if response is ok before parsing, display to html
-        if (!response.ok) {
-            console.log('Update failed:', await response.text());
-            alert('Update failed. See console.');
-            return;
-        }
-
-        const data = await response.json();
-        tp = data.tp;
-        dr = data.drills;
-        pre = data.prethrow;
-        dr_length = Object.keys(dr.drills).length; //gets num of drills in drill array
-        pre_length = Object.keys(pre.drills).length
-        UpdateThrowingPlanTable(tp, dr.drills, dr_length, pre.drills, pre_length) //dr.drills subarray of actual drills inside object passed back from flask
-    }
-}
-function UpdateThrowingPlanTable(tp, dr, length, pre, pre_length) {
-    const table = document.getElementById('throwing_plan_body');
-    const drillTable = document.getElementById('drills_body');
-    const drillNotesTable = document.getElementById('drill_notes_body');
-    const prethrowTable = document.getElementById('prethrowdrills_body');
-    const prethrowNotesTable = document.getElementById('prethrow_notes_body');
-
-    const drillNotes_row = drillNotesTable.rows[0];
-    const prethrowNotes_row = prethrowNotesTable.rows[0];
-    const row = table.rows[0];
-
-    rowTP.setAttribute('id', tp.id); //updates id of throwing plan table row to the currently displayed throwing plan, so if you edit an old one, routes update to correct throwing plan
-
-    row.cells[0].innerText = tp["date"];
-    row.cells[1].innerText = tp["throwing_sessions"];
-    row.cells[2].innerText = tp['throwing_notes'];
-    row.cells[3].innerText = tp['pitching_notes'];
-    row.cells[4].innerText = tp['mental_notes'];
-    drillNotes_row.cells[0].innerText = tp['drill_notes'];
-    prethrowNotes_row.cells[0].innerText = tp['prethrow_notes'];
-
-    //if length > current amount of table rows, add the amount needed.
-    table_rows = drillTable.rows.length;
-    if (length > table_rows) { //if length > current amount of table rows, add the amount needed.
-        rows_needed = length - table_rows;
-
-        for (let i = 0; i < rows_needed; i++) {
-            var new_row = drillTable.insertRow();
-            var cell1 = new_row.insertCell(0);
-            var cell2 = new_row.insertCell(1);
-            var cell3 = new_row.insertCell(2);
-        }
-    }
-    else if (length < table_rows) { //if length < current amount of tr, delete difference
-        rows_to_del = table_rows - length;
-        for (let i = 0; i < rows_to_del; i++) {
-            drillTable.deleteRow(i);
-        }
-    }
-    else {
-        //continue, amount needed and current amount are equal
-    }
-
-    for (let i = 0; i < length; i++) { //populate drill cells
-        const drill_row = drillTable.rows[i];
-        drill_row.cells[0].innerText = dr[i]["drill_name"];
-        drill_row.cells[1].innerText = dr[i]["drill_type"];
-        drill_row.cells[2].innerText = dr[i]["throw_count"];
-    }
-
-    //pre throw table rows handling
-    pre_table_rows = prethrowTable.rows.length;
-    if (pre_length > pre_table_rows) { //if length > current amount of table rows, add the amount needed.
-        rows_needed = pre_length - pre_table_rows;
-
-        for (let i = 0; i < rows_needed; i++) {
-            var new_row = prethrowTable.insertRow();
-            var cell1 = new_row.insertCell(0);
-            var cell2 = new_row.insertCell(1);
-        }
-    }
-    else if (pre_length < pre_table_rows) { //if length < current amount of tr, delete difference
-        rows_to_del = pre_table_rows - pre_length
-        for (let i = 0; i < rows_to_del; i++) {
-            prethrowTable.deleteRow(i);
-        }
-    }
-    else {
-        //continue, amount needed and current amount are equal
-    }
-
-    for (let i = 0; i < pre_length; i++) { //populate drill cells
-        const pre_drill_row = prethrowTable.rows[i];
-        pre_drill_row.cells[0].innerText = pre[i]["drill_name"];
-        pre_drill_row.cells[1].innerText = pre[i]["drill_type"];
-    }
-}
-
-//updating and displaying throwing notes tab
+//-----------THROWING NOTES FUNCTIONS---------
 async function GetThrowingNotes() {
     const notes_data = {
         date: throwingNoteSelect.value,
@@ -469,48 +426,20 @@ async function GetThrowingNotes() {
         }
 
         const data = await response.json();
-        UpdateThrowingNotesTable(data, data.length);
+        UpdateThrowingNotesTable(data);
 
     }
 }
-function UpdateThrowingNotesTable(data, length) {
+function UpdateThrowingNotesTable(data) {
     const notesTable = document.getElementById('throwing_notes_body');
     const table_rows = notesTable.rows.length;
 
-    for (let i = 0; i < table_rows; i++) { //empty's table values before repopulating 
-        for (let j = 0; j < 2; j++) {
-            notesTable.rows[i].cells[j].innerText = '';
-        }
-    }
-    if (length > table_rows) { //if length > amount of rows, add amount of difference
-        rows_needed = length - table_rows;
-
-        for (let i = 0; i < rows_needed; i++) {
-            var new_row = notesTable.insertRow();
-            //labels match the template's cells so added rows keep their headings on mobile
-            var cell1 = addCell(new_row, "Date");
-            var cell2 = addCell(new_row, "Notes");
-            var cell3 = new_row.insertCell(2);
-            var cell4 = new_row.insertCell(3);
-        }
-    }
-    else if (length < table_rows) { //len < rows, remove difference 
-        rows_to_del = table_rows - length;
-        for (let i = 0; i < rows_to_del; i++) {
-            notesTable.deleteRow(-1); //-1 is deleting the last row in the table 
-        }
-    }
-    else {
-        //equal amount, continue
-    }
-
-    for (let i = 0; i < length; i++) { //update table
-        const notesRow = notesTable.rows[i];
-
-        notesRow.cells[0].innerHTML = data[i]['date'];
-        notesRow.cells[1].innerHTML = data[i]['notes_html'];
-
-    }
+    notesTable.innerHTML = "";
+    data.forEach(data => {
+        const row = notesTable.insertRow();
+        addCell(row, "Date").innerHTML = data.date;
+        addCell(row, "NOtes").innerHTML = data.notes_html;
+    })
 
 }
 async function GetThrowingNotesByDay() {
@@ -552,6 +481,7 @@ function addCell(row, label) {
     return cell;
 }
 
+//------------THROWING DAY TAB FUNCTIONS-----------
 //logged throwing days: pick a day by name, swap its drills and notes into the tab
 async function GetThrowingDay() {
     const name = throwingDayViewSelect.value;
@@ -612,7 +542,7 @@ function UpdateThrowingDayTable(data) {
     });
 }
 
-//Chart Section
+//---------CHART FUNCTIONS------------
 async function getData() {
     const formData = {
         metric: metricSelect.value,
