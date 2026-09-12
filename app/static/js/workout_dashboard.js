@@ -11,6 +11,7 @@ const bodyNotesTimeSelect = document.getElementById('body-notes-time')
 var modalGoals = document.getElementById('editGoals-modal')
 var editGoals_Btn = document.getElementById('editGoals')
 var saveGoalsBtn = document.getElementById('saveGoals')
+var rowWkoutGoals = document.getElementById('goals-data-row');
 
 //edit modals for the workout and warmup currently on screen. the cards carry the record's
 //id in data-record-id, refreshed whenever the tables swap in a different record
@@ -73,9 +74,9 @@ editGoals_Btn.onclick = function () { //log new player plan goals
 
     //default date to today, clear prior entries so a new dated entry is created
     document.getElementById("goals-date").value = new Date().toISOString().split('T')[0];
-    document.getElementById("goals-gym").value = "";
-    document.getElementById("goals-back").value = "";
-    document.getElementById("goals-nutrition").value = "";
+    document.getElementById("goals-gym").value = rowWkoutGoals.children[1].innerText; //shows current goals in modal
+    document.getElementById("goals-back").value = rowWkoutGoals.children[2].innerText;
+    document.getElementById("goals-nutrition").value = rowWkoutGoals.children[3].innerText;
 }
 
 saveGoalsBtn.onclick = function () {

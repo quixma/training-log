@@ -23,6 +23,7 @@ var saveTP_Btn = document.getElementById('saveTP')
 var modalGoals = document.getElementById('editGoals-modal')
 var editGoals_Btn = document.getElementById('editGoals')
 var saveGoalsBtn = document.getElementById('saveGoals')
+var rowPlayerGoals = document.getElementById("goals-data-row");
 
 //edit modal for the logged throwing day currently on screen. the card carries the day's
 //id in data-record-id, refreshed whenever the table swaps in a different day
@@ -97,6 +98,51 @@ function openModal(id) {
     document.getElementById(id).classList.add('active');
 }
 
+//player goals modal
+editGoals_Btn.onclick = function () { //log new player plan goals
+    openModal('editGoals-modal');
+
+    //default date to today, clear prior entries so a new dated entry is created
+    document.getElementById("goals-date").value = new Date().toISOString().split('T')[0];
+    document.getElementById("goals-pitching").value = rowPlayerGoals.children[1].innerText;
+    document.getElementById("goals-arsenal").value = rowPlayerGoals.children[2].innerText;
+    document.getElementById("goals-delivery").value = rowPlayerGoals.children[3].innerText;
+    document.getElementById("goals-execution").value = rowPlayerGoals.children[4].innerText;
+}
+
+saveGoalsBtn.onclick = function () {
+    const newGoals = {
+        date: document.getElementById("goals-date").value,
+        plan_type: "pitching", //this dashboard owns the pitching goals; workout goals have their own page
+        pitching: document.getElementById("goals-pitching").value,
+        arsenal: document.getElementById("goals-arsenal").value,
+        delivery: document.getElementById("goals-delivery").value,
+        execution: document.getElementById("goals-execution").value
+    }
+
+    fetch('/api/addPlayerGoals',
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', },
+            body: JSON.stringify(newGoals)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Save success:', data);
+            modalGoals.style.display = "none";
+            window.location.reload();
+        })
+        .catch(error => {
+            console.error('Save failed:', error);
+            alert('Save failed. See console.');
+        });
+}
+
 editTP_Btn.onclick = function () { //edit throwing plan
     openModal('editTP-modal');
 
@@ -152,51 +198,6 @@ saveTP_Btn.onclick = function () {
         .catch(error => {
             console.error('Update failed:', error);
             alert('Update failed. See console.');
-        });
-}
-
-//player goals modal
-editGoals_Btn.onclick = function () { //log new player plan goals
-    openModal('editGoals-modal');
-
-    //default date to today, clear prior entries so a new dated entry is created
-    document.getElementById("goals-date").value = new Date().toISOString().split('T')[0];
-    document.getElementById("goals-pitching").value = "";
-    document.getElementById("goals-arsenal").value = "";
-    document.getElementById("goals-delivery").value = "";
-    document.getElementById("goals-execution").value = "";
-}
-
-saveGoalsBtn.onclick = function () {
-    const newGoals = {
-        date: document.getElementById("goals-date").value,
-        plan_type: "pitching", //this dashboard owns the pitching goals; workout goals have their own page
-        pitching: document.getElementById("goals-pitching").value,
-        arsenal: document.getElementById("goals-arsenal").value,
-        delivery: document.getElementById("goals-delivery").value,
-        execution: document.getElementById("goals-execution").value
-    }
-
-    fetch('/api/addPlayerGoals',
-        {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', },
-            body: JSON.stringify(newGoals)
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Save success:', data);
-            modalGoals.style.display = "none";
-            window.location.reload();
-        })
-        .catch(error => {
-            console.error('Save failed:', error);
-            alert('Save failed. See console.');
         });
 }
 
