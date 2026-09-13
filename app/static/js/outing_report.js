@@ -5,6 +5,15 @@ var movementChart, releaseChart, veloChart, rhhZoneChart, lhhZoneChart;
 //last payload from /api/outing_report_data, kept so the grouping toggles can re-render without refetching
 var reportData = null;
 
+//tab control for the report tabs
+function openTab(evt, tabName) {
+    document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tablinks').forEach(t => t.classList.remove('active'));
+    document.getElementById(tabName).classList.add('active');
+    evt.currentTarget.classList.add('active');
+}
+
+
 create_reportBTN.onclick = function () { //generate outing report from the selected files
     var file1 = document.getElementById('file1').value;
     var file2 = document.getElementById('file2').value;
@@ -31,7 +40,7 @@ create_reportBTN.onclick = function () { //generate outing report from the selec
             }))
             .then(data => {
                 reportData = data;
-                updatePitchTypeScatterChart(movementChart, data.movement, 'hb', 'ivb');
+                updateScatterChart(movementChart, data.movement, 'hb', 'ivb');
                 updateScatterChart(releaseChart, data.release, 'rel_x', 'rel_z');
                 updateVeloChart(data.velo);
                 updateScatterChart(rhhZoneChart, data.locations_rhh, 'x', 'y');
@@ -47,13 +56,52 @@ create_reportBTN.onclick = function () { //generate outing report from the selec
     }
 }
 
-//tab control for the report tabs
-function openTab(evt, tabName) {
-    document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tablinks').forEach(t => t.classList.remove('active'));
-    document.getElementById(tabName).classList.add('active');
-    evt.currentTarget.classList.add('active');
+const SUMMARY_KEYS = ['fps_pct', 'ahead_pct', 'early_ahead_pct', 'two_k_so_pct', 'k_pct', 'bb_pct', 'k_minus_bb_pct', 'csw_pct'];
+const MVMT_KEYS = ['pitch_count', 'velo', 'max_velo', 'ivb', 'hb', 'rel_z', 'rel_x', 'ext'];
+
+//the three tables that can be grouped by pitch type or by batter hand
+const GROUPED_TABLE_KEYS = {
+    strikes: ['zone_pct', 'two_k_zone_pct', 'heart_pct'],
+    miss: ['csw_pct', 'whiff_pct', 'z_whiff_pct', 'o_whiff_pct', 'chase_pct'],
+    damage: ['woba', 'xwoba', 'xwobacon', 'babip', 'hard_hit_pct', 'gb_pct', 'fb_pct']
+};
+
+const GROUP_LABELS = { pitch: 'Pitch Type', hand: 'Batter Hand' };
+
+//grouping currently shown for each of those tables; each one toggles independently
+const tableGroupings = { strikes: 'hand', miss: 'hand', damage: 'hand' };
+
+//one row per group, first column the group name (splits with zero pitches thrown are already
+//excluded by the backend, which also leads each grouped table with its Overall row)
+function fillReportTable(bodyId, rows, keys) {
+    const body = document.getElementById(bodyId);
+    body.innerHTML = '';
+    rows.forEach(row => {
+        const tr = document.createElement('tr');
+        if (row.group === 'Overall') tr.classList.add('overall-row');
+        [row.group, ...keys.map(key => row[key])].forEach(val => {
+            const td = document.createElement('td');
+            td.textContent = val;
+            tr.appendChild(td);
+        });
+        body.appendChild(tr);
+    });
 }
+
+//redraws one grouped table from the cached payload under its current grouping, and syncs its
+//toggle buttons and first column header to match
+function renderGroupedTable(table) {
+    const grouping = tableGroupings[table];
+    const rows = reportData ? reportData[table][grouping] || [] : [];
+
+    fillReportTable(`${table}_body`, rows, GROUPED_TABLE_KEYS[table]);
+    document.querySelector(`.group-label[data-table="${table}"]`).textContent = GROUP_LABELS[grouping];
+    document.querySelectorAll(`.group-toggle[data-table="${table}"] .group-btn`).forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.group === grouping);
+    });
+}
+
+
 
 //grid line color helper: brighten the 0-line so both axes read clearly through the middle of the plot
 function zeroLineGrid(color) {
@@ -91,24 +139,6 @@ function pointPitchTypeColor(context) {
     return point ? pitchTypeColor(point.pitch_type) : "rgba(128, 128, 128, 1)";
 }
 
-//one dataset per pitch type, which lets Chart.js' legend act as the plot's pitch key - the legend
-//swatch reads the dataset's own color, so a scriptable per-point color can't drive it
-function updatePitchTypeScatterChart(chart, rows, xKey, yKey) {
-    const byType = {};
-    rows.forEach(r => {
-        if (!byType[r.pitch_type]) byType[r.pitch_type] = [];
-        byType[r.pitch_type].push(Object.assign({ x: r[xKey], y: r[yKey] }, r));
-    });
-
-    chart.data.datasets = Object.keys(byType).map(pitchType => ({
-        label: pitchType,
-        data: byType[pitchType],
-        pointRadius: 5,
-        backgroundColor: pitchTypeColor(pitchType)
-    }));
-    chart.update();
-}
-
 //replaces a single-dataset scatter chart's points in place, colored by pitch type
 function updateScatterChart(chart, rows, xKey, yKey) {
     const points = rows.map(r => Object.assign({ x: r[xKey], y: r[yKey] }, r));
@@ -138,14 +168,18 @@ function initializeMovementChart() {
     movementChart = new Chart(ctx, {
         type: 'scatter',
         data: {
-            datasets: []
+            datasets: [{
+                data: [],
+                pointRadius: 5,
+                backgroundColor: pointPitchTypeColor
+            }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
                 title: { display: true, text: 'Pitch Movement (in)' },
-                legend: { display: true, position: 'bottom' },
+                legend: { display: false },
                 tooltip: {
                     callbacks: {
                         label: (context) => `${context.raw.pitch_type}: ${context.raw.velo} mph, ${context.raw.hb} hb, ${context.raw.ivb} ivb`
@@ -372,52 +406,3 @@ function initializeZoneChart(canvasId, titleText, batterHand) {
     });
 }
 
-const SUMMARY_KEYS = ['fps_pct', 'ahead_pct', 'early_ahead_pct', 'two_k_so_pct', 'k_pct', 'bb_pct', 'k_minus_bb_pct', 'csw_pct'];
-const MVMT_KEYS = ['pitch_count', 'velo', 'max_velo', 'ivb', 'hb', 'rel_z', 'rel_x', 'ext'];
-
-//the three tables that can be grouped by pitch type or by batter hand
-const GROUPED_TABLE_KEYS = {
-    strikes: ['zone_pct', 'two_k_zone_pct', 'heart_pct'],
-    miss: ['csw_pct', 'whiff_pct', 'two_k_swstr_pct', 'z_whiff_pct', 'o_whiff_pct', 'chase_pct'],
-    damage: ['woba', 'xwoba', 'xwobacon', 'babip', 'hard_hit_pct', 'gb_pct', 'fb_pct']
-};
-
-const GROUP_LABELS = { pitch: 'Pitch Type', hand: 'Batter Hand' };
-
-//grouping currently shown for each of those tables; each one toggles independently
-const tableGroupings = { strikes: 'hand', miss: 'hand', damage: 'hand' };
-
-//one row per group, first column the group name (splits with zero pitches thrown are already
-//excluded by the backend, which also leads each grouped table with its Overall row)
-function fillReportTable(bodyId, rows, keys) {
-    const body = document.getElementById(bodyId);
-    //data-label drives the stacked card layout on mobile. taking it from this table's own
-    //header row keeps it right for the grouped tables, whose first header follows the toggle.
-    const headers = [...body.closest('table').querySelectorAll('thead th')].map(th => th.textContent.trim());
-    body.innerHTML = '';
-    rows.forEach(row => {
-        const tr = document.createElement('tr');
-        if (row.group === 'Overall') tr.classList.add('overall-row');
-        [row.group, ...keys.map(key => row[key])].forEach((val, i) => {
-            const td = document.createElement('td');
-            td.textContent = val;
-            if (headers[i]) td.setAttribute('data-label', headers[i]);
-            tr.appendChild(td);
-        });
-        body.appendChild(tr);
-    });
-}
-
-//redraws one grouped table from the cached payload under its current grouping, and syncs its
-//toggle buttons and first column header to match
-function renderGroupedTable(table) {
-    const grouping = tableGroupings[table];
-    const rows = reportData ? reportData[table][grouping] || [] : [];
-
-    //header first: fillReportTable copies the header text onto each cell as its mobile label
-    document.querySelector(`.group-label[data-table="${table}"]`).textContent = GROUP_LABELS[grouping];
-    fillReportTable(`${table}_body`, rows, GROUPED_TABLE_KEYS[table]);
-    document.querySelectorAll(`.group-toggle[data-table="${table}"] .group-btn`).forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.group === grouping);
-    });
-}

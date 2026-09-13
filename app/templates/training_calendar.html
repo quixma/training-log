@@ -30,13 +30,13 @@
                 <div class="workout-rows" id="workoutRows">
                     <div class="workout-row">
                         <button type="button" class="btn-remove-row" aria-label="Remove this workout">&times;</button>
-                        <select class="workout-type" id="workout-type" aria-label="Workout type">
+                        <select class="workout-type" aria-label="Workout type">
                             <option value="">Workout type</option>
                             {% for type in workout_types %}
                             <option value="{{ type }}">{{ type }}</option>
                             {% endfor %}
                         </select>
-                        <select class="workout-name" id="workout-name"aria-label="Workout name" >
+                        <select class="workout-name" aria-label="Workout name">
                             <option value="">Workout name</option>
                         </select>
                     </div>
@@ -45,7 +45,7 @@
                 <button type="button" class="btn-ghost" id="addWorkoutRow">+ Add another</button>
                 <!-- TODO(backend): POST these rows to an insert route, then re-render the
                      month and today's list from the response instead of reloading -->
-                <button type="button" class="btn-save" id="addEvent">Save workouts</button>
+                <button type="button" class="btn-save" id="addWorkout">Save workouts</button>
             </div>
         </section>
 
@@ -56,6 +56,8 @@
             </div>
             <div class="card-body">
                 <ul class="reminder-list" id="reminderList"></ul>
+                <!-- the list's checkboxes only stage intent; this is what writes them -->
+                <button type="button" class="btn-save" id="saveReminders" hidden>Save changes</button>
             </div>
         </section>
 
@@ -108,6 +110,8 @@
     // the workout_type CHECK constraint is the source of truth for these; passed through
     // from the route so the chip colours, legend and dropdown can never drift from the schema
     const WORKOUT_TYPES = {{ workout_types | tojson }};
+    // every logged workout, so month navigation needs no round trip
+    const INITIAL_WORKOUTS = {{ workouts | tojson }};
 </script>
 <script src="{{ url_for('static', filename='js/training_calendar.js') }}"></script>
 {% endblock %}

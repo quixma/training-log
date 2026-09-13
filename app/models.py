@@ -366,6 +366,8 @@ def calcACR(date, session_id):
     conn.close()
     return 
 
+#---------WORKOUT DASH--------
+
 def get_RatingsAvgs():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -477,7 +479,7 @@ def get_warmups():
 
 #every workout type lives in one table now; these labels are the form dropdown, the dashboard filter,
 #and the workouts.workout_type CHECK constraint, so they have to stay in step with the schema
-WORKOUT_TYPES = ('Lift', 'Armcare', 'Back/Core', 'Individual Workout', 'Mobility', 'Conditioning', "Throwing")
+WORKOUT_TYPES = ('Lift', 'Armcare', 'Back/Core', 'Individual Workout', 'Mobility', 'Conditioning', "Throwing", "Warmup")
 
 def _format_workout(cursor, workout):
     #shared card shape for every workout type: the session row plus its exercises, with notes
@@ -644,6 +646,25 @@ def get_throwing_day_for_edit(day_id):
         "plyo_drills": drills_by_type["plyo"],
         "throwing_drills": drills_by_type["throwing"],
         }
+def update_throwing_day(day_id, day, drills_by_type):
+    #same wholesale replacement as the workout exercises, one pass per drill block
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("UPDATE throwing_days SET date = ?, day_name = ?, session_type = ?, notes = ? WHERE id = ?",
+                   (day["date"], day["day_name"], day["session_type"], day["notes"], day_id))
+    if cursor.rowcount == 0:
+        conn.close()
+        return False
+
+    cursor.execute("DELETE FROM throwing_day_drills WHERE session_id = ?", (day_id,))
+    for drill_type in ('plyo', 'throwing'):
+        for x in drills_by_type[drill_type]:
+            cursor.execute("INSERT INTO throwing_day_drills (session_id, drill_type, drill_name, ball_weight, throw_count, drill_notes) VALUES (?,?,?,?,?,?)",
+                           (day_id, drill_type, x["drill_name"], x["ball_weight"], x["throw_count"], x["drill_notes"]))
+    conn.commit()
+    conn.close()
+    return True
 
 def update_workout(workout_id, workout, exercises):
     #the exercise rows are replaced wholesale so their stored order matches the modal's order
@@ -676,26 +697,6 @@ def update_warmup(warmup_id, warmup):
     conn.close()
     return updated
 
-def update_throwing_day(day_id, day, drills_by_type):
-    #same wholesale replacement as the workout exercises, one pass per drill block
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("UPDATE throwing_days SET date = ?, day_name = ?, session_type = ?, notes = ? WHERE id = ?",
-                   (day["date"], day["day_name"], day["session_type"], day["notes"], day_id))
-    if cursor.rowcount == 0:
-        conn.close()
-        return False
-
-    cursor.execute("DELETE FROM throwing_day_drills WHERE session_id = ?", (day_id,))
-    for drill_type in ('plyo', 'throwing'):
-        for x in drills_by_type[drill_type]:
-            cursor.execute("INSERT INTO throwing_day_drills (session_id, drill_type, drill_name, ball_weight, throw_count, drill_notes) VALUES (?,?,?,?,?,?)",
-                           (day_id, drill_type, x["drill_name"], x["ball_weight"], x["throw_count"], x["drill_notes"]))
-    conn.commit()
-    conn.close()
-    return True
-
 def _delete_record(table, id_column, record_id):
     #foreign keys are off by default in sqlite, so turn them on for the child-row cascades
     conn = get_db_connection()
@@ -724,6 +725,20 @@ def get_throwing_workouts_by_name():
     names = cursor.execute("select day_name from throwing_days where ID IS NOT NULL order by ID desc").fetchall()
     conn.close()
     return names
+
+#--------TRAINING CALENDAR----------
+def getCalendarWorkouts():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    rows = cursor.execute("""SELECT w.ID AS id, c.workout_date AS date,
+                                    w.workout_type AS type, w.workout_name AS name,
+                                    w.completed AS done
+                             FROM training_calendar_daily_wkouts w
+                             JOIN training_calendar c ON c.ID = w.session_id
+                             ORDER BY w.ID""").fetchall()
+    workouts = [dict(row) for row in rows]
+    return workouts
 
 #── outing report data ───────────────────────────────────────────────────
 #the postgame CSV exports and the pitch-by-pitch file are read and shaped here;

@@ -27,13 +27,15 @@
   --shadow-card:    0 4px 32px rgba(0,0,0,0.45);
 
   /* workout_type → chip colour. one per value in models.WORKOUT_TYPES, held at a
-     similar luminance so six categories still read as a single system. */
+     similar luminance so the categories still read as a single system. */
   --type-lift:        #e8383b;
   --type-armcare:     #f59e0b;
   --type-back-core:   #a78bfa;
   --type-individual-workout: #38bdf8;
   --type-mobility:    #2dd4bf;
   --type-conditioning:#a3e635;
+  --type-throwing:    #4ade80;
+  --type-warmup:      #f472b6;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -334,19 +336,51 @@ header h1 span { color: var(--accent); }
   text-decoration: line-through;
 }
 
-.btn-remove-event {
+/* the delete checkbox stages a removal rather than firing one, so it reads as a
+   destructive twin of .reminder-check: same box, accent border, bin glyph when ticked */
+.reminder-delete {
+  appearance: none;
+  position: relative;
   flex-shrink: 0;
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 1rem;
-  line-height: 1;
-  padding: 2px 4px;
-  border-radius: var(--radius-sm);
+  width: 17px;
+  height: 17px;
+  margin-top: 2px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 4px;
   cursor: pointer;
-  transition: color var(--transition), background var(--transition);
+  transition: background var(--transition), border-color var(--transition);
 }
-.btn-remove-event:hover { color: var(--accent); background: var(--bg-input); }
+.reminder-delete::after {
+  content: '\2715';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 0.62rem;
+  line-height: 1;
+  color: var(--text-secondary);
+  transition: color var(--transition);
+}
+.reminder-delete:hover { border-color: var(--accent); }
+.reminder-delete:hover::after { color: var(--accent); }
+.reminder-delete:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.reminder-delete:checked::after { color: #fff; }
+
+/* a row waiting to be deleted on the next save */
+.reminder-list li.is-staged-delete .reminder-title,
+.reminder-list li.is-staged-delete .reminder-sub {
+  color: var(--accent);
+  text-decoration: line-through;
+  opacity: 0.75;
+}
+.reminder-list li.is-staged-delete .reminder-check {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
 
 .empty-state {
   color: var(--text-secondary);
@@ -427,7 +461,8 @@ header h1 span { color: var(--accent); }
 }
 
 .table-calendar td {
-  height: 112px;
+  /* five chips (20px each, 3px gaps) under the date number, with room for "+N more" */
+  height: 168px;
   vertical-align: top;
   padding: 7px 8px;
   background: rgba(255,255,255,0.02);
@@ -502,9 +537,9 @@ header h1 span { color: var(--accent); }
 
 .chip.is-done { opacity: 0.45; text-decoration: line-through; }
 
-/* only three labelled chips fit a day cell; the rest are summarised by .chip-more
+/* only five labelled chips fit a day cell; the rest are summarised by .chip-more
    and listed in full in the tooltip. keep in step with MAX_CHIPS in the JS. */
-.chip-stack .chip:nth-child(n+4) { display: none; }
+.chip-stack .chip:nth-child(n+6) { display: none; }
 
 .chip-lift         { --chip-color: var(--type-lift); }
 .chip-armcare      { --chip-color: var(--type-armcare); }
@@ -512,6 +547,8 @@ header h1 span { color: var(--accent); }
 .chip-individual-workout { --chip-color: var(--type-individual-workout); }
 .chip-mobility     { --chip-color: var(--type-mobility); }
 .chip-conditioning { --chip-color: var(--type-conditioning); }
+.chip-throwing     { --chip-color: var(--type-throwing); }
+.chip-warmup       { --chip-color: var(--type-warmup); }
 
 .chip-more {
   font-size: 0.68rem;
@@ -522,7 +559,7 @@ header h1 span { color: var(--accent); }
 }
 
 /* ── Day Tooltip ────────────────────────────── */
-/* the cell only fits three chips; the tooltip carries the day's full list */
+/* the cell only fits five chips; the tooltip carries the day's full list */
 .date-picker { position: relative; }
 
 .event-tooltip {
@@ -708,7 +745,7 @@ header h1 span { color: var(--accent); }
   }
   .chip.is-done { opacity: 0.3; }
   /* as dots they all fit, so nothing is truncated and no "+N more" is needed */
-  .chip-stack .chip:nth-child(n+4) { display: block; }
+  .chip-stack .chip:nth-child(n+6) { display: block; }
   .chip-more { display: none; }
 
   /* a tooltip pinned to a cell would overflow the narrow grid, so the day's

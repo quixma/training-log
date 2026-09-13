@@ -1,7 +1,7 @@
 from app import app
 from app.input_validation import UpdateThrowingPlanModel, PlayerGoalsModel, UpdateWorkoutModel, UpdateWarmupModel, UpdateThrowingDayModel
 from app.models import get_db_connection, get_warmup_by_name, get_workout_by_name, get_workout_names, get_latest_workout, WORKOUT_TYPES
-from app.models import get_throwing_day_by_name, get_bodyNotes, get_throwing_workouts_by_name
+from app.models import get_throwing_day_by_name, get_bodyNotes, get_throwing_workouts_by_name, get_warmup_names
 from app.models import get_workout_for_edit, get_warmup_for_edit, get_throwing_day_for_edit
 from app.models import update_workout, update_warmup, update_throwing_day
 from app.models import delete_workout, delete_warmup, delete_throwing_day, blank_to_none
@@ -15,28 +15,9 @@ import pandas as pd
 import math
 import numpy as np
 import subprocess
+from datetime import datetime
 
-@app.route('/shutdown', methods = ["POST"])
-def shutdown():
-    try: 
-        #make sure path is correct for pi
-        #Ensure your bash script is executable (run chmod +x your_script.sh in your terminal)
-        script = subprocess.run(['./other_scripts/stop_backup_shutdown.sh'], capture_output=True)
-        output = script.stdout
-        error = script.stderr
-        message = f"Script executed successfully. Output: {output}"
-        if error: 
-            message += f"Errors: {error}"
-            return render_template('index.html', message = message)
-    except subprocess.CalledProcessError as e:
-        message = f"Script execution failed! Error: {e.stderr}"
-        return render_template('index.html', message = message)
-    except Exception as e:
-        message = f"An error occured: {str(e)}"
-        return render_template('index.html', message = message)
-        
-    return redirect(url_for('index'))
-
+#-----------BULLPEN REPORT------------
 @app.route('/api/report_data', methods = ["POST"])
 def report_data():
     data = request.get_json()
@@ -110,6 +91,8 @@ def report_data():
         }
     
     return jsonify(allData)
+
+#----------OUTING REPORT--------------
 @app.route('/api/outing_report_data', methods = ["POST"])
 def outing_report_data():
     data = request.get_json()
@@ -149,6 +132,8 @@ def outing_report_data():
         "locations_rhh": locations_rhh,
         "locations_lhh": locations_lhh,
     })
+
+#------------THROWING DASHBOARD------------
 @app.route('/api/inszn_chart_data', methods = ["POST"])
 def inszn_chart_data():
     data = request.get_json()
@@ -347,6 +332,19 @@ def getInsznThrowingPlan():
     
     return jsonify(allData)
 
+@app.route("/api/getThrowingDay", methods = ["POST"])
+def getThrowingDay():
+    #the home dashboard's throwing days tab swaps days without a page load
+    data = request.get_json()
+    name = data.get("value")
+
+    result = get_throwing_day_by_name(name)
+    if result is None:
+        return jsonify({"error": "throwing day not found"}), 404
+    return jsonify(result)
+
+#-------WORKOUT DASHBOARD-------------
+
 @app.route("/api/getBodyNotes", methods = ["POST"])
 def getBodyNotes():
     #same shape as the throwing notes lookup: the newest N notes on or before the chosen date
@@ -377,17 +375,6 @@ def getSelectedWorkout():
         return jsonify({"error": "workout not found"}), 404
     return jsonify(result)
 
-@app.route("/api/getThrowingDay", methods = ["POST"])
-def getThrowingDay():
-    #the home dashboard's throwing days tab swaps days without a page load
-    data = request.get_json()
-    name = data.get("value")
-
-    result = get_throwing_day_by_name(name)
-    if result is None:
-        return jsonify({"error": "throwing day not found"}), 404
-    return jsonify(result)
-
 @app.route("/api/getWorkoutsByType", methods = ["POST"])
 def getWorkoutsByType():
     #the dashboard's one workout tab switches type without a page load, so it needs that type's
@@ -403,6 +390,7 @@ def getWorkoutsByType():
         "workout": get_latest_workout(workout_type),
     })
 
+#----------PLAYER GOALS------------
 @app.route("/api/addPlayerGoals", methods = ["POST"])
 def addPlayerGoals():
     data = request.get_json()
@@ -453,9 +441,6 @@ def getPlayerGoals():
 
 
 #── editing saved workouts, warmups and throwing days ────────────────────
-#the view tabs show one record at a time and carry its id, so the edit modals
-#fetch the stored text by that id, save it back, or drop the record entirely.
-#record_type names which of the three the request is about
 
 @app.route("/api/getRecordForEdit", methods = ["POST"])
 def getRecordForEdit():
@@ -576,7 +561,28 @@ def deleteRecord():
         return jsonify({"error": "No row deleted"}), 404
     return jsonify({"status": "delete complete"}), 200
 
-@app.route("/api/getWorkoutNamesByType", methods = ["POST"]) #for training calendar
+
+#TRAINING CALENDAR ROUTES
+
+#both calendar write routes answer with the full day rather than the rows they touched,
+#so the client can replace that date outright instead of merging. aliased to the keys
+#the calendar renders from; completed is 0/1 and reads as a boolean on the JS side.
+#bools are ints in python, so isinstance alone lets True through as 1 — every id,
+#month and year off the wire goes through this instead
+def is_int(value):
+    return isinstance(value, int) and not isinstance(value, bool)
+
+def calendar_day(cursor, session_id):
+    rows = cursor.execute("""SELECT w.ID AS id, c.workout_date AS date,
+                                    w.workout_type AS type, w.workout_name AS name,
+                                    w.completed AS done
+                             FROM training_calendar_daily_wkouts w
+                             JOIN training_calendar c ON c.ID = w.session_id
+                             WHERE w.session_id = ?
+                             ORDER BY w.ID""", (session_id,)).fetchall()
+    return [dict(row) for row in rows]
+
+@app.route("/api/getWorkoutNamesByType", methods = ["POST"])
 def get_workout_names_by_type():
     data = request.get_json()
     workout_type = data.get("type")
@@ -586,6 +592,8 @@ def get_workout_names_by_type():
     
     if workout_type == "Throwing":
         names = get_throwing_workouts_by_name()
+    elif workout_type == "Warmup":
+        names = get_warmup_names()
     else:
         names = get_workout_names(workout_type)
     
@@ -593,3 +601,127 @@ def get_workout_names_by_type():
         return jsonify({"error": "workout names not found"}), 404
     
     return jsonify([dict(row) for row in names])
+
+@app.route("/api/addWorkouttoCalendar", methods = ["POST"])
+def addWorkouttoCalendar():
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "no json body"}), 400
+    
+    date = data.get("date")
+    workouts = data.get("workouts")
+    
+    #workout_date is UNIQUE and compares as a string, so an unpadded or differently
+    #formatted date would open a second session row for a day that already has one
+    #strptime accepts unpadded numbers, so re-emit the parsed date rather than trusting
+    #the string that came in: '2026-9-11' and '2026-09-11' must not become two rows
+    try:
+        date = datetime.strptime(date, "%Y-%m-%d").strftime("%Y-%m-%d")
+    except (ValueError, TypeError):
+        return jsonify({"error": "date must be YYYY-MM-DD"}), 400
+    
+    #an empty list would commit a session header with nothing under it
+    if not isinstance(workouts, list) or not workouts:
+        return jsonify({"error": "at least one workout is required"}), 400
+    
+    #nothing on training_calendar_daily_wkouts constrains these, and the calendar
+    #builds its chip colours off workout_type, so the check has to happen here
+    for row in workouts:
+        if not isinstance(row, dict):
+            return jsonify({"error": "each workout must be an object"}), 400
+        if row.get("type") not in WORKOUT_TYPES:
+            return jsonify({"error": "unknown workout type"}), 400
+        if not str(row.get("name") or "").strip():
+            return jsonify({"error": "workout name is required"}), 400
+    
+    conn = get_db_connection()
+    conn.execute("PRAGMA foreign_keys = ON")
+    cursor = conn.cursor()
+    
+    try:
+        #if date already exists, dont insert, return id of date already in there, returns id of inserted one if its new.
+        session_id = cursor.execute("INSERT INTO training_calendar (workout_date) VALUES (?) ON CONFLICT(workout_date) DO UPDATE SET workout_date = excluded.workout_date RETURNING ID", (date,)).fetchone()
+        for row in workouts:
+            cursor.execute("INSERT into training_calendar_daily_wkouts (session_id, workout_type, workout_name) VALUES (?,?,?)", 
+                       (session_id["ID"], row["type"], row["name"]))
+        
+        saved = calendar_day(cursor, session_id["ID"])
+    except Exception as e:
+        conn.close()
+        return jsonify({"error": str(e)}), 404
+    
+    conn.commit()
+    conn.close()
+    
+    return jsonify({"status": "update complete", "workouts": saved}), 200
+
+@app.route("/api/updateCalendarWorkouts", methods = ["POST"])
+def updateCalendarWorkouts():
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "no json body"}), 400
+    
+    date = data.get("date")
+    workouts = data.get("workouts")
+    deleted = data.get("deleted")
+    
+    try:
+        date = datetime.strptime(date, "%Y-%m-%d").strftime("%Y-%m-%d")
+    except (ValueError, TypeError):
+        return jsonify({"error": "date must be YYYY-MM-DD"}), 400
+    
+    if workouts is None:
+        workouts = []
+    if deleted is None:
+        deleted = []
+    if not isinstance(workouts, list) or not isinstance(deleted, list):
+        return jsonify({"error": "workouts and deleted must be lists"}), 400
+    
+    #ids arrive from the browser, so nothing guarantees they are integers or that they
+    #belong to this date. every statement below is scoped by session_id for that reason.
+    completed_ids = []
+    cleared_ids = []
+    for row in workouts:
+        if not isinstance(row, dict) or not is_int(row.get("id")):
+            return jsonify({"error": "each workout needs an integer id"}), 400
+        if row.get("done"):
+            completed_ids.append(row["id"])
+        else:
+            cleared_ids.append(row["id"])
+    
+    for workout_id in deleted:
+        if not is_int(workout_id):
+            return jsonify({"error": "deleted must be a list of integer ids"}), 400
+    
+    conn = get_db_connection()
+    conn.execute("PRAGMA foreign_keys = ON")
+    cursor = conn.cursor()
+    
+    try:
+        session = cursor.execute("Select ID from training_calendar WHERE workout_date = ?", (date,)).fetchone()
+        if session is None:
+            conn.close()
+            return jsonify({"error": "no workouts logged for that date"}), 404
+        session_id = session["ID"]
+        
+        #delete first: a row marked for deletion should not also have its flag written
+        for workout_id in deleted:
+            cursor.execute("DELETE from training_calendar_daily_wkouts WHERE ID = ? AND session_id = ?",
+                           (workout_id, session_id))
+        
+        for flag, ids in ((1, completed_ids), (0, cleared_ids)):
+            for workout_id in ids:
+                if workout_id in deleted:
+                    continue
+                cursor.execute("UPDATE training_calendar_daily_wkouts SET completed = ? WHERE ID = ? AND session_id = ?",
+                               (flag, workout_id, session_id))
+        
+        saved = calendar_day(cursor, session_id)
+    except Exception as e:
+        conn.close()
+        return jsonify({"error": str(e)}), 400
+    
+    conn.commit()
+    conn.close()
+    
+    return jsonify({"status": "update complete", "workouts": saved}), 200

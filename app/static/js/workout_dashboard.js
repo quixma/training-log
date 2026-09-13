@@ -308,7 +308,7 @@ function UpdateWarmupTable(data) {
     warmupCard.dataset.recordId = data.id || "";
     syncEditButton(editWarmupBtn, warmupCard);
 
-    const row = tbody.insertRow(); togther
+    const row = tbody.insertRow();
     addCell(row, "Name").textContent = data.name;
     addCell(row, "Rollout Exercises").innerHTML = data.rollout_ex;
     addCell(row, "Spine Exercises").innerHTML = data.spine_ex;

@@ -5,8 +5,7 @@ from app.models import get_totalthrows4wk, get_totalworkingthrows4wk, get_throwi
 from app.models import get_RatingsAvgs, get_WorkoutsCompleted, get_bodyNotes_dates, get_bodyNotes, get_warmup_names, get_warmups
 from app.models import get_workout_names, get_latest_workout, WORKOUT_TYPES, THROWING_SESSION_TYPES, THROWING_BALL_WEIGHTS
 from app.models import get_player_goals, get_player_goals_dates
-from app.models import get_throwing_day_names, get_latest_throwing_day
-from app.api_calls import shutdown
+from app.models import get_throwing_day_names, get_latest_throwing_day, getCalendarWorkouts
 from flask import render_template, redirect, url_for
 
 
@@ -101,4 +100,5 @@ def lifting_forms():
 
 @app.route('/training_calendar', methods=["GET", "POST"])
 def training_calendar():
-    return render_template('training_calendar.html', workout_types = WORKOUT_TYPES)
+    workouts = getCalendarWorkouts()
+    return render_template('training_calendar.html', workout_types = WORKOUT_TYPES, workouts = workouts)

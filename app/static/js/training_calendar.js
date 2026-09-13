@@ -1,49 +1,11 @@
 // Training Calendar
 //
-// Events live in memory only for now — the backend pass replaces `events` with rows
-// fetched from the workouts table and makes add/delete/complete hit API routes.
-// Everything below reads through getEventsOnDate(), so swapping the source out is the
-// only change the render path needs.
+// The template inlines every logged workout as INITIAL_WORKOUTS, so `events` is
+// populated before the first render and month navigation costs no round trip.
+// Every read goes through getEventsOnDate(); the save handlers are the only writers,
+// and both replace the affected day from the route's response.
 
-//-----------POPULATE WORKOUT NAME BY SELECTED TYPE-----------
-const workoutTypeSelect = document.getElementById("workout-type")
-const workoutName = document.getElementById("workout-name")
-workoutTypeSelect.addEventListener("change", GetWorkoutNamesByType);
-
-async function GetWorkoutNamesByType() {
-    const response = await fetch('/api/getWorkoutNamesByType',
-        {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', },
-            body: JSON.stringify({ type: workoutTypeSelect.value })
-        });
-
-    if (!response.ok) {
-        console.log('Update failed:', await response.text());
-        alert('Update failed. See console.');
-        return;
-    }
-
-    const result = await response.json();
-
-    workoutName.innerHTML = '<option value="">Workout Name</option>';
-    if (workoutTypeSelect.value == "Throwing") {
-        result.forEach(row => {
-            const option = document.createElement('option');
-            option.value = row["day_name"];
-            option.textContent = row["day_name"];
-            workoutName.appendChild(option);
-        });
-    }
-    else {
-        result.forEach(row => {
-            const option = document.createElement('option');
-            option.value = row["workout_name"];
-            option.textContent = row["workout_name"];
-            workoutName.appendChild(option);
-        });
-    }
-}
+// ── Constants ─────────────────────────────────────────────────────────────────
 
 const MONTHS = [
     "January", "February", "March", "April", "May", "June",
@@ -51,37 +13,23 @@ const MONTHS = [
 ];
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-// WORKOUT_TYPES is set by the template from models.WORKOUT_TYPES
+// both set by the template: WORKOUT_TYPES from models.WORKOUT_TYPES, INITIAL_WORKOUTS
+// from the calendar tables. guarded so the file still parses if either is missing.
 const TYPES = typeof WORKOUT_TYPES !== "undefined" ? WORKOUT_TYPES : [];
+const INITIAL = typeof INITIAL_WORKOUTS !== "undefined" ? INITIAL_WORKOUTS : [];
 
-const MAX_CHIPS = 3;   // chips that fit a day cell before it collapses to "+N more"
+const MAX_CHIPS = 5;   // chips that fit a day cell before it collapses to "+N more"
+const NAME_PLACEHOLDER = '<option value="">Workout name</option>';
 
-// ── PLACEHOLDER DATA — delete this block when the backend supplies events ──────
-let events = [
-    { id: 1, date: isoOffset(0), type: "Lift", name: "Lower Body", done: true },
-    { id: 2, date: isoOffset(0), type: "Armcare", name: "Arm Care", done: false },
-    { id: 3, date: isoOffset(0), type: "Mobility", name: "Hips", done: false },
-    { id: 4, date: isoOffset(1), type: "Conditioning", name: "Sprints", done: false },
-    { id: 5, date: isoOffset(-2), type: "Lift", name: "Upper Body", done: true },
-    { id: 6, date: isoOffset(-2), type: "Back/Core", name: "Anti-Rotation", done: true },
-    { id: 7, date: isoOffset(-2), type: "Armcare", name: "Arm Care", done: true },
-    { id: 8, date: isoOffset(-2), type: "Mobility", name: "T-Spine", done: false },
-    { id: 9, date: isoOffset(4), type: "Individual Workout", name: "Med Ball", done: false }
-];
-let eventIdCounter = events.length + 1;
+// ── State ─────────────────────────────────────────────────────────────────────
 
-// today +/- n days, as YYYY-MM-DD, so the sample chips always land near the current month
-function isoOffset(n) {
-    const d = new Date();
-    d.setDate(d.getDate() + n);
-    return toISO(d);
-}
-// ── END PLACEHOLDER DATA ──────────────────────────────────────────────────────
-
+let events = INITIAL;
 const today = new Date();
 let currentMonth = today.getMonth();
 let currentYear = today.getFullYear();
 let selectedKey = null;    // the clicked day, as "YYYY-M-D"
+
+// ── Elements ──────────────────────────────────────────────────────────────────
 
 const el = {
     body: document.getElementById("calendar-body"),
@@ -90,6 +38,7 @@ const el = {
     month: document.getElementById("month"),
     year: document.getElementById("year"),
     reminders: document.getElementById("reminderList"),
+    saveReminders: document.getElementById("saveReminders"),
     todayDate: document.getElementById("todayDate"),
     rows: document.getElementById("workoutRows"),
     date: document.getElementById("eventDate"),
@@ -98,16 +47,16 @@ const el = {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-// local-time YYYY-MM-DD. toISOString() would shift the date across the UTC
-// boundary for anyone west of Greenwich, landing workouts on the wrong day.
+// local-time YYYY-MM-DD. toISOString() would shift the date across the UTC boundary
+// for anyone west of Greenwich, landing workouts on the wrong day.
 function toISO(d) {
     return d.getFullYear() + "-" +
         String(d.getMonth() + 1).padStart(2, "0") + "-" +
         String(d.getDate()).padStart(2, "0");
 }
 
-// "YYYY-MM-DD" -> local Date. new Date(str) parses a bare date as UTC midnight,
-// which is the same off-by-one-day problem in the other direction.
+// "YYYY-MM-DD" -> local Date. new Date(str) reads a bare date as UTC midnight, which
+// is the same off-by-one-day problem in the other direction.
 function fromISO(s) {
     const [y, m, d] = s.split("-").map(Number);
     return new Date(y, m - 1, d);
@@ -115,20 +64,47 @@ function fromISO(s) {
 
 function dayKey(y, m, d) { return y + "-" + m + "-" + d; }
 
+function daysInMonth(month, year) {
+    return new Date(year, month + 1, 0).getDate();
+}
+
 // 'Back/Core' -> 'back-core', matching the .chip-* classes in the stylesheet
 function typeSlug(type) {
     return String(type).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
-function daysInMonth(month, year) {
-    return new Date(year, month + 1, 0).getDate();
+// every route this page talks to is POST + JSON. returns the parsed body, or null
+// after reporting the failure, so callers branch once instead of unpacking a response.
+async function postJSON(url, body, failureMessage) {
+    const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+        console.log(failureMessage + ":", await response.text());
+        alert(failureMessage + ". See console.");
+        return null;
+    }
+    return response.json();
 }
+
+// ── Event store ───────────────────────────────────────────────────────────────
 
 function getEventsOnDate(date, month, year) {
     return events.filter(function (event) {
         const d = fromISO(event.date);
         return d.getDate() === date && d.getMonth() === month && d.getFullYear() === year;
     });
+}
+
+// both save routes answer with the whole day, so swap that date out wholesale rather
+// than merging — a double submit cannot duplicate or strand rows this way
+function replaceDay(date, workouts) {
+    events = events
+        .filter(function (event) { return event.date !== date; })
+        .concat(workouts);
 }
 
 // ── Calendar render ───────────────────────────────────────────────────────────
@@ -214,14 +190,14 @@ function buildDayCell(cell, date, month, year) {
     cell.appendChild(buildTooltip(dayEvents, date, month, year));
 }
 
-// the cell shows at most three chips, so the tooltip carries the day's full list
+// the cell caps its chips at MAX_CHIPS, so the tooltip carries the day's full list
 function buildTooltip(dayEvents, date, month, year) {
     const tip = document.createElement("div");
     tip.className = "event-tooltip";
 
     const head = document.createElement("div");
     head.className = "tt-date";
-    head.textContent = MONTHS[month].slice(0, 3) + " " + date + ", " + year;
+    head.textContent = MONTHS[month].slice(0, 4) + " " + date + ", " + year;
     tip.appendChild(head);
 
     dayEvents.forEach(function (event) {
@@ -256,6 +232,7 @@ function displayReminders() {
     });
 
     el.reminders.innerHTML = "";
+    el.saveReminders.hidden = !list.length;
 
     if (!list.length) {
         const empty = document.createElement("li");
@@ -266,106 +243,127 @@ function displayReminders() {
     }
 
     list.forEach(function (event) {
-        const item = document.createElement("li");
-        if (event.done) item.classList.add("is-done");
-
-        const check = document.createElement("input");
-        check.type = "checkbox";
-        check.className = "reminder-check";
-        check.checked = !!event.done;
-        check.setAttribute("aria-label", "Mark " + (event.name || event.type) + " complete");
-        // TODO(backend): persist the completed flag, then re-render from the response
-        check.addEventListener("change", function () {
-            event.done = check.checked;
-            showCalendar(currentMonth, currentYear);
-        });
-
-        const body = document.createElement("div");
-        body.className = "reminder-body";
-
-        const title = document.createElement("div");
-        title.className = "reminder-title";
-        title.textContent = event.name || event.type;
-
-        const sub = document.createElement("div");
-        sub.className = "reminder-sub";
-        sub.textContent = event.type;
-
-        body.append(title, sub);
-
-        const remove = document.createElement("button");
-        remove.type = "button";
-        remove.className = "btn-remove-event";
-        remove.innerHTML = "&times;";
-        remove.setAttribute("aria-label", "Delete " + (event.name || event.type));
-        remove.addEventListener("click", function () { deleteEvent(event.id); });
-
-        item.append(check, body, remove);
-        el.reminders.appendChild(item);
+        el.reminders.appendChild(buildReminder(event));
     });
 }
 
-// ── Add / delete ──────────────────────────────────────────────────────────────
+// one row of the Today list. both checkboxes only stage intent — saveReminders()
+// reads them back off the DOM, so nothing here writes to events or the db.
+function buildReminder(event) {
+    const label = event.name || event.type;
 
-function addEvent() {
-    const date = el.date.value;
-    if (!date) {
-        el.date.focus();
-        return;
-    }
+    const item = document.createElement("li");
+    item.dataset.id = event.id;
+    if (event.done) item.classList.add("is-done");
 
-    const rows = el.rows.querySelectorAll(".workout-row");
-    let added = 0;
-
-    rows.forEach(function (row) {
-        const type = row.querySelector(".workout-type").value;
-        const name = row.querySelector(".workout-name").value.trim();
-        if (!type) return;   // a row with no type picked is an empty row, not an error
-
-        // TODO(backend): POST instead of pushing, and re-render from the response
-        events.push({ id: eventIdCounter++, date: date, type: type, name: name, done: false });
-        added++;
+    const check = document.createElement("input");
+    check.type = "checkbox";
+    check.className = "reminder-check";
+    check.checked = !!event.done;
+    check.setAttribute("aria-label", "Mark " + label + " complete");
+    check.addEventListener("change", function () {
+        item.classList.toggle("is-done", check.checked);
     });
 
-    if (!added) {
-        rows[0].querySelector(".workout-type").focus();
+    const title = document.createElement("div");
+    title.className = "reminder-title";
+    title.textContent = label;
+
+    const sub = document.createElement("div");
+    sub.className = "reminder-sub";
+    sub.textContent = event.type;
+
+    const body = document.createElement("div");
+    body.className = "reminder-body";
+    body.append(title, sub);
+
+    const remove = document.createElement("input");
+    remove.type = "checkbox";
+    remove.className = "reminder-delete";
+    remove.setAttribute("aria-label", "Delete " + label);
+    remove.title = "Delete on save";
+    // a row cannot be both completed and deleted, so staging one drops the other
+    remove.addEventListener("change", function () {
+        item.classList.toggle("is-staged-delete", remove.checked);
+        if (remove.checked) {
+            check.checked = false;
+            item.classList.remove("is-done");
+        }
+        check.disabled = remove.checked;
+    });
+
+    item.append(check, body, remove);
+    return item;
+}
+
+async function saveReminders() {
+    const date = toISO(today);
+    const workouts = [];
+    const deleted = [];
+
+    el.reminders.querySelectorAll("li[data-id]").forEach(function (item) {
+        const id = Number(item.dataset.id);
+        if (item.querySelector(".reminder-delete").checked) {
+            deleted.push(id);
+        } else {
+            workouts.push({ id: id, done: item.querySelector(".reminder-check").checked });
+        }
+    });
+
+    if (!workouts.length && !deleted.length) return;
+
+    if (deleted.length && !confirm("Delete " + deleted.length + " workout" +
+        (deleted.length > 1 ? "s" : "") + "? This cannot be undone.")) {
         return;
     }
 
-    resetForm();
+    const result = await postJSON('/api/updateCalendarWorkouts',
+        { date: date, workouts: workouts, deleted: deleted }, 'Update failed');
+    if (!result) return;
 
-    // jump the view to the month the workouts landed in, so they are visible
-    const d = fromISO(date);
-    currentMonth = d.getMonth();
-    currentYear = d.getFullYear();
+    replaceDay(date, result.workouts);
     showCalendar(currentMonth, currentYear);
 }
 
-function deleteEvent(eventId) {
-    const i = events.findIndex(function (event) { return event.id === eventId; });
-    if (i === -1) return;
-    // TODO(backend): DELETE the row, then re-render from the response
-    events.splice(i, 1);
-    showCalendar(currentMonth, currentYear);
-}
+// ── Add-workout form ──────────────────────────────────────────────────────────
 
-function resetForm() {
-    el.date.value = "";
-    // drop every row but the first, then clear it
-    while (el.rows.children.length > 1) el.rows.removeChild(el.rows.lastElementChild);
-    const first = el.rows.firstElementChild;
-    first.querySelector(".workout-type").value = "";
-    first.querySelector(".workout-name").value = "";
-    first.style.removeProperty("--row-color");
-    syncRowState();
-}
+// fills one row's name dropdown from the type it just picked. takes the row rather
+// than an id because cloned rows would collide on any id this markup carried.
+async function GetWorkoutNamesByType(row) {
+    const typeSelect = row.querySelector(".workout-type");
+    const nameSelect = row.querySelector(".workout-name");
+    const type = typeSelect.value;
 
-// ── Workout rows ──────────────────────────────────────────────────────────────
+    nameSelect.innerHTML = NAME_PLACEHOLDER;
+    if (!type) return;
+
+    const result = await postJSON('/api/getWorkoutNamesByType', { type: type }, 'Lookup failed');
+    if (!result) return;
+
+    // the type may have been changed again while this request was in flight; drop the
+    // stale response rather than filling the row with the wrong names
+    if (typeSelect.value !== type) return;
+
+    // the throwing table keys its workouts off day_name, warmup off name, everything else off workout_name
+    const keyMap = {
+        Throwing: "day_name",
+        Warmup: "name"
+    }
+    const key = keyMap[type] || "workout_name";
+
+
+    result.forEach(function (item) {
+        const option = document.createElement("option");
+        option.value = item[key];
+        option.textContent = item[key];
+        nameSelect.appendChild(option);
+    });
+}
 
 function addWorkoutRow() {
     const row = el.rows.firstElementChild.cloneNode(true);
     row.querySelector(".workout-type").value = "";
-    row.querySelector(".workout-name").value = "";
+    row.querySelector(".workout-name").innerHTML = NAME_PLACEHOLDER;
     row.style.removeProperty("--row-color");
     el.rows.appendChild(row);
     syncRowState();
@@ -376,6 +374,79 @@ function addWorkoutRow() {
 // unless the container is marked multi
 function syncRowState() {
     el.rows.classList.toggle("is-multi", el.rows.children.length > 1);
+}
+
+function resetForm() {
+    el.date.value = "";
+    // drop every row but the first, then clear it
+    while (el.rows.children.length > 1) el.rows.removeChild(el.rows.lastElementChild);
+    const first = el.rows.firstElementChild;
+    first.querySelector(".workout-type").value = "";
+    first.querySelector(".workout-name").innerHTML = NAME_PLACEHOLDER;
+    first.style.removeProperty("--row-color");
+    syncRowState();
+}
+
+// the form's rows as {type, name} pairs, or null once a half-filled row has been
+// flagged to the user. for..of because returning from a forEach only skips a row.
+async function addWorkout() {
+    const date = el.date.value;
+    if (!date) {
+        el.date.focus();
+        return;
+    }
+
+    const workouts = collectWorkoutRows();
+    if (!workouts) return;
+
+    const result = await postJSON('/api/addWorkouttoCalendar',
+        { date: date, workouts: workouts }, 'Save failed');
+    if (!result) return;
+
+    replaceDay(date, result.workouts);
+    resetForm();
+
+    // jump the view to the month the workouts landed in, so they are visible
+    const d = fromISO(date);
+    currentMonth = d.getMonth();
+    currentYear = d.getFullYear();
+    showCalendar(currentMonth, currentYear);
+}
+
+function collectWorkoutRows() {
+    const rows = el.rows.querySelectorAll(".workout-row");
+    const workouts = [];
+
+    for (const row of rows) {
+        const typeSelect = row.querySelector(".workout-type");
+        const nameSelect = row.querySelector(".workout-name");
+        const type = typeSelect.value;
+        const name = nameSelect.value.trim();
+
+        // a row with nothing picked at all is an empty row, not an error
+        if (!type && !name) continue;
+
+        if (!type) {
+            alert("Pick a workout type for every row before saving.");
+            typeSelect.focus();
+            return null;
+        }
+        if (!name) {
+            alert("Pick a workout name for every row before saving.");
+            nameSelect.focus();
+            return null;
+        }
+
+        workouts.push({ type: type, name: name });
+    }
+
+    if (!workouts.length) {
+        alert("Add at least one workout before saving.");
+        rows[0].querySelector(".workout-type").focus();
+        return null;
+    }
+
+    return workouts;
 }
 
 // ── Navigation ────────────────────────────────────────────────────────────────
@@ -450,49 +521,63 @@ function buildLegend() {
 
 // ── Wiring ────────────────────────────────────────────────────────────────────
 
-document.getElementById("previous").addEventListener("click", previous);
-document.getElementById("next").addEventListener("click", next);
-document.getElementById("jumpToday").addEventListener("click", jumpToday);
-document.getElementById("addEvent").addEventListener("click", addEvent);
-document.getElementById("addWorkoutRow").addEventListener("click", addWorkoutRow);
-el.month.addEventListener("change", jump);
-el.year.addEventListener("change", jump);
+function wireEvents() {
+    document.getElementById("previous").addEventListener("click", previous);
+    document.getElementById("next").addEventListener("click", next);
+    document.getElementById("jumpToday").addEventListener("click", jumpToday);
+    document.getElementById("addWorkout").addEventListener("click", addWorkout);
+    document.getElementById("addWorkoutRow").addEventListener("click", addWorkoutRow);
+    el.saveReminders.addEventListener("click", saveReminders);
+    el.month.addEventListener("change", jump);
+    el.year.addEventListener("change", jump);
 
-// delegated, so cloned rows are wired without rebinding
-el.rows.addEventListener("click", function (e) {
-    const remove = e.target.closest(".btn-remove-row");
-    if (!remove || el.rows.children.length === 1) return;
-    remove.closest(".workout-row").remove();
-    syncRowState();
-});
+    // delegated, so cloned rows are wired without rebinding
+    el.rows.addEventListener("click", function (e) {
+        const remove = e.target.closest(".btn-remove-row");
+        if (!remove || el.rows.children.length === 1) return;
+        remove.closest(".workout-row").remove();
+        syncRowState();
+    });
 
-// tint a row's left edge with the colour its type gets on the calendar
-el.rows.addEventListener("change", function (e) {
-    if (!e.target.classList.contains("workout-type")) return;
-    const row = e.target.closest(".workout-row");
-    const type = e.target.value;
-    if (type) {
-        row.style.setProperty("--row-color", "var(--type-" + typeSlug(type) + ")");
-    } else {
-        row.style.removeProperty("--row-color");
-    }
-});
+    // delegated too: load the picked type's names, and tint the row's left edge with
+    // the colour that type gets on the calendar
+    el.rows.addEventListener("change", function (e) {
+        if (!e.target.classList.contains("workout-type")) return;
+        const row = e.target.closest(".workout-row");
+        const type = e.target.value;
 
-// clicking a day selects it and loads it into the form's date field
-el.body.addEventListener("click", function (e) {
-    const cell = e.target.closest("td.date-picker");
-    if (!cell) return;
+        GetWorkoutNamesByType(row);
 
-    const y = Number(cell.dataset.year);
-    const m = Number(cell.dataset.month) - 1;
-    const d = Number(cell.dataset.date);
+        if (type) {
+            row.style.setProperty("--row-color", "var(--type-" + typeSlug(type) + ")");
+        } else {
+            row.style.removeProperty("--row-color");
+        }
+    });
 
-    selectedKey = dayKey(y, m, d);
-    el.date.value = toISO(new Date(y, m, d));
+    // clicking a day selects it and loads it into the form's date field
+    el.body.addEventListener("click", function (e) {
+        const cell = e.target.closest("td.date-picker");
+        if (!cell) return;
+
+        const y = Number(cell.dataset.year);
+        const m = Number(cell.dataset.month) - 1;
+        const d = Number(cell.dataset.date);
+
+        selectedKey = dayKey(y, m, d);
+        el.date.value = toISO(new Date(y, m, d));
+        showCalendar(currentMonth, currentYear);
+    });
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+
+function init() {
+    buildHead();
+    buildYears();
+    buildLegend();
+    wireEvents();
     showCalendar(currentMonth, currentYear);
-});
+}
 
-buildHead();
-buildYears();
-buildLegend();
-showCalendar(currentMonth, currentYear);
+init();
