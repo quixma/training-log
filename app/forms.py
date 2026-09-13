@@ -5,7 +5,7 @@ from flask import request, flash, redirect, url_for, jsonify
 from pydantic import ValidationError
 from werkzeug.utils import secure_filename
 import os
-from config import config
+from config import Config
 
 @app.route('/submit_insznthrow', methods = ["POST"])
 def submit_insznthrow():

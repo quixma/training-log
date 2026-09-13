@@ -16,7 +16,7 @@ import math
 import numpy as np
 import subprocess
 from datetime import datetime
-from config import config
+from config import Config
 
 #-----------BULLPEN REPORT------------
 @app.route('/api/report_data', methods = ["POST"])
