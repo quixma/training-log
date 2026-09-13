@@ -2,6 +2,7 @@ import sqlite3
 import os
 import io
 import pandas as pd
+from config import Config
 
 def get_db_connection():
     conn = sqlite3.connect(Config.DB_PATH)
