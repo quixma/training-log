@@ -110,7 +110,6 @@ def get_throwing_notes_dates():
 
 def get_bullpen_report_files():
     filenames = os.listdir(Config.BULLPEN_UPLOAD_FOLDER)
-    filenames = os.listdir(folder_path)
 
     return filenames
 
