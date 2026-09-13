@@ -1,0 +1,734 @@
+/* ============================================
+   INSZN — Training Calendar
+   Theme: Dark Performance / Athletic Tracker
+   Matches inszn_home.css / workout_dashboard.css
+   ============================================ */
+
+/* ── Root Variables ─────────────────────────── */
+/* redeclared per-page, the same way every other page stylesheet in this app does */
+:root {
+  --bg-base:        #0d0f14;
+  --bg-card:        #13161e;
+  --bg-input:       #1a1e29;
+  --bg-input-focus: #1f2433;
+  --bg-row-alt:     rgba(255,255,255,0.025);
+  --bg-row-hover:   rgba(232,56,59,0.06);
+  --border:         #252a38;
+  --border-focus:   #e8383b;
+  --accent:         #e8383b;
+  --accent-dim:     rgba(232, 56, 59, 0.15);
+  --accent-2:       #f59e0b;
+  --text-primary:   #eef0f6;
+  --text-secondary: #7b82a0;
+  --text-label:     #a0a8c4;
+  --radius-sm:      6px;
+  --radius-lg:      16px;
+  --transition:     0.18s ease;
+  --shadow-card:    0 4px 32px rgba(0,0,0,0.45);
+
+  /* workout_type → chip colour. one per value in models.WORKOUT_TYPES, held at a
+     similar luminance so six categories still read as a single system. */
+  --type-lift:        #e8383b;
+  --type-armcare:     #f59e0b;
+  --type-back-core:   #a78bfa;
+  --type-individual-workout: #38bdf8;
+  --type-mobility:    #2dd4bf;
+  --type-conditioning:#a3e635;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background-color: var(--bg-base);
+  background-image: radial-gradient(ellipse 80% 40% at 50% -5%, rgba(232,56,59,0.07) 0%, transparent 65%);
+  color: var(--text-primary);
+  font-family: 'Barlow', sans-serif;
+  font-size: 15px;
+  min-height: 100vh;
+  padding: 0 0 80px;
+}
+
+/* ── Header ─────────────────────────────────── */
+header {
+  position: relative;
+  padding: 36px 40px 28px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+  overflow: hidden;
+}
+header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%);
+}
+header h1 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+header h1 span { color: var(--accent); }
+
+/* ── Page Grid ──────────────────────────────── */
+/* minmax(0, 1fr) so the calendar absorbs the leftover width without the
+   table's content being able to push the column wider than the viewport */
+.calendar-page {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.calendar-side {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+/* ── Section Card ───────────────────────────── */
+.section-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  min-width: 0;
+}
+
+.section-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.section-card-header h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.card-body { padding: 20px 24px 24px; }
+
+.day-meta {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* ── Form Fields ────────────────────────────── */
+.field-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+}
+
+.field-group label,
+.calendar-foot label {
+  font-family: 'Barlow', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-label);
+  margin-bottom: 6px;
+}
+
+.card-body input[type="text"],
+.card-body input[type="date"],
+.card-body select {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: 'Barlow', sans-serif;
+  font-size: 0.9rem;
+  padding: 9px 12px;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.card-body input:focus,
+.card-body select:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  background: var(--bg-input-focus);
+}
+
+.card-body select option { background: #1a1e29; color: var(--text-primary); }
+
+/* the native date picker icon is near-black on a dark field, so invert it */
+.card-body input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+  cursor: pointer;
+}
+
+/* ── Workout Rows ───────────────────────────── */
+.workout-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.workout-row {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 12px 12px 14px;
+  transition: border-color var(--transition);
+}
+
+.workout-row:hover { border-color: rgba(232,56,59,0.3); }
+
+/* the row's colour follows the type picked in it, set from JS */
+.workout-row::before {
+  content: '';
+  position: absolute;
+  top: 10px; bottom: 10px; left: 0;
+  width: 2px;
+  border-radius: 0 2px 2px 0;
+  background: var(--row-color, var(--border));
+  transition: background var(--transition);
+}
+
+/* single-row state: nothing to remove, so hide the control */
+.workout-rows:not(.is-multi) .btn-remove-row { display: none; }
+
+.btn-remove-row {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--transition), background var(--transition);
+}
+.btn-remove-row:hover { color: var(--accent); background: var(--bg-input); }
+
+/* ── Buttons ────────────────────────────────── */
+.btn-ghost {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-label);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 9px 14px;
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+.btn-ghost:hover {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
+.btn-save {
+  width: 100%;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 11px 16px;
+  margin-top: 14px;
+  cursor: pointer;
+  transition: filter var(--transition);
+}
+.btn-save:hover { filter: brightness(1.12); }
+
+/* ── Today List ─────────────────────────────── */
+.reminder-list { list-style: none; }
+
+.reminder-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+}
+.reminder-list li:last-child { border-bottom: none; }
+.reminder-list li:first-child { padding-top: 0; }
+
+.reminder-check {
+  appearance: none;
+  flex-shrink: 0;
+  width: 17px;
+  height: 17px;
+  margin-top: 2px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+.reminder-check:hover { border-color: var(--text-secondary); }
+.reminder-check:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+/* the tick is drawn rather than a glyph so it scales with the box */
+.reminder-check:checked::after {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 8px;
+  margin: 2px 0 0 5px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.reminder-body { flex: 1; min-width: 0; }
+
+.reminder-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.35;
+}
+
+.reminder-sub {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* completed rows recede but stay readable */
+.reminder-list li.is-done .reminder-title {
+  color: var(--text-secondary);
+  text-decoration: line-through;
+}
+
+.btn-remove-event {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color var(--transition), background var(--transition);
+}
+.btn-remove-event:hover { color: var(--accent); background: var(--bg-input); }
+
+.empty-state {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* ── Calendar Card ──────────────────────────── */
+/* .section-card clips to its radius, which would cut the day tooltips off at the
+   card edge — nothing else in this card overflows, so let it show */
+.calendar-card {
+  position: relative;
+  overflow: visible;
+}
+
+.calendar-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.calendar-head h2 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.65rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  text-align: center;
+  min-width: 280px;
+}
+
+.nav-btn {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--text-label);
+  font-size: 1.4rem;
+  line-height: 1;
+  padding-bottom: 3px;
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+.nav-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* ── Calendar Grid ──────────────────────────── */
+.calendar-scroll { padding: 16px 18px; }
+
+.table-calendar {
+  width: 100%;
+  table-layout: fixed;          /* seven even columns regardless of chip text */
+  border-collapse: separate;
+  border-spacing: 5px;
+}
+
+.table-calendar th {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  text-align: left;
+  padding: 0 8px 8px;
+}
+
+.table-calendar td {
+  height: 112px;
+  vertical-align: top;
+  padding: 7px 8px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  /* small radius against the card's 16px, so the tiles read as contents of the card */
+  border-radius: var(--radius-sm);
+  transition: background var(--transition), border-color var(--transition);
+}
+
+/* leading/trailing cells: keep the grid square without drawing empty tiles */
+.table-calendar td.day-empty {
+  background: none;
+  border-color: transparent;
+}
+
+/* Saturday and Sunday, by column position — correct under table-layout: fixed,
+   unlike an :nth-child() rule, which the month's leading blanks would shift */
+.table-calendar td:first-child,
+.table-calendar td:last-child {
+  background: rgba(255,255,255,0.01);
+}
+
+.date-picker { cursor: pointer; }
+.date-picker:hover {
+  background: var(--bg-row-hover);
+  border-color: rgba(232,56,59,0.35);
+}
+
+.date-num {
+  display: block;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-label);
+  margin-bottom: 5px;
+}
+
+/* today: filled and ringed */
+.date-picker.is-today {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+.date-picker.is-today .date-num { color: var(--accent); }
+
+/* the clicked day: outlined only, so it never competes with today's fill */
+.date-picker.is-selected { border-color: var(--text-secondary); }
+.date-picker.is-today.is-selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+
+/* ── Workout Chips ──────────────────────────── */
+.chip-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.chip {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-primary);
+  padding: 3px 6px;
+  border-left: 2px solid var(--chip-color, var(--accent));
+  border-radius: 3px;
+  background: rgba(255,255,255,0.05);                                  /* fallback */
+  background: color-mix(in srgb, var(--chip-color, var(--accent)) 16%, transparent);
+  /* one line per chip; the day cell height is fixed, so long names clip rather than reflow */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.chip.is-done { opacity: 0.45; text-decoration: line-through; }
+
+/* only three labelled chips fit a day cell; the rest are summarised by .chip-more
+   and listed in full in the tooltip. keep in step with MAX_CHIPS in the JS. */
+.chip-stack .chip:nth-child(n+4) { display: none; }
+
+.chip-lift         { --chip-color: var(--type-lift); }
+.chip-armcare      { --chip-color: var(--type-armcare); }
+.chip-back-core    { --chip-color: var(--type-back-core); }
+.chip-individual-workout { --chip-color: var(--type-individual-workout); }
+.chip-mobility     { --chip-color: var(--type-mobility); }
+.chip-conditioning { --chip-color: var(--type-conditioning); }
+
+.chip-more {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  padding: 2px 6px;
+}
+
+/* ── Day Tooltip ────────────────────────────── */
+/* the cell only fits three chips; the tooltip carries the day's full list */
+.date-picker { position: relative; }
+
+.event-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  transform: translateX(-50%);
+  z-index: 20;
+  min-width: 190px;
+  max-width: 260px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  padding: 10px 12px;
+  text-align: left;
+  white-space: normal;
+  display: none;
+}
+
+.date-picker:hover .event-tooltip,
+.date-picker:focus-within .event-tooltip { display: block; }
+
+/* a centred tooltip on the Sunday/Saturday columns hangs off the side of the
+   card, so pin those two to the inside edge instead */
+.table-calendar td:first-child .event-tooltip {
+  left: 0;
+  right: auto;
+  transform: none;
+}
+.table-calendar td:last-child .event-tooltip {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+.event-tooltip .tt-date {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  padding-bottom: 6px;
+  margin-bottom: 7px;
+  border-bottom: 1px solid var(--border);
+}
+
+.event-tooltip .tt-row {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  padding: 3px 0;
+}
+
+.event-tooltip .tt-dot {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--chip-color, var(--accent));
+}
+
+.event-tooltip .tt-name { color: var(--text-primary); font-weight: 600; }
+.event-tooltip .tt-type { color: var(--text-secondary); font-size: 0.75rem; }
+
+/* ── Calendar Footer ────────────────────────── */
+.calendar-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+}
+
+.calendar-foot label { margin-bottom: 0; }
+
+.calendar-foot select {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: 'Barlow', sans-serif;
+  font-size: 0.85rem;
+  padding: 7px 10px;
+  cursor: pointer;
+  transition: border-color var(--transition);
+}
+.calendar-foot select:focus { outline: none; border-color: var(--border-focus); }
+.calendar-foot select option { background: #1a1e29; color: var(--text-primary); }
+
+.btn-today {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-label);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition);
+}
+.btn-today:hover { color: var(--text-primary); border-color: var(--accent); }
+
+/* ── Type Legend ────────────────────────────── */
+.chip-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+}
+
+.legend-swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--chip-color, var(--accent));
+}
+
+/* ── Focus Visibility ───────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── Scrollbars ─────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+/* ── Responsive ─────────────────────────────── */
+@media (max-width: 1200px) {
+  .calendar-page { grid-template-columns: 280px minmax(0, 1fr); }
+  .calendar-head h2 { min-width: 200px; font-size: 1.4rem; }
+  .chip-legend { display: none; }   /* the chips stay colour-coded; the key is what goes */
+}
+
+/* one column: the form and today's list sit above the calendar */
+@media (max-width: 900px) {
+  .calendar-page {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 20px 12px;
+    gap: 16px;
+  }
+  header { padding: 24px 20px 18px; }
+  .calendar-scroll { padding: 12px 10px; }
+  .table-calendar { border-spacing: 4px; }
+  .table-calendar td { height: 76px; padding: 5px; }
+  .table-calendar th { font-size: 0.62rem; letter-spacing: 0.08em; text-align: center; padding: 0 0 6px; }
+  .date-num { text-align: center; font-size: 0.85rem; margin-bottom: 4px; }
+
+  /* chips collapse to a centred dot row — the label text has no room to be legible */
+  .chip-stack {
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 3px;
+  }
+  .chip {
+    width: 6px;
+    height: 6px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    text-indent: -9999px;      /* keeps the name for screen readers */
+    background: var(--chip-color, var(--accent));
+  }
+  .chip.is-done { opacity: 0.3; }
+  /* as dots they all fit, so nothing is truncated and no "+N more" is needed */
+  .chip-stack .chip:nth-child(n+4) { display: block; }
+  .chip-more { display: none; }
+
+  /* a tooltip pinned to a cell would overflow the narrow grid, so the day's
+     detail comes from tapping into today's list instead */
+  .event-tooltip { display: none !important; }
+}
+
+@media (max-width: 500px) {
+  .table-calendar td { height: 62px; }
+  .calendar-head { gap: 10px; padding: 16px 12px; }
+  .calendar-head h2 { min-width: 0; flex: 1; font-size: 1.15rem; }
+  .calendar-foot { padding: 14px 16px; }
+  .card-body { padding: 16px 18px 20px; }
+  .section-card-header { padding: 16px 18px; }
+}
+
+/* ── Reduced Motion ─────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

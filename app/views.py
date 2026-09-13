@@ -101,4 +101,4 @@ def lifting_forms():
 
 @app.route('/training_calendar', methods=["GET", "POST"])
 def training_calendar():
-    return render_template('training_calendar.html')
+    return render_template('training_calendar.html', workout_types = WORKOUT_TYPES)

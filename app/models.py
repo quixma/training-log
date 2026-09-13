@@ -477,7 +477,7 @@ def get_warmups():
 
 #every workout type lives in one table now; these labels are the form dropdown, the dashboard filter,
 #and the workouts.workout_type CHECK constraint, so they have to stay in step with the schema
-WORKOUT_TYPES = ('Lift', 'Armcare', 'Back/Core', 'Individual Workout', 'Mobility', 'Conditioning')
+WORKOUT_TYPES = ('Lift', 'Armcare', 'Back/Core', 'Individual Workout', 'Mobility', 'Conditioning', "Throwing")
 
 def _format_workout(cursor, workout):
     #shared card shape for every workout type: the session row plus its exercises, with notes
@@ -534,7 +534,7 @@ def get_workout_by_name(workout_type, name):
         conn.close()
         return None
 
-    workout_formatted = _format_workout(cursor, workout)
+    workout_formatted = _format_workout(cursor, workout) #gets workout details, exercises, etc formats and returns them here to pass to frontend.
     conn.close()
     return workout_formatted
 
@@ -717,6 +717,13 @@ def delete_warmup(warmup_id):
 def delete_throwing_day(day_id):
     return _delete_record("throwing_days", "id", day_id)
 
+def get_throwing_workouts_by_name():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    names = cursor.execute("select day_name from throwing_days where ID IS NOT NULL order by ID desc").fetchall()
+    conn.close()
+    return names
 
 #── outing report data ───────────────────────────────────────────────────
 #the postgame CSV exports and the pitch-by-pitch file are read and shaped here;

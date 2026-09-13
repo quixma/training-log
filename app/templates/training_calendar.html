@@ -1,11 +1,113 @@
 {% extends "inszn_base.html" %}
 {% block styles %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/training_calendar.css') }}">
 {% endblock %}
 {% block content %}
 <header>
-  <h1>Training Calendar</h1>
+    <h1>Training <span>Calendar</span></h1>
 </header>
 
+<div class="calendar-page">
+
+    <!-- ── Left column: add workouts + today ──────────────── -->
+    <aside class="calendar-side">
+
+        <section class="section-card">
+            <div class="section-card-header">
+                <h3>Add Workouts</h3>
+            </div>
+            <div class="card-body">
+                <div class="field-group">
+                    <label for="eventDate">Date</label>
+                    <input type="date" id="eventDate">
+                </div>
+
+                <!-- one .workout-row per workout being logged for that date; JS clones the
+                     first row's markup, so keep the structure and names in step with it -->
+                <div class="workout-rows" id="workoutRows">
+                    <div class="workout-row">
+                        <button type="button" class="btn-remove-row" aria-label="Remove this workout">&times;</button>
+                        <select class="workout-type" id="workout-type" aria-label="Workout type">
+                            <option value="">Workout type</option>
+                            {% for type in workout_types %}
+                            <option value="{{ type }}">{{ type }}</option>
+                            {% endfor %}
+                        </select>
+                        <select class="workout-name" id="workout-name"aria-label="Workout name" >
+                            <option value="">Workout name</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-ghost" id="addWorkoutRow">+ Add another</button>
+                <!-- TODO(backend): POST these rows to an insert route, then re-render the
+                     month and today's list from the response instead of reloading -->
+                <button type="button" class="btn-save" id="addEvent">Save workouts</button>
+            </div>
+        </section>
+
+        <section class="section-card">
+            <div class="section-card-header">
+                <h3>Today</h3>
+                <span class="day-meta" id="todayDate"></span>
+            </div>
+            <div class="card-body">
+                <ul class="reminder-list" id="reminderList"></ul>
+            </div>
+        </section>
+
+    </aside>
+
+    <!-- ── Calendar ───────────────────────────────────────── -->
+    <section class="section-card calendar-card">
+
+        <div class="calendar-head">
+            <button type="button" class="nav-btn" id="previous" aria-label="Previous month">&lsaquo;</button>
+            <h2 id="monthAndYear"></h2>
+            <button type="button" class="nav-btn" id="next" aria-label="Next month">&rsaquo;</button>
+        </div>
+
+        <div class="calendar-scroll">
+            <table class="table-calendar" id="calendar" data-lang="en">
+                <thead id="thead-month"></thead>
+                <tbody id="calendar-body"></tbody>
+            </table>
+        </div>
+
+        <div class="calendar-foot">
+            <label for="month">Jump to</label>
+            <select id="month" aria-label="Month">
+                <option value="0">Jan</option>
+                <option value="1">Feb</option>
+                <option value="2">Mar</option>
+                <option value="3">Apr</option>
+                <option value="4">May</option>
+                <option value="5">Jun</option>
+                <option value="6">Jul</option>
+                <option value="7">Aug</option>
+                <option value="8">Sep</option>
+                <option value="9">Oct</option>
+                <option value="10">Nov</option>
+                <option value="11">Dec</option>
+            </select>
+            <select id="year" aria-label="Year"></select>
+            <button type="button" class="btn-today" id="jumpToday">Today</button>
+
+            <!-- colour key for the day chips; built from WORKOUT_TYPES so it cannot drift -->
+            <span class="chip-legend" id="chipLegend"></span>
+        </div>
+
+    </section>
+
+</div>
+
+<script>
+    // the workout_type CHECK constraint is the source of truth for these; passed through
+    // from the route so the chip colours, legend and dropdown can never drift from the schema
+    const WORKOUT_TYPES = {{ workout_types | tojson }};
+</script>
 <script src="{{ url_for('static', filename='js/training_calendar.js') }}"></script>
 {% endblock %}

@@ -308,7 +308,7 @@ function UpdateWarmupTable(data) {
     warmupCard.dataset.recordId = data.id || "";
     syncEditButton(editWarmupBtn, warmupCard);
 
-    const row = tbody.insertRow();
+    const row = tbody.insertRow(); togther
     addCell(row, "Name").textContent = data.name;
     addCell(row, "Rollout Exercises").innerHTML = data.rollout_ex;
     addCell(row, "Spine Exercises").innerHTML = data.spine_ex;
@@ -326,11 +326,11 @@ editWorkoutBtn.onclick = async function () {
     if (!record) {
         return;
     }
-
     document.getElementById("edit-workout-date").value = record.date;
     document.getElementById("edit-workout-type").value = record.workout_type;
     document.getElementById("edit-workout-name").value = record.workout_name;
     document.getElementById("edit-workout-notes").value = record.notes;
+    //fills in exercise details, sets, reps etc
     fillModalRows('edit-ex-rows', 'ex-row-template', record.exercises, EXERCISE_FIELDS);
 
     openModal('editWorkout-modal');

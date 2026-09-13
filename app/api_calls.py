@@ -1,7 +1,7 @@
 from app import app
 from app.input_validation import UpdateThrowingPlanModel, PlayerGoalsModel, UpdateWorkoutModel, UpdateWarmupModel, UpdateThrowingDayModel
 from app.models import get_db_connection, get_warmup_by_name, get_workout_by_name, get_workout_names, get_latest_workout, WORKOUT_TYPES
-from app.models import get_throwing_day_by_name, get_bodyNotes
+from app.models import get_throwing_day_by_name, get_bodyNotes, get_throwing_workouts_by_name
 from app.models import get_workout_for_edit, get_warmup_for_edit, get_throwing_day_for_edit
 from app.models import update_workout, update_warmup, update_throwing_day
 from app.models import delete_workout, delete_warmup, delete_throwing_day, blank_to_none
@@ -478,6 +478,7 @@ def getRecordForEdit():
     if result is None:
         return jsonify({"error": "record not found"}), 404
     return jsonify(result)
+
 @app.route("/api/updateWorkout", methods = ["POST"])
 def updateWorkout():
     data = request.get_json()
@@ -574,3 +575,21 @@ def deleteRecord():
     if not deleted:
         return jsonify({"error": "No row deleted"}), 404
     return jsonify({"status": "delete complete"}), 200
+
+@app.route("/api/getWorkoutNamesByType", methods = ["POST"]) #for training calendar
+def get_workout_names_by_type():
+    data = request.get_json()
+    workout_type = data.get("type")
+    
+    if workout_type not in WORKOUT_TYPES:
+        return jsonify({"error": "unknown workout type"}), 400
+    
+    if workout_type == "Throwing":
+        names = get_throwing_workouts_by_name()
+    else:
+        names = get_workout_names(workout_type)
+    
+    if names is None:
+        return jsonify({"error": "workout names not found"}), 404
+    
+    return jsonify([dict(row) for row in names])
