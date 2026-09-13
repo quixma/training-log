@@ -16,13 +16,14 @@ import math
 import numpy as np
 import subprocess
 from datetime import datetime
+from config import config
 
 #-----------BULLPEN REPORT------------
 @app.route('/api/report_data', methods = ["POST"])
 def report_data():
     data = request.get_json()
     file = data.get('file')
-    folder_path = "/home/quixma/Desktop/CS/training-log/bullpen_report_uploads" #has to change for pi version
+    folder_path = Config.BULLPEN_UPLOAD_FOLDER
     file_path = os.path.join(folder_path, file)
     file_data = pd.read_csv(file_path)
     

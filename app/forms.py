@@ -5,6 +5,7 @@ from flask import request, flash, redirect, url_for, jsonify
 from pydantic import ValidationError
 from werkzeug.utils import secure_filename
 import os
+from config import config
 
 @app.route('/submit_insznthrow', methods = ["POST"])
 def submit_insznthrow():
@@ -243,7 +244,7 @@ def file_upload():
                 flash("Invalid file: Upload a .csv file.")
                 redirect(url_for('bullpen_report'))
             else:  #add try catch for file save
-                file.save(f"/home/quixma/training-log/bullpen_report_uploads/{secure_filename(file.filename)}") #has to change for pi version
+                file.save(os.path.join(Config.BULLPEN_UPLOAD_FOLDER, secure_filename(file.filename)))
                 flash(f"Success: {file.filename} uploaded.")
         else:
             flash("No file uploaded: Try again.")
@@ -267,7 +268,7 @@ def upload_outing_csv():
             flash("Invalid file: Upload a .csv file.")
             continue
 
-        file.save(f"/home/quixma/Desktop/CS/training-log/outing_report_uploads/{secure_filename(file.filename)}")
+        file.save(os.path.join(Config.OUTING_UPLOAD_FOLDER, secure_filename(file.filename)))
         flash(f"Success: {file.filename} uploaded.")
 
     return redirect(url_for('outing_report'))

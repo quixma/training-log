@@ -5,7 +5,7 @@ __pycache__/
 *.pyd
 
 # SQLite databases (ignore live user data)
-*.db
+
 *.sqlite3
 *.sqbpro
 #except ones in backup folder
@@ -42,4 +42,8 @@ Thumbs.db
 *.log
 features.txt
 
+#folders
+/.claude
+/other_scripts
+/backup
 

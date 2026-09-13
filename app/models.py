@@ -4,7 +4,7 @@ import io
 import pandas as pd
 
 def get_db_connection():
-    conn = sqlite3.connect('training_log.db')
+    conn = sqlite3.connect(Config.DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -108,14 +108,13 @@ def get_throwing_notes_dates():
     return throwing_notes_dates
 
 def get_bullpen_report_files():
-    folder_path = "/home/quixma/Desktop/CS/training-log/bullpen_report_uploads" #this has to change for pi as well.
+    filenames = os.listdir(Config.BULLPEN_UPLOAD_FOLDER)
     filenames = os.listdir(folder_path)
 
     return filenames
 
 def get_outing_report_files():
-    folder_path = "/home/quixma/Desktop/CS/training-log/outing_report_uploads" #this has to change for pi as well.
-    filenames = [f for f in os.listdir(folder_path) if f.endswith('.csv')]
+    filenames = [f for f in os.listdir(Config.OUTING_UPLOAD_FOLDER) if f.endswith('.csv')]
 
     return filenames
 
@@ -744,7 +743,7 @@ def getCalendarWorkouts():
 #the postgame CSV exports and the pitch-by-pitch file are read and shaped here;
 #/api/outing_report_data assembles its response out of these pieces
 
-OUTING_REPORT_FOLDER = "/home/quixma/Desktop/CS/training-log/outing_report_uploads" #has to change for pi version
+OUTING_REPORT_FOLDER = Config.OUTING_UPLOAD_FOLDER
 
 #pBp pitch type names -> chart color, shared across the movement/release/velo/zone charts
 OUTING_PITCH_TYPE_COLORS = {
