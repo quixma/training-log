@@ -75,6 +75,55 @@ header h1 {
 }
 header h1 span { color: var(--accent); }
 
+/* ── Tab Nav ─────────────────────────────────── */
+.tab {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  overflow-x: auto;
+}
+.tablinks {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 16px 20px 14px;
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition);
+  white-space: nowrap;
+}
+.tablinks:hover { color: var(--text-primary); }
+.tablinks.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tablinks.tab-link { margin-left: auto; }
+.tablinks.tab-link:hover { color: var(--accent); }
+
+/* ── Tab Content ─────────────────────────────── */
+.tabcontent {
+  display: none;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  flex-direction: column;
+  gap: 24px;
+}
+.tabcontent.active { display: flex; }
+/* the calendar tab keeps its own two-column grid instead of the stacked flex layout.
+   both rules need the extra class: .calendar-page sets display: grid further down, which
+   would otherwise tie with .tabcontent on specificity and win on order, leaving the
+   calendar on screen underneath whichever tab you switched to. */
+.calendar-page.tabcontent { display: none; }
+.calendar-page.tabcontent.active { display: grid; }
+
 /* ── Page Grid ──────────────────────────────── */
 /* minmax(0, 1fr) so the calendar absorbs the leftover width without the
    table's content being able to push the column wider than the viewport */
@@ -439,6 +488,101 @@ header h1 span { color: var(--accent); }
   background: var(--accent-dim);
 }
 
+/* ── Tab Panel Tables ───────────────────────── */
+/* ported from workout_dashboard.css. scoped to the two tab panels so the bare
+   element selectors can't reach .table-calendar, which lays out on border-spacing */
+#warmup_workouts .table-scroll,
+#workouts .table-scroll { overflow-x: auto; }
+
+#warmup_workouts table,
+#workouts table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+
+#warmup_workouts thead tr,
+#workouts thead tr { background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border); }
+
+#warmup_workouts thead th,
+#workouts thead th {
+  padding: 11px 14px;
+  text-align: left;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-label);
+  white-space: nowrap;
+}
+
+#warmup_workouts tbody tr,
+#workouts tbody tr { border-bottom: 1px solid var(--border); transition: background var(--transition); }
+#warmup_workouts tbody tr:nth-child(even),
+#workouts tbody tr:nth-child(even) { background: var(--bg-row-alt); }
+#warmup_workouts tbody tr:hover,
+#workouts tbody tr:hover { background: var(--bg-row-hover); }
+
+#warmup_workouts tbody td,
+#workouts tbody td { padding: 11px 14px; color: var(--text-primary); vertical-align: top; line-height: 1.5; }
+#warmup_workouts tbody td:first-child,
+#workouts tbody td:first-child { color: var(--text-secondary); font-size: 0.8rem; white-space: nowrap; }
+
+/* ── Tab Panel Card Controls ────────────────── */
+.section-card-header select {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: 'Barlow', sans-serif;
+  font-size: 0.78rem;
+  padding: 7px 32px 7px 10px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237b82a0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  max-width: 220px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.section-card-header select:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.section-card-header select option { background: #1a1e29; color: var(--text-primary); }
+
+.workout-meta {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-right: auto;
+}
+
+.btn-action {
+  padding: 6px 14px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.btn-action.hidden { display: none; } /* nothing on screen to edit */
+.btn-action:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
 /* ── Calendar Grid ──────────────────────────── */
 .calendar-scroll { padding: 16px 18px; }
 
@@ -706,6 +850,260 @@ header h1 span { color: var(--accent); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
+/* ── Workout Notes Panel ────────────────────── */
+.workout-notes {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+}
+.workout-notes.hidden { display: none; }
+.workout-notes h4 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-label);
+  margin-bottom: 6px;
+}
+.workout-notes p {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* ── Modal Overlay ──────────────────────────── */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.modal.active { display: flex; }
+
+.modal-inner {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+  position: relative;
+  animation: modalIn 0.2s ease;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 36px 20px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg-card);
+  z-index: 1;
+}
+.modal-header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+.modal-header h2 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.4rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition), background var(--transition);
+}
+.modal-close:hover { color: var(--text-primary); background: var(--bg-input); }
+
+.modal-content {
+  padding: 28px 36px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Modal Form Fields ──────────────────────── */
+.modal-content label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-label);
+  margin-bottom: 6px;
+}
+.modal-content input[type="text"],
+.modal-content input[type="number"],
+.modal-content input[type="date"],
+.modal-content select,
+.modal-content textarea {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: 'Barlow', sans-serif;
+  font-size: 0.95rem;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color var(--transition), background var(--transition), box-shadow var(--transition);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  -webkit-appearance: none;
+  appearance: none;
+}
+.modal-content input:focus,
+.modal-content select:focus,
+.modal-content textarea:focus {
+  border-color: var(--border-focus);
+  background: var(--bg-input-focus);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.modal-content input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.5) sepia(1) hue-rotate(300deg) saturate(3);
+  cursor: pointer;
+}
+.modal-content textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+.modal-content .field-group { display: flex; flex-direction: column; }
+
+/* Modal save button */
+.modal-content button#saveGoals,
+.modal-content button.btn-save {
+  align-self: stretch;
+  padding: 14px;
+  background: var(--accent);
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background var(--transition), transform 0.1s ease, box-shadow var(--transition);
+  box-shadow: 0 4px 20px rgba(232,56,59,0.35);
+}
+.modal-content button#saveGoals:hover,
+.modal-content button.btn-save:hover {
+  background: #f04044;
+  box-shadow: 0 6px 28px rgba(232,56,59,0.5);
+  transform: translateY(-1px);
+}
+
+/* ── Modal Repeater Rows (edit workout / throwing day) ── */
+.modal-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-row {
+  display: grid;
+  grid-template-columns: 70px 1fr 100px;   /* block / exercise / sets-reps */
+  gap: 10px;
+  padding: 12px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--transition);
+}
+
+.modal-row.drill-row { grid-template-columns: 2fr 1fr 1fr; }
+.modal-row:hover { border-color: rgba(232,56,59,0.3); }
+.modal-row .row-notes { grid-column: 1 / -1; }
+
+/* the row inputs sit in a grid, so they keep the modal's field styling but no stacking margin */
+.modal-row input,
+.modal-row select { margin-bottom: 0; }
+
+.modal-btn-group { display: flex; gap: 10px; }
+.modal-btn-group button {
+  padding: 8px 16px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.modal-btn-group button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+.modal-btn-group button.btn-remove-row:hover {
+  border-color: #ef444480;
+  color: #f87171;
+  background: rgba(239,68,68,0.08);
+}
+
+/* destructive action sits under the save button, muted until hovered */
+.modal-content button.btn-danger {
+  align-self: stretch;
+  padding: 12px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.modal-content button.btn-danger:hover {
+  border-color: #ef444480;
+  color: #f87171;
+  background: rgba(239,68,68,0.08);
+}
+
+/* the calendar's own .btn-remove-row is the absolutely-positioned x on a workout row.
+   the modal's Remove Exercise button borrows the class, so put it back in flow. */
+.modal-btn-group button.btn-remove-row {
+  position: static;
+  width: auto;
+  height: auto;
+  font-size: 0.8rem;
+}
+
 /* ── Responsive ─────────────────────────────── */
 @media (max-width: 1200px) {
   .calendar-page { grid-template-columns: 280px minmax(0, 1fr); }
@@ -715,6 +1113,8 @@ header h1 span { color: var(--accent); }
 
 /* one column: the form and today's list sit above the calendar */
 @media (max-width: 900px) {
+  .tab { padding: 0 12px; }
+  .tabcontent { padding: 20px 12px; }
   .calendar-page {
     grid-template-columns: minmax(0, 1fr);
     padding: 20px 12px;
@@ -751,6 +1151,67 @@ header h1 span { color: var(--accent); }
   /* a tooltip pinned to a cell would overflow the narrow grid, so the day's
      detail comes from tapping into today's list instead */
   .event-tooltip { display: none !important; }
+}
+
+/* ── Mobile: tab panel tables read as stacked cards ─────
+   Same treatment as the workout dashboard: every cell in these two panels
+   carries data-label, so the header row becomes noise and each row can stack
+   into a labelled card instead of scrolling sideways. */
+@media (max-width: 900px) {
+  #warmup_workouts thead,
+  #workouts thead { display: none; }
+
+  #warmups_body tr,
+  #workout_body tr {
+    display: block;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 12px;
+    background: var(--bg-card);
+    overflow: hidden;
+  }
+
+  /* the zebra striping reads as broken cards once the rows are blocks */
+  #warmups_body tr:nth-child(even),
+  #workout_body tr:nth-child(even) { background: var(--bg-card); }
+
+  #warmups_body td,
+  #workout_body td {
+    display: block;
+    width: auto;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    white-space: normal !important;   /* beats nowrap on td:first-child */
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+  }
+
+  #warmups_body td:last-child,
+  #workout_body td:last-child { border-bottom: none; }
+
+  /* rich note bodies ({{ ... | safe }}) can carry markup that blows out the width */
+  #warmups_body td *,
+  #workout_body td * { max-width: 100%; }
+
+  /* only cells that actually carry a label get a heading, so the empty
+     trailing cell in the warmups row stays blank */
+  #warmup_workouts td[data-label]::before,
+  #workouts td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+
+  /* card controls stack instead of squeezing next to the heading */
+  .section-card-header select { max-width: 100%; width: 100%; }
 }
 
 @media (max-width: 500px) {

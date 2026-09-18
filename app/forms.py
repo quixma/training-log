@@ -144,11 +144,8 @@ def submit_workout_form():
             "motivation_value": request.form.get('motivation_rating'),
             "focus_value": request.form.get('focus_rating'),
             "explosiveness_value": request.form.get('explosiveness_survey'),
+            "body_weight": request.form.get("body_weight"),
             "body_notes": request.form.get('body_notes'),
-            "workout_completed": request.form.get('workout_completed'),
-            "spine_completed": request.form.get('spine_completed'),
-            "armcare_completed": request.form.get('armcare_completed'),
-            "conditioning_completed": request.form.get('conditioning_completed'),
             "workout_notes": request.form.get("workout_notes")
             }
         form_data = {key: None if value == "" else value for key, value in form_data.items()}
@@ -156,8 +153,8 @@ def submit_workout_form():
         
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO workout_log (date, energy_value, fatigue_value, motivation_value, focus_value, explosiveness_value, body_notes, workout_completed, spine_completed, armcare_completed, conditioning_completed, workout_notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
-                       (form_data["date"], form_data["energy_value"], form_data["fatigue_value"], form_data["motivation_value"], form_data["focus_value"], form_data["explosiveness_value"], form_data["body_notes"], form_data["workout_completed"], form_data["spine_completed"], form_data["armcare_completed"], form_data["conditioning_completed"], form_data["workout_notes"]))
+        cursor.execute('INSERT INTO workout_log (date, energy_value, fatigue_value, motivation_value, focus_value, explosiveness_value, bodyweight, body_notes, workout_notes) VALUES (?,?,?,?,?,?,?,?,?)',
+                       (form_data["date"], form_data["energy_value"], form_data["fatigue_value"], form_data["motivation_value"], form_data["focus_value"], form_data["explosiveness_value"], form_data["body_weight"], form_data["body_notes"], form_data["workout_notes"]))
         conn.commit()
         conn.close()
     

@@ -6,7 +6,7 @@ from app.models import get_workout_for_edit, get_warmup_for_edit, get_throwing_d
 from app.models import update_workout, update_warmup, update_throwing_day
 from app.models import delete_workout, delete_warmup, delete_throwing_day, blank_to_none
 from app.models import OUTING_REPORT_FOLDER, OUTING_SPLIT_COLUMNS, OUTING_MVMT_COLUMNS, OUTING_STRIKES_COLUMNS
-from app.models import OUTING_MISS_COLUMNS, OUTING_DAMAGE_COLUMNS, OUTING_SUMMARY_COLUMNS, INSZN_CHART_METRICS
+from app.models import OUTING_MISS_COLUMNS, OUTING_DAMAGE_COLUMNS, OUTING_SUMMARY_COLUMNS
 from app.models import read_outing_postgame_report, outing_table, outing_grouped_table, read_outing_pbp
 from pydantic import ValidationError
 from flask import jsonify, request, url_for, redirect, render_template
@@ -135,6 +135,19 @@ def outing_report_data():
     })
 
 #------------THROWING DASHBOARD------------
+#── chart data ───────────────────────────────────────────────────────────
+
+#metric -> table it lives on. Doubles as the allowlist that keeps a user-supplied string
+#from ever reaching the query as a column name.
+INSZN_CHART_METRICS = {
+    "body_weight": "throwing_sessions",
+    "total_throws": "throwing_sessions",
+    "acr": "throwing_sessions",
+    "avg_velo": "game_journal",
+    "max_velo": "game_journal",
+    "ip": "game_journal",
+}
+
 @app.route('/api/inszn_chart_data', methods = ["POST"])
 def inszn_chart_data():
     data = request.get_json()
@@ -147,6 +160,7 @@ def inszn_chart_data():
 
     conn= get_db_connection()
     cursor = conn.cursor()
+    
     #get last date for queries
     date = cursor.execute('select date from throwing_sessions order by date desc limit 1').fetchone()
     if date is None: #nothing logged yet
@@ -167,16 +181,38 @@ def inszn_chart_data():
             throws_dict["date"].append(row[0])
 
         return jsonify(throws_dict)
-
+    
+    if(metric == 'body_weight'): #2 seperate ways to log bodyweight, mainly for non throw times, or forgetting to log it on one. chart can still render all weights
+        bw1= cursor.execute("select date, body_weight from throwing_sessions where body_weight is not null order by date DESC LIMIT ?", (days,)).fetchall()
+        bw2 = cursor.execute("select date, bodyweight from workout_log where bodyweight is not null order by date desc LIMIT ?", (days,)).fetchall()
+        conn.close()
+        
+        bw = {
+            "date": [],
+            "body_weight": []
+            }
+        for row in bw1:
+            bw["date"].append(row[0])
+            bw["body_weight"].append(row[1])
+            
+        for row in bw2:
+            bw["date"].append(row[0])
+            bw["body_weight"].append(row[1])
+        
+        return jsonify(bw)
+    
     table = INSZN_CHART_METRICS.get(metric)
     if table is None:
         conn.close()
         return jsonify({"error": "unknown metric"}), 400
 
     #metric/table come from the allowlist above; date and the day offset are bound.
-    #an N-day window ending on the anchor date spans anchor-(N-1) .. anchor
-    results = cursor.execute(f'select {metric}, date from {table} Where date >= date(?, ?) and {metric} IS NOT NULL',
-                             (date[0], f'-{days - 1} days')).fetchall()
+    #an N-day window ending on the anchor date spans anchor-(N-1)
+    results = cursor.execute(
+    f'SELECT "{metric}", date FROM "{table}" '
+    f'WHERE date >= date(?, ?) AND "{metric}" IS NOT NULL '
+    f'ORDER BY date DESC',
+    (date[0], f"-{days} days"),).fetchall()
     conn.close()
     return jsonify([dict(row) for row in results])
 

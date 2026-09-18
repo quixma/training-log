@@ -73,21 +73,16 @@ def game_data_dashboard():
 @app.route('/workout_dashboard', methods=["GET", "POST"])
 def workout_dashboard():
     energy, fatigue, motivation, focus = get_RatingsAvgs()
-    rows = get_WorkoutsCompleted()
+    rows, wkout_dates = get_WorkoutsCompleted()
     dates = get_bodyNotes_dates()
     body_notes = get_bodyNotes()
-    warmup_names = get_warmup_names()
-    warmups = get_warmups()
-    #the workouts tab opens on the first type and swaps the rest in via /api/getWorkoutsByType
-    workout_names = get_workout_names(WORKOUT_TYPES[0])
-    workout = get_latest_workout(WORKOUT_TYPES[0])
     player_goals = get_player_goals('workout')
     player_goals_dates = get_player_goals_dates('workout')
 
     return render_template('workout_dashboard.html', energy = energy, fatigue = fatigue, motivation = motivation, focus = focus,
-                           rows = rows, dates = dates, body_notes = body_notes, warmup_names = warmup_names, warmups = warmups,
-                          workout_types = WORKOUT_TYPES, workout_names = workout_names, workout = workout,
-                          player_goals = player_goals, player_goals_dates = player_goals_dates)
+                          dates = dates, body_notes = body_notes,
+                          player_goals = player_goals, player_goals_dates = player_goals_dates,
+                          rows = rows, wkout_dates = wkout_dates)
 
 @app.route('/workout_form', methods=["GET", "POST"])
 def workout_form():
@@ -101,4 +96,11 @@ def lifting_forms():
 @app.route('/training_calendar', methods=["GET", "POST"])
 def training_calendar():
     workouts = getCalendarWorkouts()
-    return render_template('training_calendar.html', workout_types = WORKOUT_TYPES, workouts = workouts)
+    #the warmup and workout tabs are the same panels the dashboard shows, so they need the same data
+    warmup_names = get_warmup_names()
+    warmups = get_warmups()
+    workout_names = get_workout_names(WORKOUT_TYPES[0])
+    workout = get_latest_workout(WORKOUT_TYPES[0])
+    return render_template('training_calendar.html', workout_types = WORKOUT_TYPES, workouts = workouts,
+                           warmup_names = warmup_names, warmups = warmups,
+                           workout_names = workout_names, workout = workout)

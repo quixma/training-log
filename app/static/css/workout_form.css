@@ -112,6 +112,7 @@ h1::after {
 
 /* ── Standard Inputs / Selects / Textareas ─── */
 #workout-form input[type="date"],
+#workout-form input[type="number"],
 #workout-form select,
 #workout-form textarea {
   width: 100%;
@@ -130,6 +131,7 @@ h1::after {
 }
 
 #workout-form input[type="date"]:focus,
+#workout-form input[type="number"]:focus,
 #workout-form select:focus,
 #workout-form textarea:focus {
   border-color: var(--border-focus);
@@ -140,6 +142,16 @@ h1::after {
 #workout-form input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(0.5) sepia(1) hue-rotate(300deg) saturate(3);
   cursor: pointer;
+}
+
+#workout-form input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+#workout-form input[type="number"]::-webkit-outer-spin-button,
+#workout-form input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 #workout-form select {
@@ -161,6 +173,7 @@ h1::after {
   line-height: 1.6;
 }
 
+#workout-form input::placeholder,
 #workout-form textarea::placeholder {
   color: var(--text-secondary);
   opacity: 0.6;
@@ -184,6 +197,11 @@ h1::after {
   grid-template-columns: 1fr 1fr;
   gap: 16px;
   margin-bottom: 20px;
+}
+
+/* a field that needs the whole row rather than one of its columns */
+.row-2col > .span-full {
+  grid-column: 1 / -1;
 }
 
 /* ── Slider Fields ──────────────────────────── */

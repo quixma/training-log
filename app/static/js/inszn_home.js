@@ -581,6 +581,10 @@ function updateChart(data) {
         label_dataX = data.date;
         label_dataY = data.totalThrows7d;
     }
+    else if (metricMap == "body_weight") {
+        label_dataX = data.date;
+        label_dataY = data.body_weight;
+    }
     else {
         label_dataX = data.map(row => row.date);
         label_dataY = data.map(row => row[metricMap]);

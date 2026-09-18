@@ -387,27 +387,36 @@ def get_WorkoutsCompleted():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    date = cursor.execute('select date from workout_log order by date desc limit 1').fetchone()
-    #one row per date, with whatever was completed that day in its own column
-    completed = cursor.execute("""Select date, workout_completed, spine_completed, armcare_completed, conditioning_completed
-                                  from workout_log
-                                  WHERE date >= date(?, '-6 days')
-                                    AND (workout_completed IS NOT NULL OR spine_completed IS NOT NULL
-                                         OR armcare_completed IS NOT NULL OR conditioning_completed IS NOT NULL)
-                                  order by date desc""", (date[0],)).fetchall()
+    #the dashboard table has a column per type; anything else completed is skipped for now
+    DASHBOARD_TYPES = ('Lift', 'Back/Core', 'Armcare', 'Conditioning', 'Individual Workout')
+   
+    completed = cursor.execute("""select c.workout_date as date, w.workout_type, w.workout_name
+                                  from training_calendar_daily_wkouts w
+                                  JOIN training_calendar c ON c.ID = w.session_id
+                                  where w.completed = 1
+                                    and w.workout_type IN ({})
+                                    and c.workout_date >= date('now', '-6 days', 'localtime')
+                                  order by c.workout_date desc""".format(','.join('?' * len(DASHBOARD_TYPES))),
+                               DASHBOARD_TYPES).fetchall()
     conn.close()
 
     rows = []
+    dates = []
+    seen = set()
     for x in completed:
         rows.append({
             "Date": x[0],
-            "Lift": x[1] or "",
-            "Spine/Core": x[2] or "",
-            "Armcare": x[3] or "",
-            "Conditioning": x[4] or ""
+            "Type": x[1] or "",
+            "Name": x[2] or "",
             })
+        #the table renders one row per date, so the date list drops the repeats
+        if x[0] not in seen:
+            seen.add(x[0])
+            dates.append({
+                "Date": x[0],
+                })
 
-    return rows
+    return rows, dates
 
 def get_bodyNotes_dates():
     conn = get_db_connection()
@@ -896,17 +905,3 @@ def read_outing_pbp(path):
             locations_rhh.append(point)
 
     return movement, release, velo, locations_rhh, locations_lhh
-
-
-#── chart data ───────────────────────────────────────────────────────────
-
-#metric -> table it lives on. Doubles as the allowlist that keeps a user-supplied string
-#from ever reaching the query as a column name.
-INSZN_CHART_METRICS = {
-    "body_weight": "throwing_sessions",
-    "total_throws": "throwing_sessions",
-    "acr": "throwing_sessions",
-    "avg_velo": "game_journal",
-    "max_velo": "game_journal",
-    "ip": "game_journal",
-}

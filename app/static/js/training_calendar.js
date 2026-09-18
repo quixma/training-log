@@ -5,6 +5,14 @@
 // Every read goes through getEventsOnDate(); the save handlers are the only writers,
 // and both replace the affected day from the route's response.
 
+//tab control on home screen
+function openTab(evt, tabName) {
+    document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tablinks').forEach(t => t.classList.remove('active'));
+    document.getElementById(tabName).classList.add('active');
+    evt.currentTarget.classList.add('active');
+}
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const MONTHS = [
@@ -27,7 +35,10 @@ let events = INITIAL;
 const today = new Date();
 let currentMonth = today.getMonth();
 let currentYear = today.getFullYear();
-let selectedKey = null;    // the clicked day, as "YYYY-M-D"
+// the day the reminder panel is showing. starts on today and moves with every click
+// on the calendar; displayReminders() and saveReminders() both read it, never today,
+// so the panel and the rows it writes can never be for different days.
+let selected = new Date(today);
 
 // ── Elements ──────────────────────────────────────────────────────────────────
 
@@ -38,6 +49,7 @@ const el = {
     month: document.getElementById("month"),
     year: document.getElementById("year"),
     reminders: document.getElementById("reminderList"),
+    reminderTitle: document.getElementById("reminderTitle"),
     saveReminders: document.getElementById("saveReminders"),
     todayDate: document.getElementById("todayDate"),
     rows: document.getElementById("workoutRows"),
@@ -63,6 +75,17 @@ function fromISO(s) {
 }
 
 function dayKey(y, m, d) { return y + "-" + m + "-" + d; }
+
+// derived rather than stored alongside `selected`, so the two cannot disagree
+function selectedKey() {
+    return dayKey(selected.getFullYear(), selected.getMonth(), selected.getDate());
+}
+
+function isToday(d) {
+    return d.getDate() === today.getDate() &&
+        d.getMonth() === today.getMonth() &&
+        d.getFullYear() === today.getFullYear();
+}
 
 function daysInMonth(month, year) {
     return new Date(year, month + 1, 0).getDate();
@@ -154,7 +177,7 @@ function buildDayCell(cell, date, month, year) {
     if (date === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
         cell.classList.add("is-today");
     }
-    if (selectedKey === dayKey(year, month, date)) {
+    if (selectedKey() === dayKey(year, month, date)) {
         cell.classList.add("is-selected");
     }
 
@@ -222,12 +245,15 @@ function buildTooltip(dayEvents, date, month, year) {
     return tip;
 }
 
-// ── Today's list ──────────────────────────────────────────────────────────────
+// ── Selected day's list ───────────────────────────────────────────────────────
 
+// showCalendar() ends by calling this, so every re-render — a day click, month
+// navigation, a save — refreshes the panel from whatever `selected` now points at.
 function displayReminders() {
-    const list = getEventsOnDate(today.getDate(), today.getMonth(), today.getFullYear());
+    const list = getEventsOnDate(selected.getDate(), selected.getMonth(), selected.getFullYear());
 
-    el.todayDate.textContent = today.toLocaleDateString(undefined, {
+    el.reminderTitle.textContent = isToday(selected) ? "Today" : "Selected Day";
+    el.todayDate.textContent = selected.toLocaleDateString(undefined, {
         weekday: "short", month: "short", day: "numeric"
     });
 
@@ -237,7 +263,7 @@ function displayReminders() {
     if (!list.length) {
         const empty = document.createElement("li");
         empty.className = "empty-state";
-        empty.textContent = "No workouts scheduled for today. Add one above.";
+        empty.textContent = "No workouts scheduled for this day. Add one above.";
         el.reminders.appendChild(empty);
         return;
     }
@@ -247,7 +273,7 @@ function displayReminders() {
     });
 }
 
-// one row of the Today list. both checkboxes only stage intent — saveReminders()
+// one row of the day's list. both checkboxes only stage intent — saveReminders()
 // reads them back off the DOM, so nothing here writes to events or the db.
 function buildReminder(event) {
     const label = event.name || event.type;
@@ -297,7 +323,7 @@ function buildReminder(event) {
 }
 
 async function saveReminders() {
-    const date = toISO(today);
+    const date = toISO(selected);
     const workouts = [];
     const deleted = [];
 
@@ -406,8 +432,10 @@ async function addWorkout() {
     replaceDay(date, result.workouts);
     resetForm();
 
-    // jump the view to the month the workouts landed in, so they are visible
+    // jump the view to the month the workouts landed in and select that day, so the
+    // panel shows what was just saved rather than whichever day was open before
     const d = fromISO(date);
+    selected = d;
     currentMonth = d.getMonth();
     currentYear = d.getFullYear();
     showCalendar(currentMonth, currentYear);
@@ -470,6 +498,8 @@ function jump() {
 }
 
 function jumpToday() {
+    selected = new Date(today);
+    el.date.value = toISO(selected);
     currentMonth = today.getMonth();
     currentYear = today.getFullYear();
     showCalendar(currentMonth, currentYear);
@@ -555,7 +585,9 @@ function wireEvents() {
         }
     });
 
-    // clicking a day selects it and loads it into the form's date field
+    // clicking a day selects it, loads it into the form's date field, and swaps the
+    // reminder panel to that day. paging months deliberately leaves the selection
+    // alone — the panel keeps the picked day rather than emptying itself.
     el.body.addEventListener("click", function (e) {
         const cell = e.target.closest("td.date-picker");
         if (!cell) return;
@@ -564,10 +596,280 @@ function wireEvents() {
         const m = Number(cell.dataset.month) - 1;
         const d = Number(cell.dataset.date);
 
-        selectedKey = dayKey(y, m, d);
-        el.date.value = toISO(new Date(y, m, d));
+        selected = new Date(y, m, d);
+        el.date.value = toISO(selected);
         showCalendar(currentMonth, currentYear);
     });
+}
+
+// ── Warmup / Workout Panels ───────────────────────────────────────────────────
+//
+// The Warmup Options and Workouts tabs, moved here from workout_dashboard.js along
+// with the panels themselves. The dropdowns fetch a record, the tables rerender from
+// it, and the edit modals act on whatever record is currently on screen.
+
+//initialize drop down menu selectors
+const warmupSelect = document.getElementById('retrieve-warmup')
+const workoutTypeSelect = document.getElementById('retrieve-workout-type')
+const workoutSelect = document.getElementById('retrieve-workout')
+
+//edit modals for the workout and warmup currently on screen. the cards carry the record's
+//id in data-record-id, refreshed whenever the tables swap in a different record
+const workoutCard = document.getElementById('workout-card')
+const warmupCard = document.getElementById('warmup-card')
+const editWorkoutBtn = document.getElementById('editWorkout')
+const editWarmupBtn = document.getElementById('editWarmup')
+const saveWorkoutBtn = document.getElementById('saveWorkout')
+const saveWarmupBtn = document.getElementById('saveWarmup')
+const deleteWorkoutBtn = document.getElementById('deleteWorkout')
+const deleteWarmupBtn = document.getElementById('deleteWarmup')
+
+//pairs each exercise row field with its key in the workout payload
+const EXERCISE_FIELDS = {
+    '.row-ex-block': 'ex_block',
+    '.row-ex-name': 'ex_name',
+    '.row-sets-reps': 'sets_reps',
+    '.row-ex-notes': 'ex_notes',
+}
+
+function openModal(id) {
+    document.getElementById(id).classList.add('active');
+}
+
+//----------------GET/DISPLAY WORKOUTS FROM DROPDOWNS----------------
+//switching workout type swaps in that type's name list and its most recent workout
+async function GetWorkoutsByType() {
+    const response = await fetch('/api/getWorkoutsByType',
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', },
+            body: JSON.stringify({ type: workoutTypeSelect.value })
+        });
+
+    if (!response.ok) {
+        console.log('Update failed:', await response.text());
+        alert('Update failed. See console.');
+        return;
+    }
+
+    const result = await response.json();
+
+    workoutSelect.innerHTML = '<option value="">Select Workout to View</option>';
+    result.names.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        workoutSelect.appendChild(option);
+    });
+
+    UpdateExerciseTable(result.workout); //updates default workout to show
+}
+
+//tabName is 'warmup' or a workout_type value ('Lift', 'Back/Core', ...)
+async function GetSelectedWorkout(tabName) {
+    const select = tabName === 'warmup' ? warmupSelect : workoutSelect;
+    const data = { type: tabName, value: select.value };
+
+    if (!data.value) {
+        console.log("Enter a search criteria")
+        return;
+    }
+    else {
+        const response = await fetch('/api/getSelectedWorkout',
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', },
+                body: JSON.stringify(data)
+            });
+
+        // Check if response is ok before parsing, display to html
+        if (!response.ok) {
+            console.log('Update failed:', await response.text());
+            alert('Update failed. See console.');
+            return;
+        }
+
+        const result = await response.json();
+
+        if (tabName === "warmup") {
+            UpdateWarmupTable(result);
+        }
+        else {
+            UpdateExerciseTable(result);
+        }
+    }
+}
+
+//cells built here have to carry the same data-label the template renders, since the
+//mobile layout turns those labels into each row's headings
+function addCell(row, label) {
+    const cell = row.insertCell();
+    cell.setAttribute('data-label', label);
+    return cell;
+}
+
+//every workout type shares one table and one shape:
+//{workout_name, notes, exercises: [{ex_block, ex_name, sets_reps, ex_notes}, ...]}
+function UpdateExerciseTable(data) {
+    const tbody = document.getElementById('workout_body');
+    const metaSpan = document.getElementById('workout-meta');
+
+    //the edit modal acts on whatever is on screen, so the card's id moves with the table
+    workoutCard.dataset.recordId = data.id || "";
+    syncEditButton(editWorkoutBtn, workoutCard);
+
+    if (metaSpan) {
+        metaSpan.textContent = data.workout_name || "";
+    }
+
+    //session-level notes ride along with every workout payload; hide the panel when there are none
+    const notesPanel = document.getElementById('workout-notes');
+    const notesText = document.getElementById('workout-notes-text');
+    if (notesPanel && notesText) {
+        notesText.innerHTML = data.notes || ""; //pre-formatted with <br> by the backend
+        notesPanel.classList.toggle('hidden', !data.notes);
+    }
+
+    tbody.innerHTML = "";
+    data.exercises.forEach(ex => {
+        const row = tbody.insertRow();
+        //data-label drives the stacked card layout on mobile, so rebuilt cells need it too
+        addCell(row, "Block").textContent = ex.ex_block;
+        addCell(row, "Exercise").textContent = ex.ex_name;
+        addCell(row, "Sets/Reps").textContent = ex.sets_reps;
+        addCell(row, "Notes").innerHTML = ex.ex_notes; //pre-formatted with <br> by the backend
+    });
+}
+
+//warmup shape is one row of exercise-category columns, not a list of exercises
+function UpdateWarmupTable(data) {
+    const tbody = document.getElementById('warmups_body');
+    tbody.innerHTML = "";
+
+    warmupCard.dataset.recordId = data.id || "";
+    syncEditButton(editWarmupBtn, warmupCard);
+
+    const row = tbody.insertRow();
+    addCell(row, "Name").textContent = data.name;
+    addCell(row, "Rollout Exercises").innerHTML = data.rollout_ex;
+    addCell(row, "Spine Exercises").innerHTML = data.spine_ex;
+    addCell(row, "Hip Exercises").innerHTML = data.hip_ex;
+    addCell(row, "Shoulder Exercises").innerHTML = data.shoulder_ex;
+    addCell(row, "Arm Exercises").innerHTML = data.arm_ex;
+    addCell(row, "Dynamic Exercises").innerHTML = data.dynamic_ex;
+    addCell(row, "Notes").innerHTML = data.notes;
+}
+
+//---------EDIT WORKOUTS FUNCTIONS---------------
+//── edit the workout on screen ───────────────────────────────────────────
+editWorkoutBtn.onclick = async function () {
+    const record = await fetchRecordForEdit('workout', workoutCard.dataset.recordId);
+    if (!record) {
+        return;
+    }
+    document.getElementById("edit-workout-date").value = record.date;
+    document.getElementById("edit-workout-type").value = record.workout_type;
+    document.getElementById("edit-workout-name").value = record.workout_name;
+    document.getElementById("edit-workout-notes").value = record.notes;
+    //fills in exercise details, sets, reps etc
+    fillModalRows('edit-ex-rows', 'ex-row-template', record.exercises, EXERCISE_FIELDS);
+
+    openModal('editWorkout-modal');
+}
+
+document.getElementById('addExRow').onclick = () => addModalRow('edit-ex-rows', 'ex-row-template');
+document.getElementById('removeExRow').onclick = () => removeModalRow('edit-ex-rows');
+
+saveWorkoutBtn.onclick = function () {
+    const updatedWorkout = {
+        id: Number(workoutCard.dataset.recordId),
+        date: document.getElementById("edit-workout-date").value,
+        workout_type: document.getElementById("edit-workout-type").value,
+        workout_name: document.getElementById("edit-workout-name").value,
+        notes: document.getElementById("edit-workout-notes").value,
+        exercises: readModalRows('edit-ex-rows', EXERCISE_FIELDS)
+    }
+
+    submitRecordChange('/api/updateWorkout', updatedWorkout, 'Update failed.');
+}
+
+deleteWorkoutBtn.onclick = function () {
+    if (!confirm("Delete this workout and its exercises? This cannot be undone.")) {
+        return;
+    }
+
+    submitRecordChange('/api/deleteRecord',
+        { record_type: 'workout', id: Number(workoutCard.dataset.recordId) }, 'Delete failed.');
+}
+
+//── edit the warmup on screen ────────────────────────────────────────────
+editWarmupBtn.onclick = async function () {
+    const record = await fetchRecordForEdit('warmup', warmupCard.dataset.recordId);
+    if (!record) {
+        return;
+    }
+
+    document.getElementById("edit-warmup-date").value = record.date;
+    document.getElementById("edit-warmup-name").value = record.name;
+    document.getElementById("edit-warmup-rollout").value = record.rollout_ex;
+    document.getElementById("edit-warmup-spine").value = record.spine_ex;
+    document.getElementById("edit-warmup-hip").value = record.hip_ex;
+    document.getElementById("edit-warmup-shoulder").value = record.shoulder_ex;
+    document.getElementById("edit-warmup-arm").value = record.arm_ex;
+    document.getElementById("edit-warmup-dynamic").value = record.dynamic_ex;
+    document.getElementById("edit-warmup-notes").value = record.notes;
+
+    openModal('editWarmup-modal');
+}
+
+saveWarmupBtn.onclick = function () {
+    const updatedWarmup = {
+        id: Number(warmupCard.dataset.recordId),
+        date: document.getElementById("edit-warmup-date").value,
+        name: document.getElementById("edit-warmup-name").value,
+        rollout_ex: document.getElementById("edit-warmup-rollout").value,
+        spine_ex: document.getElementById("edit-warmup-spine").value,
+        hip_ex: document.getElementById("edit-warmup-hip").value,
+        shoulder_ex: document.getElementById("edit-warmup-shoulder").value,
+        arm_ex: document.getElementById("edit-warmup-arm").value,
+        dynamic_ex: document.getElementById("edit-warmup-dynamic").value,
+        notes: document.getElementById("edit-warmup-notes").value
+    }
+
+    submitRecordChange('/api/updateWarmup', updatedWarmup, 'Update failed.');
+}
+
+deleteWarmupBtn.onclick = function () {
+    if (!confirm("Delete this warmup? This cannot be undone.")) {
+        return;
+    }
+
+    submitRecordChange('/api/deleteRecord',
+        { record_type: 'warmup', id: Number(warmupCard.dataset.recordId) }, 'Delete failed.');
+}
+
+
+//the three dropdowns, the modal plumbing, and the initial edit-button state
+function wirePanels() {
+    warmupSelect.addEventListener("change", () => GetSelectedWorkout('warmup'));
+    workoutTypeSelect.addEventListener("change", GetWorkoutsByType);
+    workoutSelect.addEventListener("change", () => GetSelectedWorkout(workoutTypeSelect.value));
+
+    // Close buttons
+    document.querySelectorAll('.modal-close').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById(btn.dataset.modal).classList.remove('active');
+        });
+    });
+    // Click outside to close
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', e => {
+            if (e.target === modal) modal.classList.remove('active');
+        });
+    });
+
+    syncEditButton(editWorkoutBtn, workoutCard);
+    syncEditButton(editWarmupBtn, warmupCard);
 }
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
@@ -577,6 +879,7 @@ function init() {
     buildYears();
     buildLegend();
     wireEvents();
+    wirePanels();
     showCalendar(currentMonth, currentYear);
 }
 
