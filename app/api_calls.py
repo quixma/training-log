@@ -1,10 +1,10 @@
 from app import app
-from app.input_validation import UpdateThrowingPlanModel, PlayerGoalsModel, UpdateWorkoutModel, UpdateWarmupModel, UpdateThrowingDayModel, WorkoutNotesModel
+from app.input_validation import UpdateThrowingPlanModel, PlayerGoalsModel, UpdateWorkoutModel, UpdateWarmupModel, UpdateThrowingDayModel, WorkoutNotesModel, WeightLogModel
 from app.models import get_db_connection, get_warmup_by_name, get_workout_by_name, get_workout_names, get_latest_workout, WORKOUT_TYPES
 from app.models import get_throwing_day_by_name, get_bodyNotes, get_throwing_workouts_by_name, get_warmup_names
 from app.models import get_workout_notes
 from app.models import get_workout_for_edit, get_warmup_for_edit, get_throwing_day_for_edit
-from app.models import update_workout, update_warmup, update_throwing_day
+from app.models import update_workout, update_warmup, update_throwing_day, save_weight_log
 from app.models import delete_workout, delete_warmup, delete_throwing_day, blank_to_none
 from app.models import OUTING_REPORT_FOLDER, OUTING_SPLIT_COLUMNS, OUTING_MVMT_COLUMNS, OUTING_STRIKES_COLUMNS
 from app.models import OUTING_MISS_COLUMNS, OUTING_DAMAGE_COLUMNS, OUTING_SUMMARY_COLUMNS
@@ -475,6 +475,52 @@ def getPlayerGoals():
         return jsonify({"error": "No goals found"}), 404
 
     return jsonify(dict(result))
+
+#── workout weight log ───────────────────────────────────────────────────
+#a log belongs to one scheduled workout, so daily_workout_id is the key throughout
+
+def _clean_weight_rows(exercises):
+    #an untouched placeholder row carries nothing, so it must not become a stored row.
+    #empty strings are normalised to None first, then anything still empty is dropped
+    cleaned = []
+    for ex in exercises or []:
+        row = {key: (None if value == "" else value) for key, value in ex.items()}
+        if row.get("sets_reps_done") is None and row.get("weight_value") is None and row.get("weight_note") is None:
+            continue
+        cleaned.append(row)
+    return cleaned
+
+@app.route("/api/saveWeightLog", methods = ["POST"])
+def saveWeightLog():
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "no json body"}), 400
+
+    payload = {
+        "daily_workout_id": data.get("daily_workout_id"),
+        "date_completed": data.get("date_completed"),
+        "workout_name": data.get("workout_name"),
+        "workout_type": data.get("workout_type"),
+        "exercises": _clean_weight_rows(data.get("exercises")),
+        }
+
+    #an all-blank save must not create a record
+    if not payload["exercises"]:
+        return jsonify({"error": "at least one exercise must be filled in"}), 400
+
+    try:
+        validated = WeightLogModel(**payload)
+    except ValidationError as e:
+        return jsonify(e.errors()), 400
+
+    log_id = save_weight_log(
+        validated.daily_workout_id,
+        {"date_completed": validated.date_completed.isoformat(),
+         "workout_name": validated.workout_name,
+         "workout_type": validated.workout_type},
+        [ex.model_dump() for ex in validated.exercises])
+
+    return jsonify({"status": "log saved", "id": log_id}), 200
 
 #── workout dashboard notes ──────────────────────────────────────────────
 #same shape as the goals pair above: every save is a new dated row, so the

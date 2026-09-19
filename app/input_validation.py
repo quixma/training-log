@@ -62,6 +62,23 @@ class PlayerGoalsModel(BaseModel):
     back: Optional[str]
     nutrition: Optional[str]
 
+class WeightLogEntry(BaseModel):
+    ex_block: Optional[str] = None
+    ex_name: Optional[str] = None
+    sets_reps_rx: Optional[str] = None
+    sets_reps_done: Optional[str] = None
+    #numeric so tonnage and progression math stay possible; weight_note carries
+    #everything a number cannot, like bw+25 or red band
+    weight_value: Optional[float] = None
+    weight_note: Optional[str] = None
+
+class WeightLogModel(BaseModel):
+    daily_workout_id: int
+    date_completed: date
+    workout_name: Optional[str]
+    workout_type: Literal['Lift', 'Armcare', 'Back/Core', 'Individual Workout', 'Mobility', 'Conditioning']
+    exercises: list[WeightLogEntry]
+
 class WorkoutNotesModel(BaseModel):
     date: date
     notes: Optional[str]
