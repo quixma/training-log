@@ -1064,11 +1064,21 @@ async function openViewModal(workout) {
     openModal("viewSession-modal");
 }
 
+// the notes fields carry backend-injected <br> and the templates render them with | safe,
+// so they stay raw. everything else here is free text the templates auto-escape, and
+// concatenating it into innerHTML would both widen that trust boundary and swallow a name
+// like "DB Press <45lb" as markup
+function escapeHtml(value) {
+    const holder = document.createElement("div");
+    holder.textContent = value === null || value === undefined ? "" : value;
+    return holder.innerHTML;
+}
+
 // both views reuse the layout the record already has elsewhere: the Warmup Options tab
 // here, and the Throwing Days tab on the home page
 function warmupMarkup(warmup) {
     const columns = [
-        ["Name", warmup.name], ["Rollout Exercises", warmup.rollout_ex],
+        ["Name", escapeHtml(warmup.name)], ["Rollout Exercises", warmup.rollout_ex],
         ["Spine Exercises", warmup.spine_ex], ["Hip Exercises", warmup.hip_ex],
         ["Shoulder Exercises", warmup.shoulder_ex], ["Arm Exercises", warmup.arm_ex],
         ["Dynamic Exercises", warmup.dynamic_ex], ["Notes", warmup.notes]
@@ -1083,15 +1093,16 @@ function warmupMarkup(warmup) {
 }
 
 function throwingDayMarkup(day) {
-    const meta = '<span class="day-meta">' + (day.date || "") + " &middot; " + (day.session_type || "") + "</span>";
+    const meta = '<span class="day-meta">' + escapeHtml(day.date) + " &middot; " +
+        escapeHtml(day.session_type) + "</span>";
     const notes = day.notes
         ? '<div class="day-notes"><h4>Day Breakdown / Notes</h4><p>' + day.notes + "</p></div>"
         : "";
     const rows = (day.drills || []).map(function (drill) {
-        return '<tr><td data-label="Set">' + (drill.set || "") +
-            '</td><td data-label="Drill">' + (drill.drill_name || "") +
-            '</td><td data-label="Ball">' + (drill.ball_weight || "") +
-            '</td><td data-label="Throws">' + (drill.throw_count || "") +
+        return '<tr><td data-label="Set">' + escapeHtml(drill.set) +
+            '</td><td data-label="Drill">' + escapeHtml(drill.drill_name) +
+            '</td><td data-label="Ball">' + escapeHtml(drill.ball_weight) +
+            '</td><td data-label="Throws">' + escapeHtml(drill.throw_count) +
             '</td><td data-label="Notes">' + (drill.drill_notes || "") + "</td></tr>";
     }).join("");
     return meta + notes +
