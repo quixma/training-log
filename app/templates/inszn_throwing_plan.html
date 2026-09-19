@@ -7,8 +7,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/inszn_throwing_plan.css') }}">
 {% endblock %}
 {% block content %}
-{% set tools_path = 'THROWING_PLAN' %}
-{% include '_tools_chrome.html' %}
 
 <form id="inszn_throwing_plan" method="POST" action="/submit_inszn_throwing_plan">
 	  <h2>Update Throwing Plan</h2>

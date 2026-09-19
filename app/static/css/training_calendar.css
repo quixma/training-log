@@ -1146,16 +1146,19 @@ header h1 span { color: var(--accent); }
     flex-wrap: wrap;
     gap: 3px;
   }
-  .chip {
-    width: 6px;
-    height: 6px;
+  /* scoped to .chip-stack on purpose: the light-theme .chip overrides further
+     down the file are unconditional, so a bare `.chip` here ties on specificity
+     and loses on order — the dots came out as pale tinted squares. */
+  .chip-stack .chip {
+    width: 7px;
+    height: 7px;
     padding: 0;
     border: none;
     border-radius: 50%;
     text-indent: -9999px;      /* keeps the name for screen readers */
     background: var(--chip-color, var(--accent));
   }
-  .chip.is-done { opacity: 0.3; }
+  .chip-stack .chip.is-done { opacity: 0.3; }
   /* as dots they all fit, so nothing is truncated and no "+N more" is needed */
   .chip-stack .chip:nth-child(n+6) { display: block; }
   .chip-more { display: none; }
@@ -1299,9 +1302,8 @@ header h1 {
 }
 header h1 span { color: var(--accent); }
 
-/* the sticky tab row has to clear the fixed title bar */
 .tab {
-  top: var(--chrome-h);
+  top: 0;
   padding: 0 14px;
   overflow-x: auto;
 }
@@ -1339,12 +1341,18 @@ header h1 span { color: var(--accent); }
   --type-warmup:             #C2407F;
 }
 
-/* a 16% tint of a dark hue on white is nearly invisible; the marker
-   does the work instead */
+/* Day cells are --bg-base (#eef0ea), not white, so a 12% tint mixed into
+   white landed a hair off the cell it sat on — the hue read as "slightly
+   lighter grey" rather than as a colour. Push the tint to 22% and ring the
+   chip in its own hue: the fill carries the colour, the border separates
+   the chip from the cell, and the heavier left bar keeps the type marker
+   readable for anyone who can't resolve the fill. Text stays --text-primary
+   (#0a0a0a), which clears 4.5:1 on every one of the eight tints. */
 .chip {
-  border-left-width: 3px;
+  border: 1px solid var(--chip-color, var(--accent));
+  border-left-width: 4px;
   border-radius: 0;
-  background: color-mix(in srgb, var(--chip-color, var(--accent)) 12%, #ffffff);
+  background: color-mix(in srgb, var(--chip-color, var(--accent)) 22%, #ffffff);
 }
 
 .legend-swatch { border-radius: 0; }

@@ -410,10 +410,9 @@ body input[type="submit"]:hover {
 
 /* header + tabs, matching the workout dashboard ------------------- */
 
-/* the sticky tab row has to clear the fixed title bar, and it scrolls
-   inside itself rather than widening the page */
+/* the sticky tab row scrolls inside itself rather than widening the page */
 .tab {
-  top: var(--chrome-h);
+  top: 0;
   padding: 0 14px;
   overflow-x: auto;
 }

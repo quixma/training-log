@@ -276,5 +276,4 @@
   .drill-row { grid-template-columns: 1fr 1fr; }
   .drill-row label { display: none; }
   .row-2col { grid-template-columns: 1fr; }
-  .win-taskbar .tb-path { display: none; }
 }

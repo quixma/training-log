@@ -48,10 +48,6 @@
   --shadow-btn:    2px 2px 0 #0a0a0a;
   --shadow-input:  none;
 
-  /* chrome */
-  --chrome-h:      28px;
-  --taskbar-h:     30px;
-
   /* type */
   --mono:          'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Menlo, monospace;
   --pixel:         'Silkscreen', 'IBM Plex Mono', monospace;
@@ -71,86 +67,15 @@ body {
   font-size: 13px;
   line-height: 1.55;
   min-height: 100vh;
-  padding: calc(var(--chrome-h) + 32px) 20px calc(var(--taskbar-h) + 44px);
+  padding: 32px 20px 44px;
   -webkit-font-smoothing: antialiased;
-}
-
-/* ── Window chrome ──────────────────────────── */
-.win-titlebar {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: var(--chrome-h);
-  background: var(--border);
-  color: var(--bg-base);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 10px;
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  z-index: 1100;
-}
-
-.win-titlebar .tb-close {
-  font-size: 11px;
-  line-height: 1;
-  padding: 2px 5px;
-  border: 1px solid var(--bg-base);
-}
-
-.win-taskbar {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  height: var(--taskbar-h);
-  background: var(--border);
-  color: var(--bg-base);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 10px;
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  z-index: 1100;
-}
-
-.win-taskbar .tb-btn {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  padding: 4px 9px;
-  border: 1px solid #4a4a4a;
-  background: none;
-  color: var(--bg-base);
-  cursor: pointer;
-}
-
-.win-taskbar .tb-btn.is-active { border-color: var(--bg-base); }
-
-.win-taskbar .tb-brand {
-  font-family: var(--pixel);
-  font-size: 10px;
-  letter-spacing: 0.02em;
-}
-
-.win-taskbar .tb-brand::before {
-  content: '\25C6';
-  color: #7fe3d4;
-  margin-right: 6px;
-}
-
-.win-taskbar .tb-clock {
-  margin-left: auto;
-  color: #c9ccc6;
-  white-space: nowrap;
 }
 
 /* ── Sidebar ────────────────────────────────── */
 /* overrides inszn_base.css for pages on this theme only */
 #sidebar {
-  top: var(--chrome-h);
-  bottom: var(--taskbar-h);
+  top: 0;
+  bottom: 0;
   width: 210px;
   background: var(--bg-base);
   color: var(--text-primary);
@@ -211,7 +136,6 @@ textarea:focus-visible,
 
 @media (max-width: 600px) {
   body { padding-left: 14px; padding-right: 14px; }
-  .win-taskbar .tb-path { display: none; }
 }
 
 /* ── Form controls that need an explicit light-mode tint ── */

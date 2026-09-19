@@ -612,9 +612,8 @@ header h1 {
 }
 header h1 span { color: var(--accent); }
 
-/* the sticky tab row has to clear the fixed title bar */
 .tab {
-  top: var(--chrome-h);
+  top: 0;
   padding: 0 14px;
 }
 

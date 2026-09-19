@@ -7,8 +7,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/workout_form.css') }}">
 {% endblock %}
 {% block content %}
-{% set tools_path = 'WORKOUT_LOG' %}
-{% include '_tools_chrome.html' %}
 
 <form id="workout-form" method="POST" action="/submit_workout_form">
   <h2>Workout Log</h2>

@@ -7,8 +7,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/game_form.css') }}">
 {% endblock %}
 {% block content %}
-{% set tools_path = 'GAME_JOURNAL' %}
-{% include '_tools_chrome.html' %}
 <!-- Flash Messages -->
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
