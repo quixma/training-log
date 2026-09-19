@@ -6,49 +6,7 @@
 
 /* ── Root Variables ─────────────────────────── */
 /* redeclared per-page, the same way every other page stylesheet in this app does */
-:root {
-  --bg-base:        #0d0f14;
-  --bg-card:        #13161e;
-  --bg-input:       #1a1e29;
-  --bg-input-focus: #1f2433;
-  --bg-row-alt:     rgba(255,255,255,0.025);
-  --bg-row-hover:   rgba(232,56,59,0.06);
-  --border:         #252a38;
-  --border-focus:   #e8383b;
-  --accent:         #e8383b;
-  --accent-dim:     rgba(232, 56, 59, 0.15);
-  --accent-2:       #f59e0b;
-  --text-primary:   #eef0f6;
-  --text-secondary: #7b82a0;
-  --text-label:     #a0a8c4;
-  --radius-sm:      6px;
-  --radius-lg:      16px;
-  --transition:     0.18s ease;
-  --shadow-card:    0 4px 32px rgba(0,0,0,0.45);
 
-  /* workout_type → chip colour. one per value in models.WORKOUT_TYPES, held at a
-     similar luminance so the categories still read as a single system. */
-  --type-lift:        #e8383b;
-  --type-armcare:     #f59e0b;
-  --type-back-core:   #a78bfa;
-  --type-individual-workout: #38bdf8;
-  --type-mobility:    #2dd4bf;
-  --type-conditioning:#a3e635;
-  --type-throwing:    #4ade80;
-  --type-warmup:      #f472b6;
-}
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  background-color: var(--bg-base);
-  background-image: radial-gradient(ellipse 80% 40% at 50% -5%, rgba(232,56,59,0.07) 0%, transparent 65%);
-  color: var(--text-primary);
-  font-family: 'Barlow', sans-serif;
-  font-size: 15px;
-  min-height: 100vh;
-  padding: 0 0 80px;
-}
 
 /* ── Header ─────────────────────────────────── */
 header {
@@ -62,11 +20,11 @@ header::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%);
+  height: 0;
+  background: var(--border);
 }
 header h1 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 1.9rem;
   font-weight: 800;
   letter-spacing: 0.05em;
@@ -88,7 +46,7 @@ header h1 span { color: var(--accent); }
   overflow-x: auto;
 }
 .tablinks {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -165,7 +123,7 @@ header h1 span { color: var(--accent); }
 }
 
 .section-card-header h3 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -189,7 +147,7 @@ header h1 span { color: var(--accent); }
 
 .field-group label,
 .calendar-foot label {
-  font-family: 'Barlow', sans-serif;
+  font-family: var(--mono);
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.1em;
@@ -206,7 +164,7 @@ header h1 span { color: var(--accent); }
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
-  font-family: 'Barlow', sans-serif;
+  font-family: var(--mono);
   font-size: 0.9rem;
   padding: 9px 12px;
   transition: border-color var(--transition), background var(--transition);
@@ -219,7 +177,7 @@ header h1 span { color: var(--accent); }
   background: var(--bg-input-focus);
 }
 
-.card-body select option { background: #1a1e29; color: var(--text-primary); }
+.card-body select option { background: var(--bg-card); color: var(--text-primary); }
 
 /* the native date picker icon is near-black on a dark field, so invert it */
 .card-body input[type="date"]::-webkit-calendar-picker-indicator {
@@ -240,14 +198,14 @@ header h1 span { color: var(--accent); }
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: rgba(255,255,255,0.02);
+  background: var(--bg-base);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 12px 12px 12px 14px;
   transition: border-color var(--transition);
 }
 
-.workout-row:hover { border-color: rgba(232,56,59,0.3); }
+.workout-row:hover { border-color: var(--border); }
 
 /* the row's colour follows the type picked in it, set from JS */
 .workout-row::before {
@@ -290,7 +248,7 @@ header h1 span { color: var(--accent); }
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-label);
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -333,8 +291,8 @@ header h1 span { color: var(--accent); }
   background: var(--accent);
   border: 1px solid var(--accent);
   border-radius: var(--radius-sm);
-  color: #fff;
-  font-family: 'Barlow Condensed', sans-serif;
+  color: var(--bg-card);
+  font-family: var(--mono);
   font-size: 0.9rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -367,7 +325,7 @@ header h1 span { color: var(--accent); }
   margin-top: 2px;
   background: var(--bg-input);
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: 0;
   cursor: pointer;
   transition: background var(--transition), border-color var(--transition);
 }
@@ -383,7 +341,7 @@ header h1 span { color: var(--accent); }
   width: 4px;
   height: 8px;
   margin: 2px 0 0 5px;
-  border: solid #fff;
+  border: solid var(--bg-card);
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
@@ -420,7 +378,7 @@ header h1 span { color: var(--accent); }
   margin-top: 2px;
   background: var(--bg-input);
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: 0;
   cursor: pointer;
   transition: background var(--transition), border-color var(--transition);
 }
@@ -441,7 +399,7 @@ header h1 span { color: var(--accent); }
   background: var(--accent);
   border-color: var(--accent);
 }
-.reminder-delete:checked::after { color: #fff; }
+.reminder-delete:checked::after { color: var(--bg-card); }
 
 /* a row waiting to be deleted on the next save */
 .reminder-list li.is-staged-delete .reminder-title,
@@ -504,7 +462,7 @@ header h1 span { color: var(--accent); }
 }
 
 .calendar-head h2 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 1.65rem;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -550,14 +508,14 @@ header h1 span { color: var(--accent); }
 
 #warmup_workouts thead tr,
 #workouts thead tr,
-#view-session-body thead tr { background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border); }
+#view-session-body thead tr { background: rgba(10,10,10,0.03); border-bottom: 1px solid var(--border); }
 
 #warmup_workouts thead th,
 #workouts thead th,
 #view-session-body thead th {
   padding: 11px 14px;
   text-align: left;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -589,7 +547,7 @@ header h1 span { color: var(--accent); }
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
-  font-family: 'Barlow', sans-serif;
+  font-family: var(--mono);
   font-size: 0.78rem;
   padding: 7px 32px 7px 10px;
   outline: none;
@@ -597,20 +555,19 @@ header h1 span { color: var(--accent); }
   transition: border-color var(--transition), box-shadow var(--transition);
   -webkit-appearance: none;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237b82a0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%230a0a0a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
   max-width: 220px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 .section-card-header select:focus {
   border-color: var(--border-focus);
   box-shadow: 0 0 0 3px var(--accent-dim);
 }
-.section-card-header select option { background: #1a1e29; color: var(--text-primary); }
+.section-card-header select option { background: var(--bg-card); color: var(--text-primary); }
 
 .workout-meta {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -621,7 +578,7 @@ header h1 span { color: var(--accent); }
 
 .btn-action {
   padding: 6px 14px;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -652,7 +609,7 @@ header h1 span { color: var(--accent); }
 }
 
 .table-calendar th {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -667,7 +624,7 @@ header h1 span { color: var(--accent); }
   height: 168px;
   vertical-align: top;
   padding: 7px 8px;
-  background: rgba(255,255,255,0.02);
+  background: var(--bg-base);
   border: 1px solid var(--border);
   /* small radius against the card's 16px, so the tiles read as contents of the card */
   border-radius: var(--radius-sm);
@@ -684,18 +641,18 @@ header h1 span { color: var(--accent); }
    unlike an :nth-child() rule, which the month's leading blanks would shift */
 .table-calendar td:first-child,
 .table-calendar td:last-child {
-  background: rgba(255,255,255,0.01);
+  background: rgba(10,10,10,0.02);
 }
 
 .date-picker { cursor: pointer; }
 .date-picker:hover {
   background: var(--bg-row-hover);
-  border-color: rgba(232,56,59,0.35);
+  border-color: var(--border);
 }
 
 .date-num {
   display: block;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--text-label);
@@ -729,7 +686,7 @@ header h1 span { color: var(--accent); }
   padding: 3px 6px;
   border-left: 2px solid var(--chip-color, var(--accent));
   border-radius: 3px;
-  background: rgba(255,255,255,0.05);                                  /* fallback */
+  background: rgba(10,10,10,0.05);                                  /* fallback */
   background: color-mix(in srgb, var(--chip-color, var(--accent)) 16%, transparent);
   /* one line per chip; the day cell height is fixed, so long names clip rather than reflow */
   overflow: hidden;
@@ -775,7 +732,7 @@ header h1 span { color: var(--accent); }
   background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  box-shadow: var(--shadow-card);
   padding: 10px 12px;
   text-align: left;
   white-space: normal;
@@ -799,7 +756,7 @@ header h1 span { color: var(--accent); }
 }
 
 .event-tooltip .tt-date {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -847,21 +804,21 @@ header h1 span { color: var(--accent); }
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
-  font-family: 'Barlow', sans-serif;
+  font-family: var(--mono);
   font-size: 0.85rem;
   padding: 7px 10px;
   cursor: pointer;
   transition: border-color var(--transition);
 }
 .calendar-foot select:focus { outline: none; border-color: var(--border-focus); }
-.calendar-foot select option { background: #1a1e29; color: var(--text-primary); }
+.calendar-foot select option { background: var(--bg-card); color: var(--text-primary); }
 
 .btn-today {
   background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-label);
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -912,11 +869,11 @@ header h1 span { color: var(--accent); }
 .workout-notes {
   padding: 14px 20px;
   border-bottom: 1px solid var(--border);
-  background: rgba(255,255,255,0.02);
+  background: var(--bg-base);
 }
 .workout-notes.hidden { display: none; }
 .workout-notes h4 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -936,7 +893,7 @@ header h1 span { color: var(--accent); }
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(10, 10, 10, 0.45);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   align-items: center;
@@ -953,7 +910,7 @@ header h1 span { color: var(--accent); }
   max-width: 900px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+  box-shadow: var(--shadow-card);
   position: relative;
   animation: modalIn 0.2s ease;
 }
@@ -977,12 +934,12 @@ header h1 span { color: var(--accent); }
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%);
+  height: 0;
+  background: var(--border);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 .modal-header h2 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 1.4rem;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -1030,12 +987,11 @@ header h1 span { color: var(--accent); }
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
-  font-family: 'Barlow', sans-serif;
+  font-family: var(--mono);
   font-size: 0.95rem;
   padding: 10px 14px;
   outline: none;
   transition: border-color var(--transition), background var(--transition), box-shadow var(--transition);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   -webkit-appearance: none;
   appearance: none;
 }
@@ -1047,7 +1003,8 @@ header h1 span { color: var(--accent); }
   box-shadow: 0 0 0 3px var(--accent-dim);
 }
 .modal-content input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(0.5) sepia(1) hue-rotate(300deg) saturate(3);
+  filter: none;
+  opacity: 0.7;
   cursor: pointer;
 }
 .modal-content textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
@@ -1059,8 +1016,8 @@ header h1 span { color: var(--accent); }
   align-self: stretch;
   padding: 14px;
   background: var(--accent);
-  color: #fff;
-  font-family: 'Barlow Condensed', sans-serif;
+  color: var(--bg-card);
+  font-family: var(--mono);
   font-size: 0.95rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -1070,13 +1027,10 @@ header h1 span { color: var(--accent); }
   cursor: pointer;
   margin-top: 8px;
   transition: background var(--transition), transform 0.1s ease, box-shadow var(--transition);
-  box-shadow: 0 4px 20px rgba(232,56,59,0.35);
 }
 .modal-content button#saveGoals:hover,
 .modal-content button.btn-save:hover {
-  background: #f04044;
-  box-shadow: 0 6px 28px rgba(232,56,59,0.5);
-  transform: translateY(-1px);
+  background: var(--accent);
 }
 
 /* ── Modal Repeater Rows (edit workout / throwing day) ── */
@@ -1091,14 +1045,14 @@ header h1 span { color: var(--accent); }
   grid-template-columns: 70px 1fr 100px;   /* block / exercise / sets-reps */
   gap: 10px;
   padding: 12px;
-  background: rgba(255,255,255,0.02);
+  background: var(--bg-base);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   transition: border-color var(--transition);
 }
 
 .modal-row.drill-row { grid-template-columns: 2fr 1fr 1fr; }
-.modal-row:hover { border-color: rgba(232,56,59,0.3); }
+.modal-row:hover { border-color: var(--border); }
 .modal-row .row-notes { grid-column: 1 / -1; }
 
 /* the row inputs sit in a grid, so they keep the modal's field styling but no stacking margin */
@@ -1108,7 +1062,7 @@ header h1 span { color: var(--accent); }
 .modal-btn-group { display: flex; gap: 10px; }
 .modal-btn-group button {
   padding: 8px 16px;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -1126,9 +1080,9 @@ header h1 span { color: var(--accent); }
   background: var(--accent-dim);
 }
 .modal-btn-group button.btn-remove-row:hover {
-  border-color: #ef444480;
-  color: #f87171;
-  background: rgba(239,68,68,0.08);
+  border-color: var(--danger);
+  color: var(--danger);
+  background: var(--danger-dim);
 }
 
 /* destructive action sits under the save button, muted until hovered */
@@ -1139,7 +1093,7 @@ header h1 span { color: var(--accent); }
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -1148,9 +1102,9 @@ header h1 span { color: var(--accent); }
   transition: all var(--transition);
 }
 .modal-content button.btn-danger:hover {
-  border-color: #ef444480;
-  color: #f87171;
-  background: rgba(239,68,68,0.08);
+  border-color: var(--danger);
+  color: var(--danger);
+  background: var(--danger-dim);
 }
 
 /* the calendar's own .btn-remove-row is the absolutely-positioned x on a workout row.
@@ -1302,10 +1256,10 @@ header h1 span { color: var(--accent); }
 .day-notes {
   padding: 16px 24px;
   border-bottom: 1px solid var(--border);
-  background: rgba(255,255,255,0.02);
+  background: var(--bg-base);
 }
 .day-notes h4 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -1330,4 +1284,124 @@ header h1 span { color: var(--accent); }
   font-size: 0.88rem;
   color: var(--text-primary);
   overflow-wrap: anywhere;
+}
+
+/* ============================================
+   Training Calendar — C:\TOOLS overrides
+   ============================================ */
+
+header h1 {
+  font-family: var(--pixel);
+  font-weight: 400;
+  font-size: 1.35rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+header h1 span { color: var(--accent); }
+
+/* the sticky tab row has to clear the fixed title bar */
+.tab {
+  top: var(--chrome-h);
+  padding: 0 14px;
+  overflow-x: auto;
+}
+
+.tablinks {
+  padding: 13px 14px 11px;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  box-shadow: none;
+}
+.tablinks:active { transform: none; box-shadow: none; }
+
+/* ── Session-type colours, re-stepped for the light surface ──
+   The old values were pastels picked against a near-black ground;
+   seven of the eight fell below 3:1 contrast on white. These pass
+   the lightness band, the chroma floor and 3:1 contrast on all
+   pairs.
+
+   They do NOT clear the all-pairs normal-vision separation floor —
+   at eight categories no ordering does, and dropping to six does
+   not fix it either. That is acceptable here only because colour
+   never carries identity alone on this page: every chip prints its
+   session name in ink, and every legend entry pairs its swatch with
+   a label. A reader who cannot separate olive from green still
+   reads "Conditioning" and "Throwing". */
+:root {
+  --type-lift:               #C92A2A;
+  --type-armcare:            #B07503;
+  --type-back-core:          #7B2D8E;
+  --type-individual-workout: #0277BD;
+  --type-mobility:           #3949AB;
+  --type-conditioning:       #6E8A00;
+  --type-throwing:           #1F7A3D;
+  --type-warmup:             #C2407F;
+}
+
+/* a 16% tint of a dark hue on white is nearly invisible; the marker
+   does the work instead */
+.chip {
+  border-left-width: 3px;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--chip-color, var(--accent)) 12%, #ffffff);
+}
+
+.legend-swatch { border-radius: 0; }
+
+/* buttons follow the same press as every other page */
+.btn-action,
+.btn-save,
+.btn-today,
+.nav-btn,
+.modal-btn-group button {
+  font-family: var(--mono);
+  border-radius: 0;
+  box-shadow: var(--shadow-btn);
+  transition: box-shadow var(--transition), transform var(--transition),
+              background var(--transition), color var(--transition);
+}
+
+.btn-action:active,
+.btn-save:active,
+.btn-today:active,
+.nav-btn:active,
+.modal-btn-group button:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+.modal-content { border: 1px solid var(--border); border-radius: 0; }
+
+/* a modal must cover the window chrome, which sits at z-index 1100 */
+.modal { z-index: 1200; }
+
+.section-card,
+.calendar-card { border-radius: 0; }
+
+/* save buttons were accent-filled with a brightness hover; every other page
+   uses black -> accent with a collapsing shadow */
+.btn-save {
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  box-shadow: var(--shadow-btn);
+  transition: box-shadow var(--transition), transform var(--transition),
+              background var(--transition), border-color var(--transition);
+}
+
+.btn-save:hover {
+  filter: none;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.btn-save:active { transform: translate(2px, 2px); box-shadow: none; }
+
+/* mono is ~15% wider than the old face, so chips truncate sooner. Buy a
+   couple of characters back; the day tooltip still carries full names. */
+.chip {
+  font-size: 0.68rem;
+  padding: 3px 5px;
+  letter-spacing: -0.01em;
 }
