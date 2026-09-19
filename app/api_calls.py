@@ -790,9 +790,11 @@ def is_int(value):
 def calendar_day(cursor, session_id):
     rows = cursor.execute("""SELECT w.ID AS id, c.workout_date AS date,
                                     w.workout_type AS type, w.workout_name AS name,
-                                    w.completed AS done
+                                    w.completed AS done,
+                                    (l.id IS NOT NULL) AS logged
                              FROM training_calendar_daily_wkouts w
                              JOIN training_calendar c ON c.ID = w.session_id
+                             LEFT JOIN workout_weight_log l ON l.daily_workout_id = w.ID
                              WHERE w.session_id = ?
                              ORDER BY w.ID""", (session_id,)).fetchall()
     return [dict(row) for row in rows]

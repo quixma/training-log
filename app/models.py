@@ -773,9 +773,11 @@ def getCalendarWorkouts():
     
     rows = cursor.execute("""SELECT w.ID AS id, c.workout_date AS date,
                                     w.workout_type AS type, w.workout_name AS name,
-                                    w.completed AS done
+                                    w.completed AS done,
+                                    (l.id IS NOT NULL) AS logged
                              FROM training_calendar_daily_wkouts w
                              JOIN training_calendar c ON c.ID = w.session_id
+                             LEFT JOIN workout_weight_log l ON l.daily_workout_id = w.ID
                              ORDER BY w.ID""").fetchall()
     workouts = [dict(row) for row in rows]
     return workouts

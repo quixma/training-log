@@ -315,6 +315,9 @@ function buildReminder(event) {
     const item = document.createElement("li");
     item.dataset.id = event.id;
     if (event.done) item.classList.add("is-done");
+    // a logged workout has to look different from a merely ticked one, or there is no
+    // way to tell what still needs its weights entered
+    if (event.logged) item.classList.add("has-log");
 
     const check = document.createElement("input");
     check.type = "checkbox";
@@ -1046,7 +1049,9 @@ async function submitWeightLog() {
     // a logged workout must never still read as outstanding in the card it was logged from
     replaceDay(loggingFor.date, events
         .filter(function (e) { return e.date === loggingFor.date; })
-        .map(function (e) { return e.id === loggingFor.id ? Object.assign({}, e, { done: 1 }) : e; }));
+        .map(function (e) {
+            return e.id === loggingFor.id ? Object.assign({}, e, { done: 1, logged: 1 }) : e;
+        }));
 
     weightModal.classList.remove("active");
     loggingFor = null;
