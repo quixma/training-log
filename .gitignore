@@ -51,3 +51,5 @@ features.txt
 /tests
 /docs
 
+# Kate/KWrite editor swap files
+.*.kate-swp
