@@ -2,8 +2,13 @@
 
 Usage: myenv/bin/python migrations/run.py migrations/2026-09-18-weight-log.sql
 """
+import os
 import sqlite3
 import sys
+
+#python puts this script's directory on sys.path, not the repo root, so the bare
+#documented invocation cannot see config.py without this
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from config import Config
 
