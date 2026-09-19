@@ -19,6 +19,7 @@ instance/
 venv/
 env/
 ENV/
+myenv/
 .venv/
 .env
 .flaskenv
@@ -46,5 +47,6 @@ features.txt
 /.claude
 /other_scripts
 /backup
-
+/migrations
+/tests
 /docs
