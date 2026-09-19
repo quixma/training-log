@@ -486,7 +486,6 @@ def getPlayerGoals():
 
 def _clean_weight_rows(exercises):
     #an untouched placeholder row carries nothing, so it must not become a stored row.
-    #empty strings are normalised to None first, then anything still empty is dropped
     cleaned = []
     for ex in exercises or []:
         row = {key: (None if value == "" else value) for key, value in ex.items()}
