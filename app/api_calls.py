@@ -581,10 +581,26 @@ def getWeightLog():
     #last time's numbers are offered as placeholders, never as values
     previous = get_previous_weight_log(workout_name, date) if workout_name and date else None
     if previous:
-        by_name = {ex["ex_name"]: ex for ex in previous["exercises"]}
+        #matched by name, but repeats pair positionally: a workout can log the same exercise
+        #twice (a warm-up set then a working set), and a flat name->row map would hand both
+        #of today's rows the last one's numbers and silently lose the first
+        by_name = {}
+        for ex in previous["exercises"]:
+            by_name.setdefault(ex["ex_name"], []).append(ex)
+
+        used = {}
         for row in exercises:
-            match = by_name.get(row["ex_name"])
-            if match:
+            name = row["ex_name"]
+            #a nameless row (the no-definition fallback) has nothing to match on
+            if not name:
+                continue
+            matches = by_name.get(name)
+            if not matches:
+                continue
+            index = used.get(name, 0)
+            used[name] = index + 1
+            if index < len(matches):
+                match = matches[index]
                 row["placeholder"] = {"sets_reps_done": match["sets_reps_done"],
                                       "weight_value": match["weight_value"],
                                       "weight_note": match["weight_note"]}

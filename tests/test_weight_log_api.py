@@ -185,3 +185,37 @@ def test_an_unknown_workout_name_returns_one_blank_row(client, scheduled_workout
     assert body["logged"] is False
     assert len(body["exercises"]) == 1
     assert body["exercises"][0]["ex_name"] is None
+
+
+def test_repeated_exercise_names_get_their_own_placeholders(client, scheduled_workout, db):
+    _seed_definition(db, "Lift", "Upper A", [("A", "Bench", "1x5"), ("B", "Bench", "3x5")])
+    last_week = scheduled_workout(date="2026-09-10", name="Upper A")
+    client.post("/api/saveWeightLog", json=_payload(last_week, [
+        {"ex_name": "Bench", "sets_reps_done": "1x5", "weight_value": 135},
+        {"ex_name": "Bench", "sets_reps_done": "3x5", "weight_value": 185},
+    ], date="2026-09-10", name="Upper A"))
+
+    today = scheduled_workout(date="2026-09-17", name="Upper A")
+    body = client.post("/api/getWeightLog", json={
+        "daily_workout_id": today, "date": "2026-09-17",
+        "workout_type": "Lift", "workout_name": "Upper A"}).get_json()
+
+    #the warm-up row must not inherit the working set's number
+    assert body["exercises"][0]["placeholder"]["weight_value"] == 135.0
+    assert body["exercises"][1]["placeholder"]["weight_value"] == 185.0
+
+
+def test_a_nameless_row_never_inherits_a_placeholder(client, scheduled_workout):
+    last_week = scheduled_workout(date="2026-09-10", name="Typed By Hand")
+    client.post("/api/saveWeightLog", json=_payload(last_week, [
+        {"ex_name": "Bench", "sets_reps_done": "3x5", "weight_value": 185}],
+        date="2026-09-10", name="Typed By Hand"))
+
+    today = scheduled_workout(date="2026-09-17", name="Typed By Hand")
+    body = client.post("/api/getWeightLog", json={
+        "daily_workout_id": today, "date": "2026-09-17",
+        "workout_type": "Lift", "workout_name": "Typed By Hand"}).get_json()
+
+    #no definition for that name, so one blank row — and a nameless row matches nothing
+    assert len(body["exercises"]) == 1
+    assert body["exercises"][0]["placeholder"] is None
