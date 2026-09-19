@@ -780,6 +780,56 @@ def getCalendarWorkouts():
     workouts = [dict(row) for row in rows]
     return workouts
 
+#--------WORKOUT WEIGHT LOG----------
+#a log is keyed to the scheduled workout it belongs to, not to the day: one calendar
+#day holds several workouts, so training_calendar.ID would not identify which
+
+def _format_weight_log(cursor, log):
+    rows = cursor.execute(
+        """select ex_block, ex_name, sets_reps_rx, sets_reps_done, weight_value, weight_note
+           from workout_weight_log_ex where log_id = ? order by ex_order""", (log["id"],)).fetchall()
+    return {
+        "id": log["id"],
+        "daily_workout_id": log["daily_workout_id"],
+        "date_completed": log["date_completed"],
+        "workout_name": log["workout_name"],
+        "workout_type": log["workout_type"],
+        "exercises": [dict(row) for row in rows],
+        }
+
+def get_weight_log(daily_workout_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    log = cursor.execute("select * from workout_weight_log where daily_workout_id = ?",
+                         (daily_workout_id,)).fetchone()
+    if log is None:
+        conn.close()
+        return None
+
+    formatted = _format_weight_log(cursor, log)
+    conn.close()
+    return formatted
+
+def get_previous_weight_log(workout_name, before_date):
+    #the source for the modal's placeholders: what this same workout was last logged at.
+    #strictly before, so reopening a log does not offer that log back to itself
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    log = cursor.execute(
+        """select * from workout_weight_log
+           where workout_name = ? and date_completed < ?
+           order by date_completed desc, id desc limit 1""",
+        (workout_name, before_date)).fetchone()
+    if log is None:
+        conn.close()
+        return None
+
+    formatted = _format_weight_log(cursor, log)
+    conn.close()
+    return formatted
+
 def get_journal_entry_dates():
     #the calendar inlines these so day clicks need no round trip, same as the workout rows
     conn = get_db_connection()
