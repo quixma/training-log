@@ -74,3 +74,97 @@ def test_previous_log_is_scoped_to_the_workout_name(db, scheduled_workout):
     _insert_log(db, daily_id, "2026-09-08", "Lower A", [{"ex_name": "Squat"}])
 
     assert get_previous_weight_log("Upper A", "2026-09-15") is None
+
+
+from app.models import save_weight_log
+
+
+def _completed_flag(db, daily_workout_id):
+    conn = sqlite3.connect(db)
+    flag = conn.execute("select completed from training_calendar_daily_wkouts where ID = ?",
+                        (daily_workout_id,)).fetchone()[0]
+    conn.close()
+    return flag
+
+
+def test_save_writes_the_log_and_its_exercises(db, scheduled_workout):
+    daily_id = scheduled_workout(date="2026-09-17", name="Upper A")
+
+    save_weight_log(daily_id,
+                    {"date_completed": "2026-09-17", "workout_name": "Upper A", "workout_type": "Lift"},
+                    [{"ex_block": "A", "ex_name": "Bench", "sets_reps_rx": "3x5",
+                      "sets_reps_done": "3x5", "weight_value": 185.0, "weight_note": None}])
+
+    log = get_weight_log(daily_id)
+    assert log["workout_name"] == "Upper A"
+    assert log["exercises"][0]["weight_value"] == 185.0
+    assert log["exercises"][0]["sets_reps_rx"] == "3x5"
+
+
+def test_save_marks_the_calendar_row_completed(db, scheduled_workout):
+    daily_id = scheduled_workout()
+    assert _completed_flag(db, daily_id) == 0
+
+    save_weight_log(daily_id,
+                    {"date_completed": "2026-09-17", "workout_name": "Test Lift", "workout_type": "Lift"},
+                    [{"ex_name": "Bench", "weight_value": 185.0}])
+
+    assert _completed_flag(db, daily_id) == 1
+
+
+def test_saving_twice_updates_rather_than_duplicates(db, scheduled_workout):
+    daily_id = scheduled_workout()
+    log = {"date_completed": "2026-09-17", "workout_name": "Test Lift", "workout_type": "Lift"}
+
+    first = save_weight_log(daily_id, log, [{"ex_name": "Bench", "weight_value": 185.0}])
+    second = save_weight_log(daily_id, log, [{"ex_name": "Bench", "weight_value": 190.0}])
+
+    assert first == second
+    conn = sqlite3.connect(db)
+    assert conn.execute("select count(*) from workout_weight_log").fetchone()[0] == 1
+    assert conn.execute("select count(*) from workout_weight_log_ex").fetchone()[0] == 1
+    conn.close()
+    assert get_weight_log(daily_id)["exercises"][0]["weight_value"] == 190.0
+
+
+def test_resaving_with_fewer_exercises_drops_the_old_rows(db, scheduled_workout):
+    daily_id = scheduled_workout()
+    log = {"date_completed": "2026-09-17", "workout_name": "Test Lift", "workout_type": "Lift"}
+
+    save_weight_log(daily_id, log, [{"ex_name": "Bench"}, {"ex_name": "Row"}, {"ex_name": "Curl"}])
+    save_weight_log(daily_id, log, [{"ex_name": "Bench"}])
+
+    assert [ex["ex_name"] for ex in get_weight_log(daily_id)["exercises"]] == ["Bench"]
+
+
+def test_deleting_the_calendar_row_keeps_the_log(db, scheduled_workout):
+    daily_id = scheduled_workout()
+    save_weight_log(daily_id,
+                    {"date_completed": "2026-09-17", "workout_name": "Test Lift", "workout_type": "Lift"},
+                    [{"ex_name": "Bench", "weight_value": 185.0}])
+
+    conn = sqlite3.connect(db)
+    conn.execute("PRAGMA foreign_keys = ON")
+    conn.execute("delete from training_calendar_daily_wkouts where ID = ?", (daily_id,))
+    conn.commit()
+    row = conn.execute("select daily_workout_id, workout_name from workout_weight_log").fetchone()
+    conn.close()
+
+    #SET NULL, not CASCADE: a mis-staged calendar delete must not destroy training history
+    assert row[0] is None
+    assert row[1] == "Test Lift"
+
+
+def test_unticking_completed_does_not_delete_the_log(db, scheduled_workout):
+    daily_id = scheduled_workout()
+    save_weight_log(daily_id,
+                    {"date_completed": "2026-09-17", "workout_name": "Test Lift", "workout_type": "Lift"},
+                    [{"ex_name": "Bench", "weight_value": 185.0}])
+
+    #the calendar's save path only writes the flag; entered data must survive a stray click
+    conn = sqlite3.connect(db)
+    conn.execute("update training_calendar_daily_wkouts set completed = 0 where ID = ?", (daily_id,))
+    conn.commit()
+    conn.close()
+
+    assert get_weight_log(daily_id)["exercises"][0]["weight_value"] == 185.0

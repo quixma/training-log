@@ -830,6 +830,45 @@ def get_previous_weight_log(workout_name, before_date):
     conn.close()
     return formatted
 
+def save_weight_log(daily_workout_id, log, exercises):
+    #one log per scheduled workout, so this upserts rather than appending: clicking a
+    #workout opens its log, and "log" and "edit log" are the same operation
+    conn = get_db_connection()
+    conn.execute("PRAGMA foreign_keys = ON")
+    cursor = conn.cursor()
+
+    existing = cursor.execute("select id from workout_weight_log where daily_workout_id = ?",
+                              (daily_workout_id,)).fetchone()
+    if existing:
+        log_id = existing["id"]
+        cursor.execute("""UPDATE workout_weight_log
+                          SET date_completed = ?, workout_name = ?, workout_type = ?
+                          WHERE id = ?""",
+                       (log["date_completed"], log["workout_name"], log["workout_type"], log_id))
+        #replaced wholesale so stored order matches the modal's order, as update_workout does
+        cursor.execute("DELETE FROM workout_weight_log_ex WHERE log_id = ?", (log_id,))
+    else:
+        cursor.execute("""INSERT INTO workout_weight_log
+                          (daily_workout_id, date_completed, workout_name, workout_type)
+                          VALUES (?,?,?,?)""",
+                       (daily_workout_id, log["date_completed"], log["workout_name"], log["workout_type"]))
+        log_id = cursor.lastrowid
+
+    for order, ex in enumerate(exercises):
+        cursor.execute("""INSERT INTO workout_weight_log_ex
+                          (log_id, ex_order, ex_block, ex_name, sets_reps_rx, sets_reps_done, weight_value, weight_note)
+                          VALUES (?,?,?,?,?,?,?,?)""",
+                       (log_id, order, ex.get("ex_block"), ex.get("ex_name"), ex.get("sets_reps_rx"),
+                        ex.get("sets_reps_done"), ex.get("weight_value"), ex.get("weight_note")))
+
+    #logging what was lifted is itself the record that the workout was done
+    cursor.execute("UPDATE training_calendar_daily_wkouts SET completed = 1 WHERE ID = ?",
+                   (daily_workout_id,))
+
+    conn.commit()
+    conn.close()
+    return log_id
+
 def get_journal_entry_dates():
     #the calendar inlines these so day clicks need no round trip, same as the workout rows
     conn = get_db_connection()
