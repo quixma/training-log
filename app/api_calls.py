@@ -1,6 +1,6 @@
 from app import app
 from app.input_validation import UpdateThrowingPlanModel, PlayerGoalsModel, UpdateWorkoutModel, UpdateWarmupModel, UpdateThrowingDayModel, WorkoutNotesModel, WeightLogModel
-from app.models import get_db_connection, get_warmup_by_name, get_workout_by_name, get_workout_names, get_latest_workout, WORKOUT_TYPES
+from app.models import get_db_connection, get_warmup_by_name, get_workout_by_name, get_workout_names, get_latest_workout, WORKOUT_TYPES, get_weight_log, get_previous_weight_log
 from app.models import get_throwing_day_by_name, get_bodyNotes, get_throwing_workouts_by_name, get_warmup_names
 from app.models import get_workout_notes
 from app.models import get_workout_for_edit, get_warmup_for_edit, get_throwing_day_for_edit
@@ -539,6 +539,59 @@ def saveWeightLog():
         [ex.model_dump() for ex in validated.exercises])
 
     return jsonify({"status": "log saved", "id": log_id}), 200
+
+def _blank_row(ex_block=None, ex_name=None, sets_reps_rx=None):
+    return {"ex_block": ex_block, "ex_name": ex_name, "sets_reps_rx": sets_reps_rx,
+            "sets_reps_done": None, "weight_value": None, "weight_note": None,
+            "placeholder": None}
+
+@app.route("/api/getWeightLog", methods = ["POST"])
+def getWeightLog():
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "no json body"}), 400
+
+    daily_workout_id = data.get("daily_workout_id")
+    date = data.get("date")
+    workout_type = data.get("workout_type")
+    workout_name = data.get("workout_name")
+
+    if not is_int(daily_workout_id):
+        return jsonify({"error": "daily_workout_id must be an integer"}), 400
+
+    #an existing log wins outright: this is that workout's log, opened for editing
+    logged = get_weight_log(daily_workout_id)
+    if logged:
+        exercises = []
+        for ex in logged["exercises"]:
+            row = dict(ex)
+            row["placeholder"] = None
+            exercises.append(row)
+        return jsonify({"logged": True, "prefilled_from": None, "exercises": exercises}), 200
+
+    #otherwise the rows come from the workout definition. the calendar stores the name as
+    #free text with nothing constraining it, so this can legitimately find nothing
+    definition = get_workout_by_name(workout_type, workout_name) if workout_type in WORKOUT_TYPES else None
+    if definition and definition.get("exercises"):
+        exercises = [_blank_row(ex["ex_block"], ex["ex_name"], ex["sets_reps"])
+                     for ex in definition["exercises"]]
+    else:
+        exercises = [_blank_row()]
+
+    #last time's numbers are offered as placeholders, never as values
+    previous = get_previous_weight_log(workout_name, date) if workout_name and date else None
+    if previous:
+        by_name = {ex["ex_name"]: ex for ex in previous["exercises"]}
+        for row in exercises:
+            match = by_name.get(row["ex_name"])
+            if match:
+                row["placeholder"] = {"sets_reps_done": match["sets_reps_done"],
+                                      "weight_value": match["weight_value"],
+                                      "weight_note": match["weight_note"]}
+
+    return jsonify({"logged": False,
+                    "prefilled_from": previous["date_completed"] if previous else None,
+                    "exercises": exercises}), 200
 
 #── workout dashboard notes ──────────────────────────────────────────────
 #same shape as the goals pair above: every save is a new dated row, so the
