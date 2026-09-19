@@ -260,14 +260,19 @@ def test_resaving_a_reopened_partial_log_adds_nothing_for_the_blank_rows(client,
 def test_a_nameless_row_never_inherits_a_placeholder(client, scheduled_workout):
     last_week = scheduled_workout(date="2026-09-10", name="Typed By Hand")
     client.post("/api/saveWeightLog", json=_payload(last_week, [
-        {"ex_name": "Bench", "sets_reps_done": "3x5", "weight_value": 185}],
-        date="2026-09-10", name="Typed By Hand"))
+        {"ex_name": "Bench", "sets_reps_done": "3x5", "weight_value": 185},
+        #the previous log itself has a nameless entry, so by_name has a real [None] bucket.
+        #without the guard, today's nameless row would hit it — a by_name.get(None) miss
+        #alone would prove nothing
+        {"ex_name": None, "sets_reps_done": "1x1", "weight_value": 1},
+    ], date="2026-09-10", name="Typed By Hand"))
 
     today = scheduled_workout(date="2026-09-17", name="Typed By Hand")
     body = client.post("/api/getWeightLog", json={
         "daily_workout_id": today, "date": "2026-09-17",
         "workout_type": "Lift", "workout_name": "Typed By Hand"}).get_json()
 
-    #no definition for that name, so one blank row — and a nameless row matches nothing
+    #no definition for that name, so one blank row — and a nameless row matches nothing,
+    #even though the previous log has a nameless entry sitting in by_name[None]
     assert len(body["exercises"]) == 1
     assert body["exercises"][0]["placeholder"] is None
