@@ -496,6 +496,14 @@ def saveWeightLog():
     if not data:
         return jsonify({"error": "no json body"}), 400
 
+    exercises = data.get("exercises")
+    if exercises is not None and not isinstance(exercises, list):
+        return jsonify({"error": "exercises must be a list"}), 400
+    #nothing downstream coerces these, and _clean_weight_rows assumes a mapping
+    for ex in exercises or []:
+        if not isinstance(ex, dict):
+            return jsonify({"error": "each exercise must be an object"}), 400
+
     payload = {
         "daily_workout_id": data.get("daily_workout_id"),
         "date_completed": data.get("date_completed"),
@@ -504,14 +512,24 @@ def saveWeightLog():
         "exercises": _clean_weight_rows(data.get("exercises")),
         }
 
-    #an all-blank save must not create a record
-    if not payload["exercises"]:
-        return jsonify({"error": "at least one exercise must be filled in"}), 400
-
     try:
         validated = WeightLogModel(**payload)
     except ValidationError as e:
         return jsonify(e.errors()), 400
+
+    #an all-blank save must not create a record. checked after validation so a payload that
+    #is both blank and malformed reports the real error rather than this one
+    if not validated.exercises:
+        return jsonify({"error": "at least one exercise must be filled in"}), 400
+
+    #a stale id (the calendar row was edited or deleted while the modal was open) would
+    #otherwise hit the FK constraint inside save_weight_log and surface as a 500
+    conn = get_db_connection()
+    scheduled = conn.execute("select 1 from training_calendar_daily_wkouts where ID = ?",
+                             (validated.daily_workout_id,)).fetchone()
+    conn.close()
+    if scheduled is None:
+        return jsonify({"error": "that scheduled workout no longer exists"}), 404
 
     log_id = save_weight_log(
         validated.daily_workout_id,

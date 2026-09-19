@@ -62,6 +62,9 @@ class PlayerGoalsModel(BaseModel):
     back: Optional[str]
     nutrition: Optional[str]
 
+#every field defaults, unlike WeightLogModel below: _clean_weight_rows preserves only the
+#keys the client actually sent, so an entry legitimately arrives without ex_block or
+#sets_reps_rx. Without defaults pydantic treats Optional as required and rejects it.
 class WeightLogEntry(BaseModel):
     ex_block: Optional[str] = None
     ex_name: Optional[str] = None

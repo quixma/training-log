@@ -81,3 +81,33 @@ def test_an_unknown_workout_type_is_rejected(client, scheduled_workout):
     payload["workout_type"] = "Throwing"
 
     assert client.post("/api/saveWeightLog", json=payload).status_code == 400
+
+
+def test_an_unknown_scheduled_workout_is_rejected(client, db):
+    #not scheduled_workout() — this id deliberately has no calendar row
+    response = client.post("/api/saveWeightLog", json=_payload(9999, [
+        {"ex_name": "Bench", "sets_reps_done": "3x5", "weight_value": 185}]))
+
+    assert response.status_code == 404
+    conn = sqlite3.connect(db)
+    assert conn.execute("select count(*) from workout_weight_log").fetchone()[0] == 0
+    conn.close()
+
+
+def test_a_non_dict_exercise_entry_is_rejected(client, scheduled_workout):
+    daily_id = scheduled_workout()
+    payload = _payload(daily_id, ["not an object"])
+
+    assert client.post("/api/saveWeightLog", json=payload).status_code == 400
+
+
+def test_validation_errors_are_not_masked_by_the_blank_guard(client, scheduled_workout):
+    daily_id = scheduled_workout()
+    payload = _payload(daily_id, [{"ex_name": "Bench", "sets_reps_done": "", "weight_value": None}])
+    payload["workout_type"] = "Throwing"
+
+    response = client.post("/api/saveWeightLog", json=payload)
+
+    #blank AND invalid: the real problem must surface, not the blank-row message
+    assert response.status_code == 400
+    assert "at least one exercise" not in response.get_data(as_text=True)
