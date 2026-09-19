@@ -567,11 +567,51 @@ def getWeightLog():
     #an existing log wins outright: this is that workout's log, opened for editing
     logged = get_weight_log(daily_workout_id)
     if logged:
-        exercises = []
+        stored = []
         for ex in logged["exercises"]:
             row = dict(ex)
             row["placeholder"] = None
-            exercises.append(row)
+            stored.append(row)
+
+        #_clean_weight_rows drops anything left blank, so a mid-session save only stores
+        #what was filled in. re-merge the rest of the definition back in on reopen, in the
+        #definition's own order, or those exercises (and their sets_reps_rx) look like they
+        #were never part of the workout
+        definition = get_workout_by_name(workout_type, workout_name) if workout_type in WORKOUT_TYPES else None
+        if definition and definition.get("exercises"):
+            #same positional bucketing as the placeholder path below: repeats pair by
+            #occurrence, not just by name, so interleaved names cannot mis-pair
+            by_name = {}
+            for ex in stored:
+                by_name.setdefault(ex["ex_name"], []).append(ex)
+
+            used = {}
+            matched = set()
+            exercises = []
+            for ex in definition["exercises"]:
+                name = ex["ex_name"]
+                match = None
+                #a nameless definition exercise has nothing reliable to match against,
+                #so it is always treated as missing rather than risk pairing it with an
+                #unrelated nameless stored row
+                if name:
+                    index = used.get(name, 0)
+                    used[name] = index + 1
+                    candidates = by_name.get(name, [])
+                    if index < len(candidates):
+                        match = candidates[index]
+                if match is not None:
+                    exercises.append(match)
+                    matched.add(id(match))
+                else:
+                    exercises.append(_blank_row(ex["ex_block"], ex["ex_name"], ex["sets_reps"]))
+
+            #a row the current definition no longer accounts for (added by hand, or the
+            #definition changed since this was logged) must still not be dropped
+            exercises.extend(ex for ex in stored if id(ex) not in matched)
+        else:
+            exercises = stored
+
         return jsonify({"logged": True, "prefilled_from": None, "exercises": exercises}), 200
 
     #otherwise the rows come from the workout definition. the calendar stores the name as

@@ -205,6 +205,58 @@ def test_repeated_exercise_names_get_their_own_placeholders(client, scheduled_wo
     assert body["exercises"][1]["placeholder"]["weight_value"] == 185.0
 
 
+def test_reopening_a_partial_log_restores_the_rest_of_the_definition(client, scheduled_workout, db):
+    _seed_definition(db, "Lift", "Upper A",
+                      [("A", "Bench", "3x5"), ("B", "Row", "3x10"), ("C", "Curl", "3x12")])
+    daily_id = scheduled_workout(date="2026-09-17", name="Upper A")
+    #only the middle exercise was logged: the append must not shuffle it to the front
+    client.post("/api/saveWeightLog", json=_payload(daily_id, [
+        {"ex_name": "Row", "sets_reps_done": "3x10", "weight_value": 95},
+    ], name="Upper A"))
+
+    body = client.post("/api/getWeightLog", json={
+        "daily_workout_id": daily_id, "date": "2026-09-17",
+        "workout_type": "Lift", "workout_name": "Upper A"}).get_json()
+
+    assert body["logged"] is True
+    assert [ex["ex_name"] for ex in body["exercises"]] == ["Bench", "Row", "Curl"]
+
+    bench, row, curl = body["exercises"]
+    #the logged one keeps its stored value
+    assert row["weight_value"] == 95.0
+    #the untouched ones come back blank, not missing, carrying the definition's rx
+    assert bench["weight_value"] is None
+    assert bench["sets_reps_done"] is None
+    assert bench["sets_reps_rx"] == "3x5"
+    assert curl["weight_value"] is None
+    assert curl["sets_reps_rx"] == "3x12"
+    #placeholders are a different mechanism (previous-log numbers); an existing log
+    #never attaches them
+    assert bench["placeholder"] is None
+    assert curl["placeholder"] is None
+
+
+def test_resaving_a_reopened_partial_log_adds_nothing_for_the_blank_rows(client, scheduled_workout, db):
+    _seed_definition(db, "Lift", "Upper A",
+                      [("A", "Bench", "3x5"), ("B", "Row", "3x10"), ("C", "Curl", "3x12")])
+    daily_id = scheduled_workout(date="2026-09-17", name="Upper A")
+    client.post("/api/saveWeightLog", json=_payload(daily_id, [
+        {"ex_name": "Row", "sets_reps_done": "3x10", "weight_value": 95},
+    ], name="Upper A"))
+
+    reopened = client.post("/api/getWeightLog", json={
+        "daily_workout_id": daily_id, "date": "2026-09-17",
+        "workout_type": "Lift", "workout_name": "Upper A"}).get_json()
+
+    #re-save exactly what the modal would submit: reopened rows, blanks untouched
+    client.post("/api/saveWeightLog", json=_payload(daily_id, reopened["exercises"], name="Upper A"))
+
+    conn = sqlite3.connect(db)
+    names = [r[0] for r in conn.execute("select ex_name from workout_weight_log_ex")]
+    conn.close()
+    assert names == ["Row"]
+
+
 def test_a_nameless_row_never_inherits_a_placeholder(client, scheduled_workout):
     last_week = scheduled_workout(date="2026-09-10", name="Typed By Hand")
     client.post("/api/saveWeightLog", json=_payload(last_week, [
