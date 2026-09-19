@@ -315,6 +315,9 @@ function buildReminder(event) {
     const item = document.createElement("li");
     item.dataset.id = event.id;
     if (event.done) item.classList.add("is-done");
+    // a logged workout has to look different from a merely ticked one, or there is no
+    // way to tell what still needs its weights entered
+    if (event.logged) item.classList.add("has-log");
 
     const check = document.createElement("input");
     check.type = "checkbox";
@@ -336,6 +339,17 @@ function buildReminder(event) {
     const body = document.createElement("div");
     body.className = "reminder-body";
     body.append(title, sub);
+
+    // the body is the click target, not the <li>: the complete and delete checkboxes sit
+    // on either side of it and their change handlers must not fire from opening a modal
+    const workout = event;   // buildReminder's parameter is the workout, not a DOM event
+    body.classList.add("is-clickable");
+    body.setAttribute("role", "button");
+    body.setAttribute("tabindex", "0");
+    body.addEventListener("click", function () { openSessionModal(workout); });
+    body.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openSessionModal(workout); }
+    });
 
     const remove = document.createElement("input");
     remove.type = "checkbox";
@@ -918,3 +932,188 @@ function init() {
 }
 
 init();
+
+// ── Weight log ────────────────────────────────────────────────────────────────
+//
+// Clicking a workout in the Today card opens its log. The row carries the
+// training_calendar_daily_wkouts.ID, so the log's identity needs no lookup.
+
+// nothing to log against a throwing day or a warmup, so those open read-only
+const VIEW_ONLY_TYPES = ["Throwing", "Warmup"];
+
+const weightModal = document.getElementById("logWeights-modal");
+const weightRows = document.getElementById("weight-rows");
+const weightName = document.getElementById("weight-log-name");
+const weightMeta = document.getElementById("weight-log-meta");
+const viewModal = document.getElementById("viewSession-modal");
+const viewTitle = document.getElementById("view-session-title");
+const viewBody = document.getElementById("view-session-body");
+
+// the workout the open modal belongs to; saveWeightLog() reads it rather than the DOM
+let loggingFor = null;
+
+async function openSessionModal(workout) {
+    if (VIEW_ONLY_TYPES.indexOf(workout.type) !== -1) {
+        await openViewModal(workout);
+        return;
+    }
+
+    const data = await postJSON("/api/getWeightLog", {
+        daily_workout_id: workout.id,
+        date: workout.date,
+        workout_type: workout.type,
+        workout_name: workout.name
+    }, "Could not load this workout's log.");
+    if (!data) return;
+
+    loggingFor = workout;
+    weightName.textContent = (workout.name || workout.type) + " · " + workout.date;
+    weightMeta.textContent = data.prefilled_from
+        ? "Greyed values are what you last logged on " + data.prefilled_from
+        : "";
+
+    weightRows.innerHTML = "";
+    data.exercises.forEach(function (ex) { weightRows.appendChild(buildWeightRow(ex)); });
+    openModal("logWeights-modal");
+}
+
+// placeholders, never values: an untouched row must save nothing rather than last
+// session's numbers
+function buildWeightRow(ex) {
+    const row = document.getElementById("weight-row-template").content.firstElementChild.cloneNode(true);
+    const placeholder = ex.placeholder || {};
+
+    const label = row.querySelector(".row-ex-label");
+    label.textContent = ex.ex_name || "";
+    row.dataset.exBlock = ex.ex_block || "";
+    row.dataset.exName = ex.ex_name || "";
+    row.dataset.setsRepsRx = ex.sets_reps_rx || "";
+
+    const fields = [
+        [".row-sets-reps-done", ex.sets_reps_done, placeholder.sets_reps_done, "Sets/Reps"],
+        [".row-weight-value", ex.weight_value, placeholder.weight_value, "Weight"],
+        [".row-weight-note", ex.weight_note, placeholder.weight_note, "Note"]
+    ];
+    fields.forEach(function (field) {
+        const input = row.querySelector(field[0]);
+        input.value = field[1] === null || field[1] === undefined ? "" : field[1];
+        input.placeholder = field[2] === null || field[2] === undefined ? field[3] : String(field[2]);
+    });
+
+    // an exercise typed in by hand needs its name captured too
+    if (!ex.ex_name) {
+        const typed = document.createElement("input");
+        typed.type = "text";
+        typed.className = "row-ex-name-input";
+        typed.placeholder = "Exercise";
+        label.replaceWith(typed);
+    }
+    return row;
+}
+
+function addWeightRow() {
+    weightRows.appendChild(buildWeightRow({
+        ex_block: null, ex_name: null, sets_reps_rx: null,
+        sets_reps_done: null, weight_value: null, weight_note: null, placeholder: null
+    }));
+}
+
+function collectWeightRows() {
+    const rows = [];
+    weightRows.querySelectorAll(".weight-row").forEach(function (row) {
+        const typed = row.querySelector(".row-ex-name-input");
+        rows.push({
+            ex_block: row.dataset.exBlock || null,
+            ex_name: typed ? typed.value : (row.dataset.exName || null),
+            sets_reps_rx: row.dataset.setsRepsRx || null,
+            sets_reps_done: row.querySelector(".row-sets-reps-done").value,
+            weight_value: row.querySelector(".row-weight-value").value,
+            weight_note: row.querySelector(".row-weight-note").value
+        });
+    });
+    return rows;
+}
+
+async function submitWeightLog() {
+    if (!loggingFor) return;
+
+    const saved = await postJSON("/api/saveWeightLog", {
+        daily_workout_id: loggingFor.id,
+        date_completed: loggingFor.date,
+        workout_name: loggingFor.name,
+        workout_type: loggingFor.type,
+        exercises: collectWeightRows()
+    }, "Could not save this log.");
+    if (!saved) return;
+
+    // a logged workout must never still read as outstanding in the card it was logged from
+    replaceDay(loggingFor.date, events
+        .filter(function (e) { return e.date === loggingFor.date; })
+        .map(function (e) {
+            return e.id === loggingFor.id ? Object.assign({}, e, { done: 1, logged: 1 }) : e;
+        }));
+
+    weightModal.classList.remove("active");
+    loggingFor = null;
+    showCalendar(currentMonth, currentYear);
+}
+
+async function openViewModal(workout) {
+    const data = await postJSON("/api/getSelectedWorkout",
+        { type: workout.type, value: workout.name },
+        "Could not load this session.");
+    if (!data) return;
+
+    viewTitle.textContent = workout.name || workout.type;
+    viewBody.innerHTML = workout.type === "Warmup" ? warmupMarkup(data) : throwingDayMarkup(data);
+    openModal("viewSession-modal");
+}
+
+// the notes fields carry backend-injected <br> and the templates render them with | safe,
+// so they stay raw. everything else here is free text the templates auto-escape, and
+// concatenating it into innerHTML would both widen that trust boundary and swallow a name
+// like "DB Press <45lb" as markup
+function escapeHtml(value) {
+    const holder = document.createElement("div");
+    holder.textContent = value === null || value === undefined ? "" : value;
+    return holder.innerHTML;
+}
+
+// both views reuse the layout the record already has elsewhere: the Warmup Options tab
+// here, and the Throwing Days tab on the home page
+function warmupMarkup(warmup) {
+    const columns = [
+        ["Name", escapeHtml(warmup.name)], ["Rollout Exercises", warmup.rollout_ex],
+        ["Spine Exercises", warmup.spine_ex], ["Hip Exercises", warmup.hip_ex],
+        ["Shoulder Exercises", warmup.shoulder_ex], ["Arm Exercises", warmup.arm_ex],
+        ["Dynamic Exercises", warmup.dynamic_ex], ["Notes", warmup.notes]
+    ];
+    return '<div class="table-scroll"><table><thead><tr>' +
+        columns.map(function (c) { return "<th>" + c[0] + "</th>"; }).join("") +
+        "</tr></thead><tbody><tr>" +
+        columns.map(function (c) {
+            return '<td data-label="' + c[0] + '">' + (c[1] || "") + "</td>";
+        }).join("") +
+        "</tr></tbody></table></div>";
+}
+
+function throwingDayMarkup(day) {
+    const meta = '<span class="day-meta">' + escapeHtml(day.date) + " &middot; " +
+        escapeHtml(day.session_type) + "</span>";
+    const notes = day.notes
+        ? '<div class="day-notes"><h4>Day Breakdown / Notes</h4><p>' + day.notes + "</p></div>"
+        : "";
+    const rows = (day.drills || []).map(function (drill) {
+        return '<tr><td data-label="Set">' + escapeHtml(drill.set) +
+            '</td><td data-label="Drill">' + escapeHtml(drill.drill_name) +
+            '</td><td data-label="Ball">' + escapeHtml(drill.ball_weight) +
+            '</td><td data-label="Throws">' + escapeHtml(drill.throw_count) +
+            '</td><td data-label="Notes">' + (drill.drill_notes || "") + "</td></tr>";
+    }).join("");
+    return meta + notes +
+        '<div class="table-scroll"><table><thead><tr><th>Set</th><th>Drill</th><th>Ball</th>' +
+        "<th>Throws</th><th>Notes</th></tr></thead><tbody>" + rows + "</tbody></table></div>";
+}
+
+document.getElementById("addWeightRow").addEventListener("click", addWeightRow);
+document.getElementById("saveWeightLog").addEventListener("click", submitWeightLog);

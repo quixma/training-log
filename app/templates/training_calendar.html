@@ -15,7 +15,6 @@
   <button class="tablinks active" onclick="openTab(event, 'calendar_tab')">Calendar</button>
   <button class="tablinks" onclick="openTab(event, 'warmup_workouts')">View Warmups</button>
   <button class="tablinks" onclick="openTab(event, 'workouts')">View Workouts</button>
-  <button class ="tablinks" onclick="openTab(event, 'weight_log')">Workout Weight Log</button>
   <button class="tablinks tab-link" onclick="window.location.href='{{ url_for('workout_dashboard') }}'">Workout Dashboard</button>
 </div>
 
@@ -227,10 +226,6 @@
 </div>
 </div>
 
-<!-- ══ WEIGHT LOG TAB ══════════════════════════ -->
-<div id="weight_log" class="tabcontent">
-
-</div
 <!-- ── Edit Workout Modal ───────────────────── -->
 <!-- edits the workout the Workouts tab is showing, exercise rows included -->
 <div id="editWorkout-modal" class="modal">
@@ -274,6 +269,47 @@
   </div>
 </div>
 
+<!-- ── Log Weights Modal ────────────────────── -->
+<!-- opened by clicking a workout in the Today card; the row clicked is the log's identity,
+     so name and date are shown rather than entered -->
+<div id="logWeights-modal" class="modal">
+  <div class="modal-inner">
+    <div class="modal-header">
+      <h2>Log Weights</h2>
+      <button class="modal-close" data-modal="logWeights-modal">&#x2715;</button>
+    </div>
+    <div class="modal-content">
+      <div class="field-group">
+        <label>Workout</label>
+        <p id="weight-log-name" class="day-meta"></p>
+      </div>
+      <!-- names where the placeholders came from, so an untouched row is never mistaken
+           for a fresh entry -->
+      <p id="weight-log-meta" class="day-meta"></p>
+      <div class="field-group">
+        <label>Exercises</label>
+        <div id="weight-rows" class="modal-rows"></div>
+      </div>
+      <div class="modal-btn-group">
+        <button type="button" id="addWeightRow">+ Add Exercise</button>
+      </div>
+      <button id="saveWeightLog" class="btn-save">Save Log</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── View Session Modal ───────────────────── -->
+<!-- read-only: throwing days and warmups have nothing to log, only to look at -->
+<div id="viewSession-modal" class="modal">
+  <div class="modal-inner">
+    <div class="modal-header">
+      <h2 id="view-session-title">Session</h2>
+      <button class="modal-close" data-modal="viewSession-modal">&#x2715;</button>
+    </div>
+    <div class="modal-content" id="view-session-body"></div>
+  </div>
+</div>
+
 <!-- one exercise row, cloned per exercise when the modal opens -->
 <template id="ex-row-template">
   <div class="modal-row">
@@ -281,6 +317,16 @@
     <input type="text" class="row-ex-name" placeholder="Exercise Name">
     <input type="text" class="row-sets-reps" placeholder="Sets/Reps">
     <input type="text" class="row-ex-notes row-notes" placeholder="Exercise Notes">
+  </div>
+</template>
+
+<!-- one exercise row in the weight log; the name is a label, only the two inputs are typed into -->
+<template id="weight-row-template">
+  <div class="modal-row weight-row">
+    <span class="row-ex-label"></span>
+    <input type="text" class="row-sets-reps-done" placeholder="Sets/Reps">
+    <input type="number" step="any" class="row-weight-value" placeholder="Weight">
+    <input type="text" class="row-weight-note row-notes" placeholder="Note">
   </div>
 </template>
 

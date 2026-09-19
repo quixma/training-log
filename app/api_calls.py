@@ -1,10 +1,10 @@
 from app import app
-from app.input_validation import UpdateThrowingPlanModel, PlayerGoalsModel, UpdateWorkoutModel, UpdateWarmupModel, UpdateThrowingDayModel, WorkoutNotesModel
-from app.models import get_db_connection, get_warmup_by_name, get_workout_by_name, get_workout_names, get_latest_workout, WORKOUT_TYPES
+from app.input_validation import UpdateThrowingPlanModel, PlayerGoalsModel, UpdateWorkoutModel, UpdateWarmupModel, UpdateThrowingDayModel, WorkoutNotesModel, WeightLogModel
+from app.models import get_db_connection, get_warmup_by_name, get_workout_by_name, get_workout_names, get_latest_workout, WORKOUT_TYPES, get_weight_log, get_previous_weight_log
 from app.models import get_throwing_day_by_name, get_bodyNotes, get_throwing_workouts_by_name, get_warmup_names
 from app.models import get_workout_notes
 from app.models import get_workout_for_edit, get_warmup_for_edit, get_throwing_day_for_edit
-from app.models import update_workout, update_warmup, update_throwing_day
+from app.models import update_workout, update_warmup, update_throwing_day, save_weight_log
 from app.models import delete_workout, delete_warmup, delete_throwing_day, blank_to_none
 from app.models import OUTING_REPORT_FOLDER, OUTING_SPLIT_COLUMNS, OUTING_MVMT_COLUMNS, OUTING_STRIKES_COLUMNS
 from app.models import OUTING_MISS_COLUMNS, OUTING_DAMAGE_COLUMNS, OUTING_SUMMARY_COLUMNS
@@ -400,10 +400,15 @@ def getSelectedWorkout():
     data = request.get_json()
     table = data.get("type")
     workout = data.get("value")
-    
-    #warmups keep their own table and shape; every other type is a workout_type value
-    if table == "warmup":
+
+    #warmups and throwing days keep their own tables and shapes; every other type is a
+    #workout_type value. the calendar stores these capitalised, so match case-insensitively
+    table = (table or "").strip()
+    if table.lower() == "warmup":
         result = get_warmup_by_name(workout)
+    elif table.lower() == "throwing":
+        #workouts.workout_type excludes Throwing by CHECK, so these are only in throwing_days
+        result = get_throwing_day_by_name(workout)
     elif table in WORKOUT_TYPES:
         result = get_workout_by_name(table, workout)
     else:
@@ -475,6 +480,178 @@ def getPlayerGoals():
         return jsonify({"error": "No goals found"}), 404
 
     return jsonify(dict(result))
+
+#── workout weight log ───────────────────────────────────────────────────
+#a log belongs to one scheduled workout, so daily_workout_id is the key throughout
+
+def _clean_weight_rows(exercises):
+    #an untouched placeholder row carries nothing, so it must not become a stored row.
+    cleaned = []
+    for ex in exercises or []:
+        row = {key: (None if value == "" else value) for key, value in ex.items()}
+        if row.get("sets_reps_done") is None and row.get("weight_value") is None and row.get("weight_note") is None:
+            continue
+        cleaned.append(row)
+    return cleaned
+
+@app.route("/api/saveWeightLog", methods = ["POST"])
+def saveWeightLog():
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "no json body"}), 400
+
+    exercises = data.get("exercises")
+    if exercises is not None and not isinstance(exercises, list):
+        return jsonify({"error": "exercises must be a list"}), 400
+    #nothing downstream coerces these, and _clean_weight_rows assumes a mapping
+    for ex in exercises or []:
+        if not isinstance(ex, dict):
+            return jsonify({"error": "each exercise must be an object"}), 400
+
+    payload = {
+        "daily_workout_id": data.get("daily_workout_id"),
+        "date_completed": data.get("date_completed"),
+        "workout_name": data.get("workout_name"),
+        "workout_type": data.get("workout_type"),
+        "exercises": _clean_weight_rows(data.get("exercises")),
+        }
+
+    try:
+        validated = WeightLogModel(**payload)
+    except ValidationError as e:
+        return jsonify(e.errors()), 400
+
+    #an all-blank save must not create a record. checked after validation so a payload that
+    #is both blank and malformed reports the real error rather than this one
+    if not validated.exercises:
+        return jsonify({"error": "at least one exercise must be filled in"}), 400
+
+    #a stale id (the calendar row was edited or deleted while the modal was open) would
+    #otherwise hit the FK constraint inside save_weight_log and surface as a 500
+    conn = get_db_connection()
+    scheduled = conn.execute("select 1 from training_calendar_daily_wkouts where ID = ?",
+                             (validated.daily_workout_id,)).fetchone()
+    conn.close()
+    if scheduled is None:
+        return jsonify({"error": "that scheduled workout no longer exists"}), 404
+
+    log_id = save_weight_log(
+        validated.daily_workout_id,
+        {"date_completed": validated.date_completed.isoformat(),
+         "workout_name": validated.workout_name,
+         "workout_type": validated.workout_type},
+        [ex.model_dump() for ex in validated.exercises])
+
+    return jsonify({"status": "log saved", "id": log_id}), 200
+
+def _blank_row(ex_block=None, ex_name=None, sets_reps_rx=None):
+    return {"ex_block": ex_block, "ex_name": ex_name, "sets_reps_rx": sets_reps_rx,
+            "sets_reps_done": None, "weight_value": None, "weight_note": None,
+            "placeholder": None}
+
+@app.route("/api/getWeightLog", methods = ["POST"])
+def getWeightLog():
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "no json body"}), 400
+
+    daily_workout_id = data.get("daily_workout_id")
+    date = data.get("date")
+    workout_type = data.get("workout_type")
+    workout_name = data.get("workout_name")
+
+    if not is_int(daily_workout_id):
+        return jsonify({"error": "daily_workout_id must be an integer"}), 400
+
+    #an existing log wins outright: this is that workout's log, opened for editing
+    logged = get_weight_log(daily_workout_id)
+    if logged:
+        stored = []
+        for ex in logged["exercises"]:
+            row = dict(ex)
+            row["placeholder"] = None
+            stored.append(row)
+
+        #_clean_weight_rows drops anything left blank, so a mid-session save only stores
+        #what was filled in. re-merge the rest of the definition back in on reopen, in the
+        #definition's own order, or those exercises (and their sets_reps_rx) look like they
+        #were never part of the workout
+        definition = get_workout_by_name(workout_type, workout_name) if workout_type in WORKOUT_TYPES else None
+        if definition and definition.get("exercises"):
+            #same positional bucketing as the placeholder path below: repeats pair by
+            #occurrence, not just by name, so interleaved names cannot mis-pair
+            by_name = {}
+            for ex in stored:
+                by_name.setdefault(ex["ex_name"], []).append(ex)
+
+            used = {}
+            matched = set()
+            exercises = []
+            for ex in definition["exercises"]:
+                name = ex["ex_name"]
+                match = None
+                #a nameless definition exercise has nothing reliable to match against,
+                #so it is always treated as missing rather than risk pairing it with an
+                #unrelated nameless stored row
+                if name:
+                    index = used.get(name, 0)
+                    used[name] = index + 1
+                    candidates = by_name.get(name, [])
+                    if index < len(candidates):
+                        match = candidates[index]
+                if match is not None:
+                    exercises.append(match)
+                    matched.add(id(match))
+                else:
+                    exercises.append(_blank_row(ex["ex_block"], ex["ex_name"], ex["sets_reps"]))
+
+            #a row the current definition no longer accounts for (added by hand, or the
+            #definition changed since this was logged) must still not be dropped
+            exercises.extend(ex for ex in stored if id(ex) not in matched)
+        else:
+            exercises = stored
+
+        return jsonify({"logged": True, "prefilled_from": None, "exercises": exercises}), 200
+
+    #otherwise the rows come from the workout definition. the calendar stores the name as
+    #free text with nothing constraining it, so this can legitimately find nothing
+    definition = get_workout_by_name(workout_type, workout_name) if workout_type in WORKOUT_TYPES else None
+    if definition and definition.get("exercises"):
+        exercises = [_blank_row(ex["ex_block"], ex["ex_name"], ex["sets_reps"])
+                     for ex in definition["exercises"]]
+    else:
+        exercises = [_blank_row()]
+
+    #last time's numbers are offered as placeholders, never as values
+    previous = get_previous_weight_log(workout_name, date) if workout_name and date else None
+    if previous:
+        #matched by name, but repeats pair positionally: a workout can log the same exercise
+        #twice (a warm-up set then a working set), and a flat name->row map would hand both
+        #of today's rows the last one's numbers and silently lose the first
+        by_name = {}
+        for ex in previous["exercises"]:
+            by_name.setdefault(ex["ex_name"], []).append(ex)
+
+        used = {}
+        for row in exercises:
+            name = row["ex_name"]
+            #a nameless row (the no-definition fallback) has nothing to match on
+            if not name:
+                continue
+            matches = by_name.get(name)
+            if not matches:
+                continue
+            index = used.get(name, 0)
+            used[name] = index + 1
+            if index < len(matches):
+                match = matches[index]
+                row["placeholder"] = {"sets_reps_done": match["sets_reps_done"],
+                                      "weight_value": match["weight_value"],
+                                      "weight_note": match["weight_note"]}
+
+    return jsonify({"logged": False,
+                    "prefilled_from": previous["date_completed"] if previous else None,
+                    "exercises": exercises}), 200
 
 #── workout dashboard notes ──────────────────────────────────────────────
 #same shape as the goals pair above: every save is a new dated row, so the
@@ -652,9 +829,11 @@ def is_int(value):
 def calendar_day(cursor, session_id):
     rows = cursor.execute("""SELECT w.ID AS id, c.workout_date AS date,
                                     w.workout_type AS type, w.workout_name AS name,
-                                    w.completed AS done
+                                    w.completed AS done,
+                                    (l.id IS NOT NULL) AS logged
                              FROM training_calendar_daily_wkouts w
                              JOIN training_calendar c ON c.ID = w.session_id
+                             LEFT JOIN workout_weight_log l ON l.daily_workout_id = w.ID
                              WHERE w.session_id = ?
                              ORDER BY w.ID""", (session_id,)).fetchall()
     return [dict(row) for row in rows]
