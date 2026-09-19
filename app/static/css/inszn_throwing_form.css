@@ -1,44 +1,7 @@
 
 /* ── Root Variables ─────────────────────────── */
-:root {
-  --bg-base:       #0d0f14;
-  --bg-card:       #13161e;
-  --bg-input:      #1a1e29;
-  --bg-input-focus:#1f2433;
-  --border:        #252a38;
-  --border-focus:  #e8383b;
-  --accent:        #e8383b;
-  --accent-dim:    rgba(232, 56, 59, 0.15);
-  --accent-2:      #f59e0b;
-  --text-primary:  #eef0f6;
-  --text-secondary:#7b82a0;
-  --text-label:    #a0a8c4;
-  --success:       #22c55e;
-  --radius-sm:     6px;
-  --radius-md:     10px;
-  --radius-lg:     16px;
-  --transition:    0.18s ease;
-  --shadow-card:   0 4px 32px rgba(0,0,0,0.45);
-  --shadow-input:  0 2px 8px rgba(0,0,0,0.3);
-}
 
 /* ── Base Reset ─────────────────────────────── */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  background-color: var(--bg-base);
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(232,56,59,0.08) 0%, transparent 70%);
-  color: var(--text-primary);
-  font-family: 'Barlow', sans-serif;
-  font-size: 15px;
-  min-height: 100vh;
-  padding: 40px 20px 80px;
-}
 
 /* ── Form Card ──────────────────────────────── */
 #inszn-throwing-form {
@@ -57,13 +20,13 @@ body {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%);
+  height: 0;
+  background: var(--border);
 }
 
 /* ── Headings ───────────────────────────────── */
 #inszn-throwing-form h2 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 2.2rem;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -83,7 +46,7 @@ body {
 }
 
 #inszn-throwing-form h3 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -133,7 +96,7 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
-  font-family: 'Barlow', sans-serif;
+  font-family: var(--mono);
   font-size: 0.95rem;
   font-weight: 400;
   padding: 10px 14px;
@@ -160,20 +123,21 @@ body {
 
 /* Date input calendar icon tint */
 #inszn-throwing-form input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(0.5) sepia(1) hue-rotate(300deg) saturate(3);
+  filter: none;
+  opacity: 0.7;
   cursor: pointer;
 }
 
 /* Select arrow */
 #inszn-throwing-form select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237b82a0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%230a0a0a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 14px center;
   padding-right: 38px;
 }
 
 #inszn-throwing-form select option {
-  background: #1a1e29;
+  background: var(--bg-card);
   color: var(--text-primary);
 }
 
@@ -256,14 +220,14 @@ body {
   grid-template-columns: 2fr 1fr;
   gap: 10px;
   padding: 12px;
-  background: rgba(255,255,255,0.02);
+  background: var(--bg-base);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   transition: border-color var(--transition);
 }
 
 .drill-row:hover {
-  border-color: rgba(232,56,59,0.3);
+  border-color: var(--border);
 }
 
 .drill-row input {
@@ -279,7 +243,7 @@ body {
 
 #inszn-throwing-form button[type="button"] {
   padding: 9px 18px;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -305,9 +269,9 @@ body {
 }
 
 #inszn-throwing-form button[type="button"]:last-of-type:hover {
-  border-color: #ef444480;
-  color: #f87171;
-  background: rgba(239,68,68,0.08);
+  border-color: var(--danger);
+  color: var(--danger);
+  background: var(--danger-dim);
 }
 
 /* Submit */
@@ -315,8 +279,8 @@ body {
   width: 100%;
   padding: 15px;
   background: var(--accent);
-  color: #fff;
-  font-family: 'Barlow Condensed', sans-serif;
+  color: var(--bg-card);
+  font-family: var(--mono);
   font-size: 1rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -325,19 +289,14 @@ body {
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background var(--transition), transform 0.1s ease, box-shadow var(--transition);
-  box-shadow: 0 4px 20px rgba(232,56,59,0.35);
   margin-top: 8px;
 }
 
 #inszn-throwing-form button[type="submit"]:hover {
-  background: #f04044;
-  box-shadow: 0 6px 28px rgba(232,56,59,0.5);
-  transform: translateY(-1px);
+  background: var(--accent);
 }
 
 #inszn-throwing-form button[type="submit"]:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 12px rgba(232,56,59,0.3);
 }
 
 /* ── Notes label bold ───────────────────────── */
@@ -362,4 +321,56 @@ body {
   .metrics-row {
     grid-template-columns: 1fr;
   }
+}
+
+/* ── C:\TOOLS overrides ─────────────────────── */
+#inszn-throwing-form h2 {
+  font-family: var(--pixel);
+  font-weight: 400;
+  font-size: 1.35rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+#inszn-throwing-form button,
+#inszn-throwing-form input[type="submit"] {
+  font-family: var(--mono);
+  border-radius: 0;
+  box-shadow: var(--shadow-btn);
+  transition: box-shadow var(--transition), transform var(--transition),
+              background var(--transition), color var(--transition);
+}
+
+#inszn-throwing-form button:active,
+#inszn-throwing-form input[type="submit"]:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+#inszn-throwing-form button[type="submit"],
+#inszn-throwing-form input[type="submit"] {
+  background: var(--border);
+  color: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+#inszn-throwing-form button[type="submit"]:hover,
+#inszn-throwing-form input[type="submit"]:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* heading rule: a full-width hairline, not an accent stub */
+#inszn-throwing-form h2::after {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+  border-radius: 0;
+  margin-top: 14px;
+  margin-bottom: 24px;
+}
+
+#inszn-throwing-form h3 {
+  color: var(--text-label);
 }

@@ -1,8 +1,14 @@
 {% extends "inszn_base.html" %}
 {% block styles %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Silkscreen:wght@400;700&display=swap">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tools-theme.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/lifting_forms.css') }}">
 {% endblock %}
 {% block content %}
+{% set tools_path = 'WORKOUT_INPUT' %}
+{% include '_tools_chrome.html' %}
 <header>
   <h1><span>//</span> Workout Forms <span>//</span></h1>
 </header>

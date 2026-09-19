@@ -599,7 +599,10 @@ function updateChart(data) {
                 {
                     label: metricMap,
                     data: label_dataY,
-                    borderWidth: 2
+                    borderWidth: 2,
+                    borderColor: PitchCharts.series(0),
+                    backgroundColor: PitchCharts.series(0),
+                    pointRadius: 2
                 }
             ]
         },
@@ -628,26 +631,10 @@ function initializeChart() {
                 {
                     label: "Metric",
                     data: [],
-                    borderWidth: 2
-                }
-            ]
-        },
-        options: {
-            responsive: true
-        }
-    });
-}
-function initializeChart() {
-    const ctx = document.getElementById('chart').getContext('2d');
-    defaultChart = new Chart(ctx, {
-        type: "line",
-        data: {
-            labels: [],
-            datasets: [
-                {
-                    label: "Metric",
-                    data: [],
-                    borderWidth: 2
+                    borderWidth: 2,
+                    borderColor: PitchCharts.series(0),
+                    backgroundColor: PitchCharts.series(0),
+                    pointRadius: 2
                 }
             ]
         },
@@ -671,22 +658,22 @@ function initializeThrowsBreakdownChart() {
                 {
                     label: 'Game Throws',
                     data: breakdown.map(d => d.game_throws),
-                    backgroundColor: '#e8383b'
+                    ...PitchCharts.stackedBarSpec(0, '#ffffff')
                 },
                 {
                     label: 'Working Set Throws',
                     data: breakdown.map(d => d.working_set_throws),
-                    backgroundColor: '#f59e0b'
+                    ...PitchCharts.stackedBarSpec(1, '#ffffff')
                 },
                 {
                     label: 'Regular Throws',
                     data: breakdown.map(d => d.other_throws),
-                    backgroundColor: '#7b82a0'
+                    ...PitchCharts.stackedBarSpec(2, '#ffffff')
                 },
                 {
                     label: 'Non-Baseball Throws',
                     data: breakdown.map(d => d.non_baseball_throws),
-                    backgroundColor: '#22c55e'
+                    ...PitchCharts.stackedBarSpec(3, '#ffffff')
                 }
             ]
         },

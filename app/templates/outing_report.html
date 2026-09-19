@@ -1,10 +1,17 @@
 {% extends "inszn_base.html" %}
 {% block styles %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Silkscreen:wght@400;700&display=swap">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tools-theme.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/outing_report.css') }}">
     <script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/pitch-charts.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/chartjs-plugin-annotation.min.js') }}"></script>
 {% endblock %}
 {% block content %}
+{% set tools_path = 'OUTING_REPORT' %}
+{% include '_tools_chrome.html' %}
 
 <header>
   <h1>Outing Report</h1>
@@ -102,6 +109,7 @@
   </div>
 
   <div id="ChartsTab" class="tabcontent active">
+    <div class="pitch-legend" id="pitch_legend"></div>
     <div class="chart-container">
       <div class="chart-wrap"><canvas id="movement_chart"></canvas></div>
       <div class="chart-wrap"><canvas id="release_chart"></canvas></div>
@@ -238,5 +246,6 @@
 </div>
 
 <script src="{{ url_for('static', filename='js/outing_report.js') }}"></script>
+
 
 {% endblock %}

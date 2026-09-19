@@ -1,8 +1,15 @@
 {% extends "inszn_base.html" %}
 {% block styles %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Silkscreen:wght@400;700&display=swap">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tools-theme.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/inszn_throwing_plan.css') }}">
 {% endblock %}
 {% block content %}
+{% set tools_path = 'THROWING_PLAN' %}
+{% include '_tools_chrome.html' %}
+
 <form id="inszn_throwing_plan" method="POST" action="/submit_inszn_throwing_plan">
 	  <h2>Update Throwing Plan</h2>
  
@@ -99,5 +106,6 @@
   <button type="submit">Update Throwing Plan</button>
 
 </form>
+
 	<script src="{{ url_for('static', filename='js/inszn_throwing_plan.js') }}"></script>
 {% endblock %}

@@ -1,42 +1,5 @@
 /* ── Root Variables ─────────────────────────── */
-:root {
-  --bg-base:       #0d0f14;
-  --bg-card:       #13161e;
-  --bg-input:      #1a1e29;
-  --bg-input-focus:#1f2433;
-  --bg-row-alt:    rgba(255,255,255,0.025);
-  --bg-row-hover:  rgba(232,56,59,0.06);
-  --border:        #252a38;
-  --border-focus:  #e8383b;
-  --accent:        #e8383b;
-  --accent-dim:    rgba(232, 56, 59, 0.15);
-  --accent-2:      #f59e0b;
-  --text-primary:  #eef0f6;
-  --text-secondary:#7b82a0;
-  --text-label:    #a0a8c4;
-  --radius-sm:     6px;
-  --radius-lg:     16px;
-  --transition:    0.18s ease;
-  --shadow-card:   0 4px 32px rgba(0,0,0,0.45);
-}
-
 /* ── Base Reset ─────────────────────────────── */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  background-color: var(--bg-base);
-  background-image:
-    radial-gradient(ellipse 80% 40% at 50% -5%, rgba(232,56,59,0.07) 0%, transparent 65%);
-  color: var(--text-primary);
-  font-family: 'Barlow', sans-serif;
-  font-size: 15px;
-  min-height: 100vh;
-  padding: 0 0 80px;
-}
 
 /* ── Header ─────────────────────────────────── */
 header {
@@ -52,11 +15,11 @@ header::before {
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 3px;
-  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%);
+  background: var(--border);
 }
 
 header h1 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 1.9rem;
   font-weight: 800;
   letter-spacing: 0.05em;
@@ -104,7 +67,7 @@ header h1 {
 
 /* File input */
 #file_upload input[type="file"] {
-  font-family: 'Barlow', sans-serif;
+  font-family: var(--mono);
   font-size: 0.85rem;
   color: var(--text-secondary);
   background: var(--bg-input);
@@ -120,7 +83,7 @@ header h1 {
 }
 
 #file_upload input[type="file"]::file-selector-button {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -143,7 +106,7 @@ header h1 {
 /* Upload submit button */
 #file_upload input[type="submit"] {
   padding: 9px 20px;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -168,7 +131,7 @@ header h1 {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
-  font-family: 'Barlow', sans-serif;
+  font-family: var(--mono);
   font-size: 0.9rem;
   padding: 10px 38px 10px 14px;
   outline: none;
@@ -177,48 +140,47 @@ header h1 {
   transition: border-color var(--transition), box-shadow var(--transition);
   -webkit-appearance: none;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237b82a0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%230a0a0a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 14px center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 .select-group select:focus {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px var(--accent-dim);
+  box-shadow: 0 0 0 2px var(--accent-dim);
 }
 
 .select-group select option {
-  background: #1a1e29;
+  background: var(--bg-card);
   color: var(--text-primary);
 }
 
 /* Generate Report button */
 #create_report {
   padding: 10px 22px;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.9rem;
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  background: var(--accent);
-  border: none;
+  background: var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  color: #fff;
+  color: var(--bg-card);
   cursor: pointer;
-  transition: background var(--transition), box-shadow var(--transition), transform 0.1s ease;
-  box-shadow: 0 4px 20px rgba(232,56,59,0.35);
+  transition: background var(--transition), box-shadow var(--transition), transform var(--transition);
+  box-shadow: var(--shadow-btn);
   align-self: flex-end;
 }
 
 #create_report:hover {
-  background: #f04044;
-  box-shadow: 0 6px 28px rgba(232,56,59,0.5);
-  transform: translateY(-1px);
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 #create_report:active {
-  transform: translateY(0);
+  transform: translate(2px, 2px);
+  box-shadow: none;
 }
 
 /* ── Flash Messages ─────────────────────────── */
@@ -231,22 +193,22 @@ header h1 {
 }
 
 .alert-success {
-  background: rgba(34,197,94,0.1);
-  border-color: rgba(34,197,94,0.3);
-  color: #86efac;
+  background: rgba(31,122,61,0.08);
+  border-color: #1f7a3d;
+  color: #14602f;
 }
 
 .alert-error,
 .alert-danger {
-  background: rgba(239,68,68,0.1);
-  border-color: rgba(239,68,68,0.3);
-  color: #fca5a5;
+  background: rgba(179,36,44,0.08);
+  border-color: var(--danger);
+  color: var(--danger);
 }
 
 .alert-warning {
-  background: rgba(245,158,11,0.1);
-  border-color: rgba(245,158,11,0.3);
-  color: #fcd34d;
+  background: rgba(176,117,3,0.10);
+  border-color: #b07503;
+  color: #7d5302;
 }
 
 /* ── Report Card ────────────────────────────── */
@@ -269,7 +231,7 @@ header h1 {
 }
 
 .report-header h3 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -284,14 +246,14 @@ header h1 {
 }
 
 .report thead tr {
-  background: rgba(255,255,255,0.03);
+  background: rgba(10,10,10,0.03);
   border-bottom: 1px solid var(--border);
 }
 
 .report thead th {
   padding: 12px 14px;
   text-align: left;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -321,7 +283,7 @@ header h1 {
 }
 
 .report tbody td:first-child {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-weight: 700;
   font-size: 0.9rem;
   letter-spacing: 0.04em;
@@ -349,7 +311,7 @@ header h1 {
 }
 
 .group-btn {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -357,7 +319,7 @@ header h1 {
   color: var(--text-secondary);
   background: none;
   border: none;
-  border-radius: 4px;
+  border-radius: 0;
   padding: 6px 12px;
   cursor: pointer;
   transition: color var(--transition), background var(--transition);
@@ -393,7 +355,7 @@ header h1 {
 }
 
 .tablinks {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -472,7 +434,6 @@ header h1 {
 @media (max-width: 900px) {
   .zone-chart-grid { grid-template-columns: 1fr; }
 }
-
 
 /* ── Mobile: report rows read as stacked cards ─
    Both report tables are built in JS, which copies each column's header onto its
@@ -553,3 +514,41 @@ header h1 {
   header { padding: 24px 20px 18px; }
   .page-content { padding: 20px 12px; }
 }
+
+/* ============================================
+   Outing Report — page-specific additions
+   ============================================ */
+
+header h1 {
+  font-family: var(--pixel);
+  font-weight: 400;
+  font-size: 1.35rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ── Pitch legend ───────────────────────────── */
+/* identity is never colour-alone: every entry pairs the hue with the point
+   shape used on the plots, because same-family hues sit inside the
+   colour-vision separation floor. */
+.pitch-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 9px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  min-height: 34px;
+}
+
+.pitch-legend:empty { display: none; }
+
+.legend-item { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+
+.legend-mark { font-size: 0.95rem; line-height: 1; }

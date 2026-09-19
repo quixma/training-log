@@ -33,7 +33,6 @@ create_reportBTN.onclick = function () { //generate bullpen report
                 alert('Update failed. See console.');
             });
 
-
     }
 }
 
@@ -99,31 +98,11 @@ function fillTable(data, length) {
         i++;
     })
 }
-//shared pitch-type -> color map so every chart on this page colors pitch types consistently
-function pitchTypeColor(pitchType) {
-    switch (pitchType) {
-        case "Fastball": return "rgb(255, 0, 0)";
-        case "Sinker": return "rgba(255, 165, 0, 1)";
-        case "Cutter": return "rgba(255, 255, 0, 1)";
-        case "Changeup": return "rgba(0, 255, 0, 1)";
-        case "Splitter": return "rgba(255, 192, 203, 1)";
-        case "Slider": return "rgba(184, 134, 11, 1)";
-        case "Sweeper": return "rgba(0, 100, 0, 1)";
-        case "Curveball": return "rgba(128, 0, 128, 1)";
-        case "Knuckleball": return "rgba(211, 211, 211, 1)";
-        default: return "rgba(128, 128, 128, 1)";
-    }
-}
-
-//scriptable point color: Chart.js can invoke this before any data exists (e.g. initial legend/render
-//pass with an empty dataset), so guard against an out-of-range point rather than reading .status off undefined
-function pointPitchTypeColor(context) {
-    const point = context.dataset.data[context.dataIndex];
-    return point ? pitchTypeColor(point.status) : "rgba(128, 128, 128, 1)";
-}
 
 function displayReport(data) {
     clearCharts();
+    PitchCharts.renderLegend('pitch_legend',
+        Object.keys(data).map(k => ({ status: data[k]["Pitch Type"] })), 'status');
     mvmt_chart(data);
     release_chart(data);
     zone_chart(data);
@@ -141,7 +120,7 @@ function release_chart(pitch_data) {
         datasets: [{
             label: 'Pitch Release Plot',
             data: formattedData,
-            backgroundColor: pointPitchTypeColor
+            ...PitchCharts.scatterPointSpec('status')
         }],
     };
 
@@ -165,7 +144,7 @@ function release_chart(pitch_data) {
                 },
                 legend: {
                     display: true,
-                    postiion: 'top',
+                    position: 'top',
                     labels: {
                         boxWidth: 0,
                         boxHeight: 0
@@ -217,8 +196,7 @@ function zone_chart(pitch_data) {
         datasets: [{
             label: 'Strike Zone Plot',
             data: formattedData,
-            pointRadius: 5, //size of dots on plot
-            backgroundColor: pointPitchTypeColor
+            ...PitchCharts.scatterPointSpec('status')
         }],
     };
 
@@ -229,60 +207,7 @@ function zone_chart(pitch_data) {
             maintainAspectRatio: false, // Set to false to use the container's size
             responsive: true,
             plugins: {
-                annotation: {
-                    annotations: {
-                        zone_box: { //creates the strikezone within the larger plot
-                            type: 'box',
-                            xMin: -.71,
-                            xMax: .71,
-                            yMin: 1.5,
-                            yMax: 3.5,
-                            backgroundColor: 'rgba(255, 99, 132, 0.25)', // Fill color
-                            borderColor: 'rgba(255, 99, 132, 1)', // Border color
-                            borderWidth: 1
-                        },
-                        hline1: {
-                            type: 'line',
-                            xMin: -.71,
-                            xMax: .71,
-                            yMin: 2.16,
-                            yMax: 2.16,
-                            borderColor: 'red',
-                            borderWidth: 1,
-
-                        },
-                        hline2: {
-                            type: 'line',
-                            xMin: -.71,
-                            xMax: .71,
-                            yMin: 2.83,
-                            yMax: 2.83,
-                            borderColor: 'red',
-                            borderWidth: 1,
-
-                        },
-                        vline1: {
-                            type: 'line',
-                            xMin: -.24,
-                            xMax: -.24,
-                            yMin: 1.5,
-                            yMax: 3.5,
-                            borderColor: 'red',
-                            borderWidth: 1,
-
-                        },
-                        vline2: {
-                            type: 'line',
-                            xMin: .23,
-                            xMax: .23,
-                            yMin: 1.5,
-                            yMax: 3.5,
-                            borderColor: 'red',
-                            borderWidth: 1,
-
-                        }
-                    }
-                },
+                annotation: { annotations: PitchCharts.strikeZoneAnnotations() },
                 tooltip: {
                     enabled: true,
                     callbacks: {
@@ -296,7 +221,7 @@ function zone_chart(pitch_data) {
                 },
                 legend: {
                     display: true,
-                    postiion: 'top',
+                    position: 'top',
                     labels: {
                         boxWidth: 0,
                         boxHeight: 0
@@ -355,7 +280,7 @@ function mvmt_chart(pitch_data) {
         datasets: [{
             label: 'Pitch Movement Plot',
             data: formattedData,
-            backgroundColor: pointPitchTypeColor
+            ...PitchCharts.scatterPointSpec('status')
         }],
     };
 
@@ -379,7 +304,7 @@ function mvmt_chart(pitch_data) {
                 },
                 legend: {
                     display: true,
-                    postiion: 'top',
+                    position: 'top',
                     labels: {
                         boxWidth: 0,
                         boxHeight: 0
@@ -393,6 +318,7 @@ function mvmt_chart(pitch_data) {
                     position: 'center',
                     min: -25,
                     max: 25,
+                    grid: PitchCharts.zeroLineGrid(),
                     title: {
                         display: true,
                         text: 'Horizontal Break',
@@ -404,6 +330,7 @@ function mvmt_chart(pitch_data) {
                     position: 'center',
                     min: -25,
                     max: 25,
+                    grid: PitchCharts.zeroLineGrid(),
                     title: {
                         display: true,
                         text: 'Induced Vertical Break',

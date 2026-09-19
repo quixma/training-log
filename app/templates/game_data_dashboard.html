@@ -1,9 +1,38 @@
 {% extends "inszn_base.html" %}
 {% block styles %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Silkscreen:wght@400;700&display=swap">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tools-theme.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/game_data_dashboard.css') }}">
 {% endblock %}
 {% block content %}
+{% set tools_path = 'GAME_DATA_DASHBOARD' %}
+{% include '_tools_chrome.html' %}
 
- <script src="{{ url_for('static', filename='js/game_data_dashboard.js') }}"></script>   
- 
+<header>
+  <h1><span>//</span> Game Data Dashboard <span>//</span></h1>
+</header>
+
+<div class="page-content">
+
+  <div class="empty-state">
+    <h2>Nothing to chart yet</h2>
+    <p>
+      This page will hold game-by-game trends once game data is wired up —
+      the route behind it does not load any data, and there is no game-data
+      model to read from.
+    </p>
+    <p class="muted">
+      Until then, individual games are recorded in the Game Journal, and
+      pitch-level data from an outing is charted in the Outing Report.
+    </p>
+    <div class="empty-actions">
+      <a href="{{ url_for('game_form') }}">Log a game</a>
+      <a href="{{ url_for('outing_report') }}">Open outing report</a>
+    </div>
+  </div>
+
+</div>
+
 {% endblock %}

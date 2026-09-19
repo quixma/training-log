@@ -1,36 +1,4 @@
 
-:root {
-  --bg-base:        #0d0f14;
-  --bg-card:        #13161e;
-  --bg-input:       #1a1e29;
-  --bg-input-focus: #1f2433;
-  --bg-row-alt:     rgba(255,255,255,0.025);
-  --bg-row-hover:   rgba(232,56,59,0.06);
-  --border:         #252a38;
-  --border-focus:   #e8383b;
-  --accent:         #e8383b;
-  --accent-dim:     rgba(232, 56, 59, 0.15);
-  --accent-2:       #f59e0b;
-  --text-primary:   #eef0f6;
-  --text-secondary: #7b82a0;
-  --text-label:     #a0a8c4;
-  --radius-sm:      6px;
-  --radius-lg:      16px;
-  --transition:     0.18s ease;
-  --shadow-card:    0 4px 32px rgba(0,0,0,0.45);
-}
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  background-color: var(--bg-base);
-  background-image: radial-gradient(ellipse 80% 40% at 50% -5%, rgba(232,56,59,0.07) 0%, transparent 65%);
-  color: var(--text-primary);
-  font-family: 'Barlow', sans-serif;
-  font-size: 15px;
-  min-height: 100vh;
-  padding: 0 0 80px;
-}
 
 /* ── Header ─────────────────────────────────── */
 header {
@@ -44,11 +12,11 @@ header::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%);
+  height: 0;
+  background: var(--border);
 }
 header h1 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 1.9rem;
   font-weight: 800;
   letter-spacing: 0.05em;
@@ -70,7 +38,7 @@ header h1 span { color: var(--accent); }
   overflow-x: auto;
 }
 .tablinks {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -106,7 +74,7 @@ header h1 span { color: var(--accent); }
   justify-content: center;
   min-height: 200px;
   color: var(--text-secondary);
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: 0.1em;
@@ -130,7 +98,7 @@ header h1 span { color: var(--accent); }
   gap: 12px;
 }
 .summary-col-label {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -155,14 +123,14 @@ header h1 span { color: var(--accent); }
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%);
+  background: var(--border);
   opacity: 0;
   transition: opacity var(--transition);
 }
-.card:hover { border-color: rgba(232,56,59,0.3); transform: translateY(-2px); }
+.card:hover { border-color: var(--accent); }
 .card:hover::before { opacity: 1; }
 .card h3 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -171,7 +139,7 @@ header h1 span { color: var(--accent); }
   margin-bottom: 8px;
 }
 .card p {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 2rem;
   font-weight: 800;
   color: var(--text-primary);
@@ -204,7 +172,7 @@ header h1 span { color: var(--accent); }
   flex-wrap: wrap;
 }
 .section-card-header h3 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -216,11 +184,11 @@ header h1 span { color: var(--accent); }
 .workout-notes {
   padding: 14px 20px;
   border-bottom: 1px solid var(--border);
-  background: rgba(255,255,255,0.02);
+  background: var(--bg-base);
 }
 .workout-notes.hidden { display: none; }
 .workout-notes h4 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -237,11 +205,11 @@ header h1 span { color: var(--accent); }
 /* ── Tables ─────────────────────────────────── */
 .table-scroll { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-thead tr { background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border); }
+thead tr { background: rgba(10,10,10,0.03); border-bottom: 1px solid var(--border); }
 thead th {
   padding: 11px 14px;
   text-align: left;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -262,7 +230,7 @@ tbody td:first-child { color: var(--text-secondary); font-size: 0.8rem; white-sp
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
-  font-family: 'Barlow', sans-serif;
+  font-family: var(--mono);
   font-size: 0.78rem;
   padding: 7px 32px 7px 10px;
   outline: none;
@@ -270,11 +238,10 @@ tbody td:first-child { color: var(--text-secondary); font-size: 0.8rem; white-sp
   transition: border-color var(--transition), box-shadow var(--transition);
   -webkit-appearance: none;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237b82a0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%230a0a0a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
   max-width: 220px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 .section-card-header select:focus,
 .filter-row select:focus {
@@ -282,14 +249,14 @@ tbody td:first-child { color: var(--text-secondary); font-size: 0.8rem; white-sp
   box-shadow: 0 0 0 3px var(--accent-dim);
 }
 .section-card-header select option,
-.filter-row select option { background: #1a1e29; color: var(--text-primary); }
+.filter-row select option { background: var(--bg-card); color: var(--text-primary); }
 
 .filter-row { display: flex; gap: 10px; flex-wrap: wrap; }
 
 /* ── Action Buttons ───────────────────────────── */
 .btn-action {
   padding: 6px 14px;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -316,7 +283,7 @@ tbody td:first-child { color: var(--text-secondary); font-size: 0.8rem; white-sp
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(10, 10, 10, 0.45);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   align-items: center;
@@ -333,7 +300,7 @@ tbody td:first-child { color: var(--text-secondary); font-size: 0.8rem; white-sp
   max-width: 900px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+  box-shadow: var(--shadow-card);
   position: relative;
   animation: modalIn 0.2s ease;
 }
@@ -357,12 +324,12 @@ tbody td:first-child { color: var(--text-secondary); font-size: 0.8rem; white-sp
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%);
+  height: 0;
+  background: var(--border);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 .modal-header h2 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 1.4rem;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -410,12 +377,11 @@ tbody td:first-child { color: var(--text-secondary); font-size: 0.8rem; white-sp
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
-  font-family: 'Barlow', sans-serif;
+  font-family: var(--mono);
   font-size: 0.95rem;
   padding: 10px 14px;
   outline: none;
   transition: border-color var(--transition), background var(--transition), box-shadow var(--transition);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   -webkit-appearance: none;
   appearance: none;
 }
@@ -427,7 +393,8 @@ tbody td:first-child { color: var(--text-secondary); font-size: 0.8rem; white-sp
   box-shadow: 0 0 0 3px var(--accent-dim);
 }
 .modal-content input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(0.5) sepia(1) hue-rotate(300deg) saturate(3);
+  filter: none;
+  opacity: 0.7;
   cursor: pointer;
 }
 .modal-content textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
@@ -439,8 +406,8 @@ tbody td:first-child { color: var(--text-secondary); font-size: 0.8rem; white-sp
   align-self: stretch;
   padding: 14px;
   background: var(--accent);
-  color: #fff;
-  font-family: 'Barlow Condensed', sans-serif;
+  color: var(--bg-card);
+  font-family: var(--mono);
   font-size: 0.95rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -450,13 +417,10 @@ tbody td:first-child { color: var(--text-secondary); font-size: 0.8rem; white-sp
   cursor: pointer;
   margin-top: 8px;
   transition: background var(--transition), transform 0.1s ease, box-shadow var(--transition);
-  box-shadow: 0 4px 20px rgba(232,56,59,0.35);
 }
 .modal-content button#saveGoals:hover,
 .modal-content button.btn-save:hover {
-  background: #f04044;
-  box-shadow: 0 6px 28px rgba(232,56,59,0.5);
-  transform: translateY(-1px);
+  background: var(--accent);
 }
 
 /* ── Scrollbar ──────────────────────────────── */
@@ -573,14 +537,14 @@ tbody td:first-child { color: var(--text-secondary); font-size: 0.8rem; white-sp
   grid-template-columns: 70px 1fr 100px;   /* block / exercise / sets-reps */
   gap: 10px;
   padding: 12px;
-  background: rgba(255,255,255,0.02);
+  background: var(--bg-base);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   transition: border-color var(--transition);
 }
 
 .modal-row.drill-row { grid-template-columns: 2fr 1fr 1fr; }
-.modal-row:hover { border-color: rgba(232,56,59,0.3); }
+.modal-row:hover { border-color: var(--border); }
 .modal-row .row-notes { grid-column: 1 / -1; }
 
 /* the row inputs sit in a grid, so they keep the modal's field styling but no stacking margin */
@@ -590,7 +554,7 @@ tbody td:first-child { color: var(--text-secondary); font-size: 0.8rem; white-sp
 .modal-btn-group { display: flex; gap: 10px; }
 .modal-btn-group button {
   padding: 8px 16px;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -608,9 +572,9 @@ tbody td:first-child { color: var(--text-secondary); font-size: 0.8rem; white-sp
   background: var(--accent-dim);
 }
 .modal-btn-group button.btn-remove-row:hover {
-  border-color: #ef444480;
-  color: #f87171;
-  background: rgba(239,68,68,0.08);
+  border-color: var(--danger);
+  color: var(--danger);
+  background: var(--danger-dim);
 }
 
 /* destructive action sits under the save button, muted until hovered */
@@ -621,7 +585,7 @@ tbody td:first-child { color: var(--text-secondary); font-size: 0.8rem; white-sp
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -630,7 +594,102 @@ tbody td:first-child { color: var(--text-secondary); font-size: 0.8rem; white-sp
   transition: all var(--transition);
 }
 .modal-content button.btn-danger:hover {
-  border-color: #ef444480;
-  color: #f87171;
-  background: rgba(239,68,68,0.08);
+  border-color: var(--danger);
+  color: var(--danger);
+  background: var(--danger-dim);
+}
+
+/* ============================================
+   Workout Dashboard — C:\TOOLS overrides
+   ============================================ */
+
+header h1 {
+  font-family: var(--pixel);
+  font-weight: 400;
+  font-size: 1.35rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+header h1 span { color: var(--accent); }
+
+/* the sticky tab row has to clear the fixed title bar */
+.tab {
+  top: var(--chrome-h);
+  padding: 0 14px;
+}
+
+.tablinks {
+  padding: 13px 14px 11px;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.btn-action,
+.modal-btn-group button,
+#editGoals,
+#editWorkoutNotes {
+  font-family: var(--mono);
+  border-radius: 0;
+  box-shadow: var(--shadow-btn);
+  transition: box-shadow var(--transition), transform var(--transition),
+              background var(--transition), color var(--transition);
+}
+
+.btn-action:active,
+.modal-btn-group button:active,
+#editGoals:active,
+#editWorkoutNotes:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+.modal-content {
+  border: 1px solid var(--border);
+  border-radius: 0;
+}
+
+.section-card,
+.card { border-radius: 0; }
+
+/* long values wrap rather than overflowing their flex row */
+.card-row-value {
+  min-width: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+/* a modal must cover the window chrome, which sits at z-index 1100 */
+.modal { z-index: 1200; }
+
+/* modal save buttons follow the same press as every other submit:
+   black by default, accent on hover, shadow collapses on click */
+.modal-content button#saveGoals,
+.modal-content button#saveWorkoutNotes,
+.modal-content button#saveTP,
+.modal-content button#saveThrowingDay,
+.modal-content button.btn-save {
+  background: var(--border);
+  color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  box-shadow: var(--shadow-btn);
+}
+
+.modal-content button#saveGoals:hover,
+.modal-content button#saveWorkoutNotes:hover,
+.modal-content button#saveTP:hover,
+.modal-content button#saveThrowingDay:hover,
+.modal-content button.btn-save:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.modal-content button#saveGoals:active,
+.modal-content button#saveWorkoutNotes:active,
+.modal-content button#saveTP:active,
+.modal-content button#saveThrowingDay:active,
+.modal-content button.btn-save:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
 }

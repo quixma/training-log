@@ -1,40 +1,6 @@
-:root {
-  --bg-base:       #0d0f14;
-  --bg-card:       #13161e;
-  --bg-input:      #1a1e29;
-  --bg-input-focus:#1f2433;
-  --border:        #252a38;
-  --border-focus:  #e8383b;
-  --accent:        #e8383b;
-  --accent-dim:    rgba(232, 56, 59, 0.15);
-  --accent-2:      #f59e0b;
-  --text-primary:  #eef0f6;
-  --text-secondary:#7b82a0;
-  --text-label:    #a0a8c4;
-  --radius-sm:     6px;
-  --radius-lg:     16px;
-  --transition:    0.18s ease;
-  --shadow-card:   0 4px 32px rgba(0,0,0,0.45);
-  --shadow-input:  0 2px 8px rgba(0,0,0,0.3);
-}
  
 /* ── Base Reset ─────────────────────────────── */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
  
-body {
-  background-color: var(--bg-base);
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(232,56,59,0.08) 0%, transparent 70%);
-  color: var(--text-primary);
-  font-family: 'Barlow', sans-serif;
-  font-size: 15px;
-  min-height: 100vh;
-  padding: 40px 20px 80px;
-}
  
 /* ── Form Card ──────────────────────────────── */
 #game-form {
@@ -53,13 +19,13 @@ body {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%);
+  height: 0;
+  background: var(--border);
 }
  
 /* ── Headings ───────────────────────────────── */
 #game-form h2 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 2.2rem;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -79,7 +45,7 @@ body {
 }
  
 #game-form h3 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--mono);
   font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -122,7 +88,7 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
-  font-family: 'Barlow', sans-serif;
+  font-family: var(--mono);
   font-size: 0.95rem;
   padding: 10px 14px;
   outline: none;
@@ -147,7 +113,8 @@ body {
 }
  
 #game-form input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(0.5) sepia(1) hue-rotate(300deg) saturate(3);
+  filter: none;
+  opacity: 0.7;
   cursor: pointer;
 }
  
@@ -252,7 +219,7 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
-  font-family: 'Barlow', sans-serif;
+  font-family: var(--mono);
   font-size: 1rem;
   font-weight: 600;
   padding: 10px 8px;
@@ -297,8 +264,8 @@ body {
   width: 100%;
   padding: 15px;
   background: var(--accent);
-  color: #fff;
-  font-family: 'Barlow Condensed', sans-serif;
+  color: var(--bg-card);
+  font-family: var(--mono);
   font-size: 1rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -307,19 +274,14 @@ body {
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background var(--transition), transform 0.1s ease, box-shadow var(--transition);
-  box-shadow: 0 4px 20px rgba(232,56,59,0.35);
   margin-top: 8px;
 }
  
 #game-form button[type="submit"]:hover {
-  background: #f04044;
-  box-shadow: 0 6px 28px rgba(232,56,59,0.5);
-  transform: translateY(-1px);
+  background: var(--accent);
 }
  
 #game-form button[type="submit"]:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 12px rgba(232,56,59,0.3);
 }
  
 /* ── Scrollbar (webkit) ─────────────────────── */
@@ -333,4 +295,55 @@ body {
   #game-form { padding: 28px 22px; }
   .row-2col, .warmup-row { grid-template-columns: 1fr; }
   #game-line-grid { grid-template-columns: repeat(3, 1fr); }
+}
+/* ── C:\TOOLS overrides ─────────────────────── */
+#game-form h2 {
+  font-family: var(--pixel);
+  font-weight: 400;
+  font-size: 1.35rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+#game-form button,
+#game-form input[type="submit"] {
+  font-family: var(--mono);
+  border-radius: 0;
+  box-shadow: var(--shadow-btn);
+  transition: box-shadow var(--transition), transform var(--transition),
+              background var(--transition), color var(--transition);
+}
+
+#game-form button:active,
+#game-form input[type="submit"]:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+#game-form button[type="submit"],
+#game-form input[type="submit"] {
+  background: var(--border);
+  color: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+#game-form button[type="submit"]:hover,
+#game-form input[type="submit"]:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* heading rule: a full-width hairline, not an accent stub */
+#game-form h2::after {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+  border-radius: 0;
+  margin-top: 14px;
+  margin-bottom: 24px;
+}
+
+#game-form h3 {
+  color: var(--text-label);
 }

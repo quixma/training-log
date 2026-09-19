@@ -1,0 +1,228 @@
+/* ============================================
+   C:\TOOLS — shared theme
+   Tokens, window chrome and sidebar for every page
+   carrying the light terminal treatment.
+
+   Load this BEFORE the page's own stylesheet:
+     <link rel="stylesheet" href=".../tools-theme.css">
+     <link rel="stylesheet" href=".../<page>.css">
+
+   inszn_base.css is deliberately untouched, so any page
+   that does not load this file keeps the old dark theme.
+   ============================================ */
+
+:root {
+  /* surfaces */
+  --bg-base:       #eef0ea;
+  --bg-card:       #ffffff;
+  --bg-input:      #ffffff;
+  --bg-input-focus:#ffffff;
+  --bg-panel:      #e7f2f4;
+  --bg-row-alt:    rgba(10,10,10,0.025);
+  --bg-row-hover:  rgba(31,95,168,0.07);
+
+  /* line */
+  --border:        #0a0a0a;
+  --border-soft:   #c4c8c0;
+  --border-focus:  #1f5fa8;
+
+  /* accent */
+  --accent:        #1f5fa8;
+  --accent-dim:    rgba(31, 95, 168, 0.12);
+  --accent-2:      #1e6770;
+  --danger:        #b3242c;
+  --danger-dim:    rgba(179, 36, 44, 0.08);
+  --success:       #1f7a3d;
+  --warning:       #b07503;
+
+  /* ink */
+  --text-primary:  #0a0a0a;
+  --text-secondary:#5a5f5a;
+  --text-label:    #1e6770;
+
+  /* form */
+  --radius-sm:     0;
+  --radius-lg:     0;
+  --transition:    0.12s ease;
+  --shadow-card:   3px 3px 0 #0a0a0a;
+  --shadow-btn:    2px 2px 0 #0a0a0a;
+  --shadow-input:  none;
+
+  /* chrome */
+  --chrome-h:      28px;
+  --taskbar-h:     30px;
+
+  /* type */
+  --mono:          'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Menlo, monospace;
+  --pixel:         'Silkscreen', 'IBM Plex Mono', monospace;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-base);
+  background-image: none;
+  color: var(--text-primary);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.55;
+  min-height: 100vh;
+  padding: calc(var(--chrome-h) + 32px) 20px calc(var(--taskbar-h) + 44px);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Window chrome ──────────────────────────── */
+.win-titlebar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--chrome-h);
+  background: var(--border);
+  color: var(--bg-base);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  z-index: 1100;
+}
+
+.win-titlebar .tb-close {
+  font-size: 11px;
+  line-height: 1;
+  padding: 2px 5px;
+  border: 1px solid var(--bg-base);
+}
+
+.win-taskbar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: var(--taskbar-h);
+  background: var(--border);
+  color: var(--bg-base);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  z-index: 1100;
+}
+
+.win-taskbar .tb-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  padding: 4px 9px;
+  border: 1px solid #4a4a4a;
+  background: none;
+  color: var(--bg-base);
+  cursor: pointer;
+}
+
+.win-taskbar .tb-btn.is-active { border-color: var(--bg-base); }
+
+.win-taskbar .tb-brand {
+  font-family: var(--pixel);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+}
+
+.win-taskbar .tb-brand::before {
+  content: '\25C6';
+  color: #7fe3d4;
+  margin-right: 6px;
+}
+
+.win-taskbar .tb-clock {
+  margin-left: auto;
+  color: #c9ccc6;
+  white-space: nowrap;
+}
+
+/* ── Sidebar ────────────────────────────────── */
+/* overrides inszn_base.css for pages on this theme only */
+#sidebar {
+  top: var(--chrome-h);
+  bottom: var(--taskbar-h);
+  width: 210px;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  border-right: 1px solid var(--border);
+  font-family: var(--mono);
+}
+
+#sb-btn {
+  color: var(--text-primary);
+  font-size: 15px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border-soft);
+}
+#sb-btn:hover { background: var(--accent-dim); }
+
+#sidebar a { color: var(--text-primary); font-size: 12px; padding: 9px 14px; gap: 10px; }
+#sidebar a:hover { background: var(--accent-dim); color: var(--accent); }
+
+#sidebar .icon { font-size: 13px; min-width: 18px; filter: grayscale(1); opacity: 0.75; }
+
+.sidebar-section-title {
+  color: var(--text-label);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  padding: 12px 14px 4px;
+  border-top: 1px solid var(--border-soft);
+}
+
+#sidebar.collapsed { width: 52px; }
+
+#content { margin-left: 210px; padding: 0; }
+#content.expanded { margin-left: 52px !important; }
+
+/* ── Keyboard focus ─────────────────────────── */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+#sidebar a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── Scrollbar ──────────────────────────────── */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--bg-base); border-left: 1px solid var(--border-soft); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 0; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ── Reduced motion ─────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 600px) {
+  body { padding-left: 14px; padding-right: 14px; }
+  .win-taskbar .tb-path { display: none; }
+}
+
+/* ── Form controls that need an explicit light-mode tint ── */
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--border);
+}
+
+/* range tracks/thumbs are squared off to match the rest of the kit */
+input[type="range"],
+input[type="range"]::-webkit-slider-thumb,
+input[type="range"]::-moz-range-thumb {
+  border-radius: 0;
+}
