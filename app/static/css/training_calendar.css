@@ -1405,3 +1405,25 @@ header h1 span { color: var(--accent); }
   padding: 3px 5px;
   letter-spacing: -0.01em;
 }
+
+/* ── Modal rows on narrow screens ────────────────────────────────
+   .modal-row and .weight-row used fixed pixel columns (70/100px and
+   110/110px) at every width, and nothing in the stylesheet overrode
+   them. On a phone the two fixed input columns plus 36px of modal
+   padding either side left the exercise name under a character wide,
+   and `overflow-wrap: anywhere` on the label then broke it one letter
+   per line. Give the name its own row and let the inputs share the
+   next one. */
+@media (max-width: 600px) {
+  .modal-content { padding: 20px 16px 24px; }
+  .modal-row { padding: 10px; gap: 8px; }
+
+  /* weight log: name on its own line, then sets/reps + weight, then note */
+  .modal-row.weight-row { grid-template-columns: 1fr 1fr; }
+  .modal-row.weight-row .row-ex-label { grid-column: 1 / -1; }
+
+  /* the editable exercise row stacks the same way */
+  .modal-row,
+  .modal-row.drill-row { grid-template-columns: 1fr 1fr; }
+  .modal-row .row-ex-name { grid-column: 1 / -1; }
+}
