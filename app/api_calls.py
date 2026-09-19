@@ -400,10 +400,15 @@ def getSelectedWorkout():
     data = request.get_json()
     table = data.get("type")
     workout = data.get("value")
-    
-    #warmups keep their own table and shape; every other type is a workout_type value
-    if table == "warmup":
+
+    #warmups and throwing days keep their own tables and shapes; every other type is a
+    #workout_type value. the calendar stores these capitalised, so match case-insensitively
+    table = (table or "").strip()
+    if table.lower() == "warmup":
         result = get_warmup_by_name(workout)
+    elif table.lower() == "throwing":
+        #workouts.workout_type excludes Throwing by CHECK, so these are only in throwing_days
+        result = get_throwing_day_by_name(workout)
     elif table in WORKOUT_TYPES:
         result = get_workout_by_name(table, workout)
     else:
