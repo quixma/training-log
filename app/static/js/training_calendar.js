@@ -25,6 +25,13 @@ const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 // from the calendar tables. guarded so the file still parses if either is missing.
 const TYPES = typeof WORKOUT_TYPES !== "undefined" ? WORKOUT_TYPES : [];
 const INITIAL = typeof INITIAL_WORKOUTS !== "undefined" ? INITIAL_WORKOUTS : [];
+// dates already logged in each journal, as sets so the day lookup is a plain string hit.
+// both tables store YYYY-MM-DD text, which is what toISO() hands back.
+const JOURNALS = typeof JOURNAL_DATES !== "undefined" ? JOURNAL_DATES : {};
+const LOGGED = {
+    throwing: new Set(JOURNALS.throwing || []),
+    workout: new Set(JOURNALS.workout || [])
+};
 
 const MAX_CHIPS = 5;   // chips that fit a day cell before it collapses to "+N more"
 const NAME_PLACEHOLDER = '<option value="">Workout name</option>';
@@ -54,7 +61,9 @@ const el = {
     todayDate: document.getElementById("todayDate"),
     rows: document.getElementById("workoutRows"),
     date: document.getElementById("eventDate"),
-    legend: document.getElementById("chipLegend")
+    legend: document.getElementById("chipLegend"),
+    throwingLink: document.getElementById("throwingJournalLink"),
+    workoutLink: document.getElementById("workoutJournalLink")
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -247,6 +256,30 @@ function buildTooltip(dayEvents, date, month, year) {
 
 // ── Selected day's list ───────────────────────────────────────────────────────
 
+// a journal link for a day already logged is struck out and made inert. the href is
+// parked on data-href rather than left in place — pointer-events alone would still leave
+// the anchor keyboard-focusable, and Enter would follow it.
+function markJournalLinks() {
+    const iso = toISO(selected);
+
+    [[el.throwingLink, LOGGED.throwing], [el.workoutLink, LOGGED.workout]].forEach(function (pair) {
+        const link = pair[0];
+        if (!link) return;
+
+        const logged = pair[1].has(iso);
+        link.classList.toggle("is-logged", logged);
+        link.setAttribute("aria-disabled", logged ? "true" : "false");
+
+        if (logged && link.hasAttribute("href")) {
+            link.dataset.href = link.getAttribute("href");
+            link.removeAttribute("href");
+        } else if (!logged && link.dataset.href) {
+            link.setAttribute("href", link.dataset.href);
+            delete link.dataset.href;
+        }
+    });
+}
+
 // showCalendar() ends by calling this, so every re-render — a day click, month
 // navigation, a save — refreshes the panel from whatever `selected` now points at.
 function displayReminders() {
@@ -259,6 +292,7 @@ function displayReminders() {
 
     el.reminders.innerHTML = "";
     el.saveReminders.hidden = !list.length;
+    markJournalLinks();
 
     if (!list.length) {
         const empty = document.createElement("li");

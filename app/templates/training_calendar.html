@@ -13,10 +13,10 @@
 <!-- Tab Nav -->
 <div class="tab">
   <button class="tablinks active" onclick="openTab(event, 'calendar_tab')">Calendar</button>
-  <button class="tablinks" onclick="openTab(event, 'warmup_workouts')">Warmup Options</button>
-  <button class="tablinks" onclick="openTab(event, 'workouts')">Workouts</button>
+  <button class="tablinks" onclick="openTab(event, 'warmup_workouts')">View Warmups</button>
+  <button class="tablinks" onclick="openTab(event, 'workouts')">View Workouts</button>
+  <button class ="tablinks" onclick="openTab(event, 'weight_log')">Workout Weight Log</button>
   <button class="tablinks tab-link" onclick="window.location.href='{{ url_for('workout_dashboard') }}'">Workout Dashboard</button>
-  <button class="tablinks tab-link" onclick="window.location.href='{{ url_for('workout_form') }}'">↗ Workout Log </button>
 </div>
 
 <!-- ══ CALENDAR TAB ══════════════════════════ -->
@@ -69,6 +69,16 @@
                 <ul class="reminder-list" id="reminderList"></ul>
                 <!-- the list's checkboxes only stage intent; this is what writes them -->
                 <button type="button" class="btn-save" id="saveReminders" hidden>Save changes</button>
+            </div>
+        </section>
+
+        <section class="section-card">
+            <div class="section-card-header">
+                <h3>Journals</h3>
+            </div>
+            <div class="card-body journal-links">
+                <a class="btn-ghost" id="throwingJournalLink" href="{{ url_for('inszn_throwing_form') }}">Throwing Journal</a>
+                <a class="btn-ghost" id="workoutJournalLink" href="{{ url_for('workout_form') }}">Workout Journal</a>
             </div>
         </section>
 
@@ -217,6 +227,10 @@
 </div>
 </div>
 
+<!-- ══ WEIGHT LOG TAB ══════════════════════════ -->
+<div id="weight_log" class="tabcontent">
+
+</div
 <!-- ── Edit Workout Modal ───────────────────── -->
 <!-- edits the workout the Workouts tab is showing, exercise rows included -->
 <div id="editWorkout-modal" class="modal">
@@ -328,6 +342,8 @@
     const WORKOUT_TYPES = {{ workout_types | tojson }};
     // every logged workout, so month navigation needs no round trip
     const INITIAL_WORKOUTS = {{ workouts | tojson }};
+    // the dates already logged in each journal; the side panel's links strike out on those days
+    const JOURNAL_DATES = {{ journal_dates | tojson }};
 </script>
 <script src="{{ url_for('static', filename='js/record_edit.js') }}"></script>
 <script src="{{ url_for('static', filename='js/training_calendar.js') }}"></script>

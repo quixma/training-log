@@ -62,6 +62,10 @@ class PlayerGoalsModel(BaseModel):
     back: Optional[str]
     nutrition: Optional[str]
 
+class WorkoutNotesModel(BaseModel):
+    date: date
+    notes: Optional[str]
+
 class WorkoutExerciseEntry(BaseModel):
     ex_block: Optional[str]
     ex_name: Optional[str]

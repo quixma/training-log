@@ -4,8 +4,8 @@ from app.models import inszn_dash_data, get_inszn_throwing_plan_dates, get_game_
 from app.models import get_totalthrows4wk, get_totalworkingthrows4wk, get_throwing_notes_dates, get_bullpen_report_files, get_outing_report_files, get_throwing_day_types
 from app.models import get_RatingsAvgs, get_WorkoutsCompleted, get_bodyNotes_dates, get_bodyNotes, get_warmup_names, get_warmups
 from app.models import get_workout_names, get_latest_workout, WORKOUT_TYPES, THROWING_SESSION_TYPES, THROWING_BALL_WEIGHTS
-from app.models import get_player_goals, get_player_goals_dates
-from app.models import get_throwing_day_names, get_latest_throwing_day, getCalendarWorkouts
+from app.models import get_player_goals, get_player_goals_dates, get_workout_notes, get_workout_notes_dates
+from app.models import get_throwing_day_names, get_latest_throwing_day, getCalendarWorkouts, get_journal_entry_dates
 from flask import render_template, redirect, url_for
 
 
@@ -78,10 +78,13 @@ def workout_dashboard():
     body_notes = get_bodyNotes()
     player_goals = get_player_goals('workout')
     player_goals_dates = get_player_goals_dates('workout')
+    workout_notes = get_workout_notes()
+    workout_notes_dates = get_workout_notes_dates()
 
     return render_template('workout_dashboard.html', energy = energy, fatigue = fatigue, motivation = motivation, focus = focus,
                           dates = dates, body_notes = body_notes,
                           player_goals = player_goals, player_goals_dates = player_goals_dates,
+                          workout_notes = workout_notes, workout_notes_dates = workout_notes_dates,
                           rows = rows, wkout_dates = wkout_dates)
 
 @app.route('/workout_form', methods=["GET", "POST"])
@@ -96,11 +99,14 @@ def lifting_forms():
 @app.route('/training_calendar', methods=["GET", "POST"])
 def training_calendar():
     workouts = getCalendarWorkouts()
+    #the days already logged in either journal, so the side panel's links can strike themselves out
+    journal_dates = get_journal_entry_dates()
     #the warmup and workout tabs are the same panels the dashboard shows, so they need the same data
     warmup_names = get_warmup_names()
     warmups = get_warmups()
     workout_names = get_workout_names(WORKOUT_TYPES[0])
     workout = get_latest_workout(WORKOUT_TYPES[0])
     return render_template('training_calendar.html', workout_types = WORKOUT_TYPES, workouts = workouts,
+                           journal_dates = journal_dates,
                            warmup_names = warmup_names, warmups = warmups,
                            workout_names = workout_names, workout = workout)

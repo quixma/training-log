@@ -1,7 +1,8 @@
 from app import app
-from app.input_validation import UpdateThrowingPlanModel, PlayerGoalsModel, UpdateWorkoutModel, UpdateWarmupModel, UpdateThrowingDayModel
+from app.input_validation import UpdateThrowingPlanModel, PlayerGoalsModel, UpdateWorkoutModel, UpdateWarmupModel, UpdateThrowingDayModel, WorkoutNotesModel
 from app.models import get_db_connection, get_warmup_by_name, get_workout_by_name, get_workout_names, get_latest_workout, WORKOUT_TYPES
 from app.models import get_throwing_day_by_name, get_bodyNotes, get_throwing_workouts_by_name, get_warmup_names
+from app.models import get_workout_notes
 from app.models import get_workout_for_edit, get_warmup_for_edit, get_throwing_day_for_edit
 from app.models import update_workout, update_warmup, update_throwing_day
 from app.models import delete_workout, delete_warmup, delete_throwing_day, blank_to_none
@@ -474,6 +475,45 @@ def getPlayerGoals():
         return jsonify({"error": "No goals found"}), 404
 
     return jsonify(dict(result))
+
+#── workout dashboard notes ──────────────────────────────────────────────
+#same shape as the goals pair above: every save is a new dated row, so the
+#dropdown keeps a history rather than the panel overwriting itself
+
+@app.route("/api/addWorkoutNotes", methods = ["POST"])
+def addWorkoutNotes():
+    data = request.get_json()
+    note = {
+        "date": data.get('date'),
+        "notes": data.get('notes'),
+        }
+    note = {key: None if value == "" else value for key, value in note.items()}
+
+    try:
+        WorkoutNotesModel(**note)
+    except ValidationError as e:
+        return jsonify(e.errors()), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO workout_notes (date, notes) VALUES (?,?)",
+                   (note["date"], note["notes"]))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"status": "notes saved"}), 200
+
+@app.route("/api/getWorkoutNotes", methods = ["POST"])
+def getWorkoutNotes():
+    data = request.get_json()
+    date = data.get('date')
+
+    result = get_workout_notes(date)
+
+    if result is None:
+        return jsonify({"error": "No notes found"}), 404
+
+    return jsonify(result)
 
 
 

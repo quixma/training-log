@@ -3,6 +3,7 @@
 const playerGoalsSelect = document.getElementById('retrieve-player-goals')
 const bodyNotesSelect = document.getElementById('retrieve-body-notes')
 const bodyNotesTimeSelect = document.getElementById('body-notes-time')
+const workoutNotesSelect = document.getElementById('retrieve-workout-notes')
 
 //player goals button/modal
 var modalGoals = document.getElementById('editGoals-modal')
@@ -10,10 +11,17 @@ var editGoals_Btn = document.getElementById('editGoals')
 var saveGoalsBtn = document.getElementById('saveGoals')
 var rowWkoutGoals = document.getElementById('goals-data-row');
 
+//notes button/modal
+var modalNotes = document.getElementById('editWorkoutNotes-modal')
+var editNotes_Btn = document.getElementById('editWorkoutNotes')
+var saveNotesBtn = document.getElementById('saveWorkoutNotes')
+var rowWkoutNotes = document.getElementById('notes-data-row');
+
 //add event listeners to query on change
 playerGoalsSelect.addEventListener("change", GetPlayerGoals);
 bodyNotesSelect.addEventListener("change", GetBodyNotes);
 bodyNotesTimeSelect.addEventListener("change", GetBodyNotes);
+workoutNotesSelect.addEventListener("change", GetWorkoutNotes);
 
 // Close buttons
 document.querySelectorAll('.modal-close').forEach(btn => {
@@ -118,6 +126,81 @@ saveGoalsBtn.onclick = function () {
         .then(data => {
             console.log('Save success:', data);
             modalGoals.style.display = "none";
+            window.location.reload();
+        })
+        .catch(error => {
+            console.error('Save failed:', error);
+            alert('Save failed. See console.');
+        });
+}
+
+//-----------notes functions ---------------
+//same shape as the goals block above: the select reads a prior dated entry into the
+//panel, and saving always writes a new dated row rather than editing one in place
+async function GetWorkoutNotes() {
+    const date = workoutNotesSelect.value;
+    if (!date) {
+        console.log("Enter a search criteria")
+        return;
+    }
+    else {
+        const response = await fetch('/api/getWorkoutNotes',
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', },
+                body: JSON.stringify({ date: date })
+            });
+
+        if (!response.ok) {
+            console.log('Update failed:', await response.text());
+            alert('Update failed. See console.');
+            return;
+        }
+
+        const data = await response.json();
+        UpdateWorkoutNotesTable(data);
+    }
+}
+
+function UpdateWorkoutNotesTable(data) {
+    const table = document.getElementById('workout_notes_body');
+    const row = table.rows[0];
+
+    row.cells[0].innerText = data["date"];
+    row.cells[1].innerHTML = data["notes_html"]; //pre-formatted with <br> by the backend
+    //keep the raw copy in step, so the modal prefills with what was typed
+    row.dataset.notes = data["notes"];
+}
+
+editNotes_Btn.onclick = function () { //log a new dated note
+    openModal('editWorkoutNotes-modal');
+
+    //default date to today, prefill with the note on screen so it can be built on
+    document.getElementById("notes-date").value = new Date().toISOString().split('T')[0];
+    document.getElementById("notes-text").value = rowWkoutNotes.dataset.notes || "";
+}
+
+saveNotesBtn.onclick = function () {
+    const newNotes = {
+        date: document.getElementById("notes-date").value,
+        notes: document.getElementById("notes-text").value
+    }
+
+    fetch('/api/addWorkoutNotes',
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', },
+            body: JSON.stringify(newNotes)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Save success:', data);
+            modalNotes.classList.remove('active');
             window.location.reload();
         })
         .catch(error => {

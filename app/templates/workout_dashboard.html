@@ -56,6 +56,39 @@
     </div>
   </div>
 
+  <!-- Notes -->
+  <!-- every save writes a new dated row, so the select is a history, not a filter -->
+  <div class="section-card">
+    <div class="section-card-header">
+      <h3>Notes</h3>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+        <select id="retrieve-workout-notes">
+          <option value="">View Prior Notes</option>
+          {% for data in workout_notes_dates %}
+          <option value='{{ data["date"] }}'>{{ data["date"] }}</option>
+          {% endfor %}
+        </select>
+        <button id="editWorkoutNotes" class="btn-action">Update Notes</button>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="workout_notes_body">
+          <tr id="notes-data-row" data-notes="{{ workout_notes["notes"] if workout_notes else "" }}">
+            <td data-label="Date">{{ workout_notes["date"] if workout_notes else "" }}</td>
+            <td data-label="Notes">{{ (workout_notes["notes_html"] | safe) if workout_notes else "" }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <div class="summary-cards">
 
     <!-- Stat Cards -->
@@ -186,6 +219,27 @@
         <textarea id="goals-nutrition" name="nutrition" rows="3"></textarea>
       </div>
       <button id="saveGoals">Save Goals</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Update Notes Modal ───────────────────── -->
+<div id="editWorkoutNotes-modal" class="modal">
+  <div class="modal-inner">
+    <div class="modal-header">
+      <h2>Update Notes</h2>
+      <button class="modal-close" data-modal="editWorkoutNotes-modal">&#x2715;</button>
+    </div>
+    <div class="modal-content">
+      <div class="field-group">
+        <label for="notes-date">Date</label>
+        <input type="date" id="notes-date" name="date">
+      </div>
+      <div class="field-group">
+        <label for="notes-text">Notes</label>
+        <textarea id="notes-text" name="notes" rows="10"></textarea>
+      </div>
+      <button id="saveWorkoutNotes" class="btn-save">Save Notes</button>
     </div>
   </div>
 </div>

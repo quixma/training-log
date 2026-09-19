@@ -304,6 +304,30 @@ header h1 span { color: var(--accent); }
   border-color: var(--text-secondary);
 }
 
+/* ghost buttons as anchors: <a> needs the block/centring a <button> gets for free */
+.journal-links {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.journal-links .btn-ghost {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+}
+
+/* a day already logged in that journal; markJournalLinks() also strips the href,
+   so this is the look, not the mechanism */
+.journal-links .btn-ghost.is-logged {
+  text-decoration: line-through;
+  opacity: 0.5;
+  cursor: default;
+}
+.journal-links .btn-ghost.is-logged:hover {
+  color: var(--text-label);
+  border-color: var(--border);
+}
+
 .btn-save {
   width: 100%;
   background: var(--accent);

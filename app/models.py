@@ -100,6 +100,38 @@ def get_player_goals_dates(plan_type):
     conn.close()
     return dates
 
+def get_workout_notes(date=None):
+    #the newest note, or the one saved on a given date. saving twice in a day leaves the later one.
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    if date:
+        note = cursor.execute("Select date, notes from workout_notes Where date = ? order by id desc limit 1", (date,)).fetchone()
+    else:
+        note = cursor.execute("Select date, notes from workout_notes order by id desc limit 1").fetchone()
+    conn.close()
+
+    if note is None:
+        return None
+
+    notes = note["notes"] or ""
+    #same linebreak-after-every-. treatment the other notes panels use
+    #the raw text rides along: the edit modal prefills from it, so re-saving cannot
+    #feed the <br>-formatted copy back into the table and compound the breaks
+    return {
+        "date": note["date"],
+        "notes": notes,
+        "notes_html": notes.replace(".", ".<br>"),
+        }
+
+def get_workout_notes_dates():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    #group by date so saving twice in one day leaves one dropdown option, not two
+    dates = cursor.execute("Select date from workout_notes group by date order by max(id) desc").fetchall()
+    conn.close()
+    return dates
+
 def get_throwing_notes_dates():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -747,6 +779,20 @@ def getCalendarWorkouts():
                              ORDER BY w.ID""").fetchall()
     workouts = [dict(row) for row in rows]
     return workouts
+
+def get_journal_entry_dates():
+    #the calendar inlines these so day clicks need no round trip, same as the workout rows
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    throwing = cursor.execute("select distinct date from throwing_sessions").fetchall()
+    workout = cursor.execute("select distinct date from workout_log").fetchall()
+    conn.close()
+
+    return {
+        "throwing": [row[0] for row in throwing],
+        "workout": [row[0] for row in workout],
+        }
 
 #── outing report data ───────────────────────────────────────────────────
 #the postgame CSV exports and the pitch-by-pitch file are read and shaped here;
