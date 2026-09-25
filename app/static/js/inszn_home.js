@@ -2,6 +2,15 @@
 document.addEventListener("DOMContentLoaded", () => {
     initializeChart();
     initializeThrowsBreakdownChart();
+
+    //rotating the phone crosses the breakpoint. Chart.js merges its defaults in at
+    //construction, so the chart is rebuilt rather than handed a fresh options object.
+    NARROW_CHARTS.addEventListener('change', () => {
+        if (typeof throwsBreakdownChart !== 'undefined' && throwsBreakdownChart) {
+            throwsBreakdownChart.destroy();
+        }
+        initializeThrowsBreakdownChart();
+    });
 });
 
 //get form elements for chart values
@@ -651,6 +660,59 @@ function initializeChart() {
     });
 }
 
+//Chart.js sizes itself off the canvas, not CSS, so anything that has to change with the
+//viewport has to be expressed here rather than in a media query
+const NARROW_CHARTS = window.matchMedia('(max-width: 900px)');
+
+//'2026-09-18' -> '9/18'. seven full ISO dates do not fit across a phone, and Chart.js
+//answers an overflowing category axis by rotating the labels, which eats the plot area
+function shortChartDate(iso) {
+    const parts = String(iso).split('-');
+    return parts.length === 3 ? Number(parts[1]) + '/' + Number(parts[2]) : iso;
+}
+
+function throwsBreakdownOptions(isNarrow) {
+    return {
+        responsive: true,
+        //a phone canvas is roughly 330px wide. at the desktop 2:1 that leaves ~165px of
+        //height, which the four legend entries and the date labels consume entirely and the
+        //bars render a few pixels tall. going near-square gives the plot its height back.
+        aspectRatio: isNarrow ? 0.95 : 2,
+        plugins: {
+            legend: {
+                labels: {
+                    //four full dataset names wrap to four rows at the default box width
+                    boxWidth: isNarrow ? 10 : 40,
+                    padding: isNarrow ? 8 : 10,
+                    font: { size: isNarrow ? 9 : 11 }
+                }
+            }
+        },
+        scales: {
+            x: {
+                stacked: true,
+                ticks: {
+                    callback: function (value) {
+                        const label = this.getLabelForValue(value);
+                        return isNarrow ? shortChartDate(label) : label;
+                    },
+                    //short dates fit across seven days flat, so nothing has to rotate
+                    maxRotation: isNarrow ? 0 : 50,
+                    autoSkip: false,
+                    font: { size: isNarrow ? 9 : 11 }
+                }
+            },
+            y: {
+                stacked: true,
+                beginAtZero: true,
+                //the axis title costs width the bars need more than the reader needs the word
+                title: { display: !isNarrow, text: 'Throw Count' },
+                ticks: { maxTicksLimit: isNarrow ? 5 : 8, font: { size: isNarrow ? 9 : 11 } }
+            }
+        }
+    };
+}
+
 //stacked bar chart: last 7 throwing days broken into game / working set / other throws
 function initializeThrowsBreakdownChart() {
     const dataEl = document.getElementById('throws-breakdown-data');
@@ -684,17 +746,7 @@ function initializeThrowsBreakdownChart() {
                 }
             ]
         },
-        options: {
-            responsive: true,
-            scales: {
-                x: { stacked: true },
-                y: {
-                    stacked: true,
-                    beginAtZero: true,
-                    title: { display: true, text: 'Throw Count' }
-                }
-            }
-        }
+        options: throwsBreakdownOptions(NARROW_CHARTS.matches)
     });
 
     UpdateThrowsBreakdownStats(breakdown);

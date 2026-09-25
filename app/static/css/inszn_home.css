@@ -895,6 +895,21 @@ td button:hover,
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
+
+  /* ── Chart cards ──────────────────────────────────────────
+     A canvas cannot shrink its own contents the way text can, so the
+     28px desktop gutters come off and go to the plot area instead. */
+  .chart-area {
+    padding: 14px 10px 12px;
+  }
+
+  /* four stat items would otherwise wrap to four near-empty rows above
+     the chart and push the plot off the first screenful */
+  .chart-corner-stats {
+    width: 100%;
+    gap: 6px 14px;
+  }
+
 }
 /* ── Modal Repeater Rows (edit workout / throwing day) ── */
 .modal-rows {
