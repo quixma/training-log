@@ -224,6 +224,69 @@ window.PitchCharts = (function () {
         };
     }
 
+    // ── Narrow screens ───────────────────────────────────────
+    // Chart.js sizes itself from the canvas, not from CSS, so nothing a
+    // media query says reaches it. Anything that has to change with the
+    // viewport is expressed here and handed to the chart's options.
+    var NARROW = '(max-width: 900px)';
+
+    function isNarrow() {
+        return window.matchMedia(NARROW).matches;
+    }
+
+    // Crossing the breakpoint (rotating a phone) has to rebuild a chart
+    // rather than re-assign its options: Chart.js merges its defaults in at
+    // construction, so a fresh options object drops them.
+    function onWidthChange(handler) {
+        window.matchMedia(NARROW).addEventListener('change', function (e) {
+            handler(e.matches);
+        });
+    }
+
+    // '2026-09-18' -> '9/18'. Full ISO dates do not fit across a phone, and
+    // Chart.js answers an overflowing category axis by rotating its labels,
+    // which spends the plot's height on text.
+    function shortDate(value) {
+        var parts = String(value).split('-');
+        return parts.length === 3 ? Number(parts[1]) + '/' + Number(parts[2]) : value;
+    }
+
+    // A phone canvas is roughly 330px wide. At the desktop 2:1 that leaves
+    // ~165px of height, which the legend and the axis labels consume between
+    // them; the plot renders a few pixels tall. Near-square gives it back.
+    function plotAspect(narrow) {
+        return narrow ? 0.95 : 2;
+    }
+
+    // Dataset names wrap to one row each at the default box width.
+    function compactLegend(narrow) {
+        return {
+            labels: {
+                boxWidth: narrow ? 10 : 40,
+                padding: narrow ? 8 : 10,
+                font: { size: narrow ? 9 : 11 }
+            }
+        };
+    }
+
+    // autoSkip: a fixed seven-day axis shows every day, a range of arbitrary
+    // length has to be allowed to thin itself out.
+    function dateTicks(narrow, autoSkip) {
+        return {
+            callback: function (value) {
+                var label = this.getLabelForValue(value);
+                return narrow ? shortDate(label) : label;
+            },
+            maxRotation: narrow ? 0 : 50,
+            autoSkip: !!autoSkip,
+            font: { size: narrow ? 9 : 11 }
+        };
+    }
+
+    function valueTicks(narrow) {
+        return { maxTicksLimit: narrow ? 5 : 8, font: { size: narrow ? 9 : 11 } };
+    }
+
     // ── Chrome ───────────────────────────────────────────────
     function applyChartDefaults() {
         if (typeof Chart === 'undefined') return;
@@ -247,6 +310,13 @@ window.PitchCharts = (function () {
         series: series,
         stackedBarSpec: stackedBarSpec,
         zeroLineGrid: zeroLineGrid,
+        isNarrow: isNarrow,
+        onWidthChange: onWidthChange,
+        shortDate: shortDate,
+        plotAspect: plotAspect,
+        compactLegend: compactLegend,
+        dateTicks: dateTicks,
+        valueTicks: valueTicks,
         strikeZoneAnnotations: strikeZoneAnnotations,
         drawDataPath: drawDataPath,
         drawBatterSilhouette: drawBatterSilhouette,
