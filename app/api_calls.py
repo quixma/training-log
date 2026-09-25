@@ -1,7 +1,7 @@
 from app import app
 from app.input_validation import UpdateThrowingPlanModel, PlayerGoalsModel, UpdateWorkoutModel, UpdateWarmupModel, UpdateThrowingDayModel, WorkoutNotesModel, WeightLogModel
 from app.models import get_db_connection, get_warmup_by_name, get_workout_by_name, get_workout_names, get_latest_workout, WORKOUT_TYPES, get_weight_log, get_previous_weight_log
-from app.models import get_throwing_day_by_name, get_bodyNotes, get_throwing_workouts_by_name, get_warmup_names
+from app.models import get_throwing_day_by_name, get_bodyNotes, get_workoutLogNotes, get_throwing_workouts_by_name, get_warmup_names
 from app.models import get_workout_notes
 from app.models import get_workout_for_edit, get_warmup_for_edit, get_throwing_day_for_edit
 from app.models import update_workout, update_warmup, update_throwing_day, save_weight_log
@@ -394,6 +394,18 @@ def getBodyNotes():
         return jsonify({"error": "date and range are both required"}), 400
 
     return jsonify(get_bodyNotes(date, time))
+
+@app.route("/api/getWorkoutLogNotes", methods = ["POST"])
+def getWorkoutLogNotes():
+    #the workout log's own notes, same lookup shape as the body notes panel beside it
+    data = request.get_json()
+    date = data.get("date")
+    time = data.get("time")
+
+    if not date or not time:
+        return jsonify({"error": "date and range are both required"}), 400
+
+    return jsonify(get_workoutLogNotes(date, time))
 
 @app.route("/api/getSelectedWorkout", methods = ["POST"])
 def getSelectedWorkout():

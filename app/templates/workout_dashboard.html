@@ -60,19 +60,19 @@
     </div>
   </div>
 
-  <!-- Notes -->
+  <!-- Weekly Structure/Progression -->
   <!-- every save writes a new dated row, so the select is a history, not a filter -->
   <div class="section-card">
     <div class="section-card-header">
-      <h3>Notes</h3>
+      <h3>Weekly Structure/Progression</h3>
       <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
         <select id="retrieve-workout-notes">
-          <option value="">View Prior Notes</option>
+          <option value="">View Prior Entries</option>
           {% for data in workout_notes_dates %}
           <option value='{{ data["date"] }}'>{{ data["date"] }}</option>
           {% endfor %}
         </select>
-        <button id="editWorkoutNotes" class="btn-action">Update Notes</button>
+        <button id="editWorkoutNotes" class="btn-action">Update Structure</button>
       </div>
     </div>
     <div class="table-scroll">
@@ -80,13 +80,13 @@
         <thead>
           <tr>
             <th>Date</th>
-            <th>Notes</th>
+            <th>Structure / Progression</th>
           </tr>
         </thead>
         <tbody id="workout_notes_body">
           <tr id="notes-data-row" data-notes="{{ workout_notes["notes"] if workout_notes else "" }}">
             <td data-label="Date">{{ workout_notes["date"] if workout_notes else "" }}</td>
-            <td data-label="Notes">{{ (workout_notes["notes_html"] | safe) if workout_notes else "" }}</td>
+            <td data-label="Structure / Progression">{{ (workout_notes["notes_html"] | safe) if workout_notes else "" }}</td>
           </tr>
         </tbody>
       </table>
@@ -119,34 +119,40 @@
     <!-- Tables Column -->
     <div class="tables-col">
 
-      <!-- Workouts Completed -->
+      <!-- Workout Notes -->
+      <!-- the note the workout log form saves with each survey, read straight off workout_log -->
       <div class="section-card">
         <div class="section-card-header">
-          <h3>Workouts Completed (7d)</h3>
+          <h3>Workout Notes</h3>
+          <div class="filter-row">
+            <select id="retrieve-workout-log-notes">
+              <option value="">View by Date</option>
+              {% for x in wkout_notes_log_dates %}
+              <option value='{{ x[0] }}'>{{ x[0] }}</option>
+              {% endfor %}
+            </select>
+            <select id="workout-log-notes-time">
+              <option value="">Select range…</option>
+              <option value="3">Last 3 notes</option>
+              <option value="7">Last 7 notes</option>
+              <option value="14">Last 14 notes</option>
+              <option value="30">Last 30 notes</option>
+            </select>
+          </div>
         </div>
         <div class="table-scroll">
           <table>
             <thead>
               <tr>
                 <th>Date</th>
-                <th>Lift</th>
-                <th>Spine / Core</th>
-                <th>Arm Care</th>
-                <th>Conditioning</th>
-                <th>Individual Workout </th>
+                <th>Workout Notes</th>
               </tr>
             </thead>
-            <tbody id="workoutlog_body">
-              {% for date in wkout_dates %}
-              {# the calendar can mark several workouts of one type complete on a day, so each cell joins them #}
-              {% set day = rows | selectattr('Date', 'equalto', date['Date']) | list %}
+            <tbody id="workoutlognotes_body">
+              {% for x in wkout_notes_log %}
               <tr>
-                <td data-label="Date">{{ date['Date'] }}</td>
-                <td data-label="Lift">{{ day | selectattr('Type', 'equalto', 'Lift') | map(attribute='Name') | join(', ') }}</td>
-                <td data-label="Spine / Core">{{ day | selectattr('Type', 'equalto', 'Back/Core') | map(attribute='Name') | join(', ') }}</td>
-                <td data-label="Arm Care">{{ day | selectattr('Type', 'equalto', 'Armcare') | map(attribute='Name') | join(', ') }}</td>
-                <td data-label="Conditioning">{{ day | selectattr('Type', 'equalto', 'Conditioning') | map(attribute='Name') | join(', ') }}</td>
-                <td data-label="Individual Workout">{{ day | selectattr('Type', 'equalto', 'Individual Workout') | map(attribute='Name') | join(', ') }}</td>
+                <td data-label="Date">{{ x['Date'] }}</td>
+                <td data-label="Workout Notes">{{ x['workout_notes'] | safe }}</td>
               </tr>
               {% endfor %}
             </tbody>
@@ -227,11 +233,11 @@
   </div>
 </div>
 
-<!-- ── Update Notes Modal ───────────────────── -->
+<!-- ── Update Weekly Structure/Progression Modal ─── -->
 <div id="editWorkoutNotes-modal" class="modal">
   <div class="modal-inner">
     <div class="modal-header">
-      <h2>Update Notes</h2>
+      <h2>Update Weekly Structure/Progression</h2>
       <button class="modal-close" data-modal="editWorkoutNotes-modal">&#x2715;</button>
     </div>
     <div class="modal-content">

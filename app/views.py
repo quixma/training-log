@@ -2,7 +2,7 @@
 from app import app
 from app.models import inszn_dash_data, get_inszn_throwing_plan_dates, get_game_notes, get_throwing_notes, get_throwing_plan, get_throwing_plan_prethrow, get_last7d_throw_breakdown
 from app.models import get_totalthrows4wk, get_totalworkingthrows4wk, get_throwing_notes_dates, get_bullpen_report_files, get_outing_report_files, get_throwing_day_types
-from app.models import get_RatingsAvgs, get_WorkoutsCompleted, get_bodyNotes_dates, get_bodyNotes, get_warmup_names, get_warmups
+from app.models import get_RatingsAvgs, get_bodyNotes_dates, get_bodyNotes, get_workoutLogNotes, get_workoutLogNotes_dates, get_warmup_names, get_warmups
 from app.models import get_workout_names, get_latest_workout, WORKOUT_TYPES, THROWING_SESSION_TYPES, THROWING_BALL_WEIGHTS
 from app.models import get_player_goals, get_player_goals_dates, get_workout_notes, get_workout_notes_dates
 from app.models import get_throwing_day_names, get_latest_throwing_day, getCalendarWorkouts, get_journal_entry_dates
@@ -73,9 +73,10 @@ def game_data_dashboard():
 @app.route('/workout_dashboard', methods=["GET", "POST"])
 def workout_dashboard():
     energy, fatigue, motivation, focus = get_RatingsAvgs()
-    rows, wkout_dates = get_WorkoutsCompleted()
     dates = get_bodyNotes_dates()
     body_notes = get_bodyNotes()
+    wkout_notes_log_dates = get_workoutLogNotes_dates()
+    wkout_notes_log = get_workoutLogNotes()
     player_goals = get_player_goals('workout')
     player_goals_dates = get_player_goals_dates('workout')
     workout_notes = get_workout_notes()
@@ -85,7 +86,7 @@ def workout_dashboard():
                           dates = dates, body_notes = body_notes,
                           player_goals = player_goals, player_goals_dates = player_goals_dates,
                           workout_notes = workout_notes, workout_notes_dates = workout_notes_dates,
-                          rows = rows, wkout_dates = wkout_dates)
+                          wkout_notes_log = wkout_notes_log, wkout_notes_log_dates = wkout_notes_log_dates)
 
 @app.route('/workout_form', methods=["GET", "POST"])
 def workout_form():

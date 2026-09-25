@@ -448,7 +448,8 @@ tbody td:first-child { color: var(--text-secondary); font-size: 0.8rem; white-sp
   #workouts thead { display: none; }
 
   #player_goals_body tr,
-  #workoutlog_body tr,
+  #workout_notes_body tr,
+  #workoutlognotes_body tr,
   #bodynotes_body tr,
   #warmups_body tr,
   #workout_body tr {
@@ -462,13 +463,15 @@ tbody td:first-child { color: var(--text-secondary); font-size: 0.8rem; white-sp
 
   /* the zebra striping reads as broken cards once the rows are blocks */
   #player_goals_body tr:nth-child(even),
-  #workoutlog_body tr:nth-child(even),
+  #workout_notes_body tr:nth-child(even),
+  #workoutlognotes_body tr:nth-child(even),
   #bodynotes_body tr:nth-child(even),
   #warmups_body tr:nth-child(even),
   #workout_body tr:nth-child(even) { background: var(--bg-card); }
 
   #player_goals_body td,
-  #workoutlog_body td,
+  #workout_notes_body td,
+  #workoutlognotes_body td,
   #bodynotes_body td,
   #warmups_body td,
   #workout_body td {
@@ -485,17 +488,16 @@ tbody td:first-child { color: var(--text-secondary); font-size: 0.8rem; white-sp
   }
 
   #player_goals_body td:last-child,
-  #workoutlog_body td:last-child,
+  #workout_notes_body td:last-child,
+  #workoutlognotes_body td:last-child,
   #bodynotes_body td:last-child,
   #warmups_body td:last-child,
   #workout_body td:last-child { border-bottom: none; }
 
-  /* a day with nothing logged for a category would stack as a bare label */
-  #workoutlog_body td:empty { display: none; }
-
   /* rich note bodies ({{ ... | safe }}) can carry markup that blows out the width */
   #player_goals_body td *,
-  #workoutlog_body td *,
+  #workout_notes_body td *,
+  #workoutlognotes_body td *,
   #bodynotes_body td *,
   #warmups_body td *,
   #workout_body td * { max-width: 100%; }

@@ -404,6 +404,11 @@ def get_RatingsAvgs():
     cursor = conn.cursor()
     
     date = cursor.execute('select date from workout_log order by date desc limit 1').fetchone()
+    #the 7-day window is anchored to the newest logged day, so an empty log has nothing to average
+    if date is None:
+        conn.close()
+        return (None, None, None, None)
+
     avg_energy = cursor.execute("SELECT avg(energy_value) FROM (Select energy_value from workout_log WHERE date >= date(?, '-6 days') order by date desc)", (date[0],)).fetchone()
     avg_fatigue = cursor.execute("SELECT avg(fatigue_value) FROM (Select fatigue_value from workout_log WHERE date >= date(?, '-6 days') order by date desc)", (date[0],)).fetchone()
     avg_motivation = cursor.execute("SELECT avg(motivation_value) FROM (Select motivation_value from workout_log WHERE date >= date(?, '-6 days') order by date desc)", (date[0],)).fetchone()
@@ -414,41 +419,6 @@ def get_RatingsAvgs():
     avgs = tuple(round(x[0], 1) if x[0] is not None else None
                  for x in (avg_energy, avg_fatigue, avg_motivation, avg_focus))
     return avgs
-
-def get_WorkoutsCompleted():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    #the dashboard table has a column per type; anything else completed is skipped for now
-    DASHBOARD_TYPES = ('Lift', 'Back/Core', 'Armcare', 'Conditioning', 'Individual Workout')
-   
-    completed = cursor.execute("""select c.workout_date as date, w.workout_type, w.workout_name
-                                  from training_calendar_daily_wkouts w
-                                  JOIN training_calendar c ON c.ID = w.session_id
-                                  where w.completed = 1
-                                    and w.workout_type IN ({})
-                                    and c.workout_date >= date('now', '-6 days', 'localtime')
-                                  order by c.workout_date desc""".format(','.join('?' * len(DASHBOARD_TYPES))),
-                               DASHBOARD_TYPES).fetchall()
-    conn.close()
-
-    rows = []
-    dates = []
-    seen = set()
-    for x in completed:
-        rows.append({
-            "Date": x[0],
-            "Type": x[1] or "",
-            "Name": x[2] or "",
-            })
-        #the table renders one row per date, so the date list drops the repeats
-        if x[0] not in seen:
-            seen.add(x[0])
-            dates.append({
-                "Date": x[0],
-                })
-
-    return rows, dates
 
 def get_bodyNotes_dates():
     conn = get_db_connection()
@@ -477,6 +447,38 @@ def get_bodyNotes(date=None, limit=3):
             "body_notes": b_notes.replace(".", ".<br>"),
             })
     return body_notes
+
+#workout_log.workout_notes is the note the workout log form saves alongside body_notes,
+#so the dashboard panel below reads it exactly the way the body notes panel reads its sibling.
+#not to be confused with get_workout_notes(), which serves the weekly structure panel off the
+#workout_notes table.
+def get_workoutLogNotes_dates():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    dates = cursor.execute("select date from workout_log where workout_notes IS NOT NULL order by date DESC").fetchall()
+    conn.close()
+    return dates
+
+def get_workoutLogNotes(date=None, limit=3):
+    #date anchors the lookup: the newest notes on or before it. the dashboard loads without one.
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    if date:
+        notes = cursor.execute("select date, workout_notes from workout_log where workout_notes IS NOT NULL and date <= ? order by date DESC LIMIT ?", (date, limit)).fetchall()
+    else:
+        notes = cursor.execute("select date, workout_notes from workout_log where workout_notes IS NOT NULL order by date DESC LIMIT ?", (limit,)).fetchall()
+    conn.close()
+    workout_notes = []
+    for x in notes:
+        w_notes = x['workout_notes'] or ""
+
+        workout_notes.append({
+            "Date": x['date'],
+            "workout_notes": w_notes.replace(".", ".<br>"),
+            })
+    return workout_notes
 
 def get_warmup_names():
     conn = get_db_connection()
