@@ -49,11 +49,14 @@
           </tr>
         </thead>
         <tbody id="player_goals_body">
-          <tr id ="goals-data-row">
+          <tr id ="goals-data-row"
+              data-gym="{{ player_goals["gym"] if player_goals else "" }}"
+              data-back="{{ player_goals["back"] if player_goals else "" }}"
+              data-nutrition="{{ player_goals["nutrition"] if player_goals else "" }}">
             <td data-label="Date">{{ player_goals["date"] if player_goals else "" }}</td>
-            <td data-label="Gym">{{ player_goals["gym"] if player_goals else "" }}</td>
-            <td data-label="Back">{{ player_goals["back"] if player_goals else "" }}</td>
-            <td data-label="Nutrition">{{ player_goals["nutrition"] if player_goals else "" }}</td>
+            <td data-label="Gym">{{ (player_goals["gym_html"] | safe) if player_goals else "" }}</td>
+            <td data-label="Back">{{ (player_goals["back_html"] | safe) if player_goals else "" }}</td>
+            <td data-label="Nutrition">{{ (player_goals["nutrition_html"] | safe) if player_goals else "" }}</td>
           </tr>
         </tbody>
       </table>

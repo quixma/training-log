@@ -2,7 +2,7 @@ from app import app
 from app.input_validation import UpdateThrowingPlanModel, PlayerGoalsModel, UpdateWorkoutModel, UpdateWarmupModel, UpdateThrowingDayModel, WorkoutNotesModel, WeightLogModel
 from app.models import get_db_connection, get_warmup_by_name, get_workout_by_name, get_workout_names, get_latest_workout, WORKOUT_TYPES, get_weight_log, get_previous_weight_log
 from app.models import get_throwing_day_by_name, get_bodyNotes, get_workoutLogNotes, get_throwing_workouts_by_name, get_warmup_names
-from app.models import get_workout_notes
+from app.models import get_workout_notes, get_player_goals
 from app.models import get_workout_for_edit, get_warmup_for_edit, get_throwing_day_for_edit
 from app.models import update_workout, update_warmup, update_throwing_day, save_weight_log
 from app.models import delete_workout, delete_warmup, delete_throwing_day, blank_to_none
@@ -482,16 +482,13 @@ def getPlayerGoals():
     plan_type = data.get('plan_type')
     date = data.get('date')
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
     #each dashboard asks for its own kind of goals
-    result = cursor.execute("Select * from player_goals Where plan_type = ? and date = ? order by id desc limit 1", (plan_type, date)).fetchone()
-    conn.close()
+    result = get_player_goals(plan_type, date)
 
     if result is None:
         return jsonify({"error": "No goals found"}), 404
 
-    return jsonify(dict(result))
+    return jsonify(result)
 
 #── workout weight log ───────────────────────────────────────────────────
 #a log belongs to one scheduled workout, so daily_workout_id is the key throughout

@@ -84,9 +84,13 @@ function UpdatePlayerGoalsTable(data) {
     const row = table.rows[0];
 
     row.cells[0].innerText = data["date"];
-    row.cells[1].innerText = data["gym"];
-    row.cells[2].innerText = data["back"];
-    row.cells[3].innerText = data["nutrition"];
+    row.cells[1].innerHTML = data["gym_html"]; //pre-formatted with <br> by the backend
+    row.cells[2].innerHTML = data["back_html"];
+    row.cells[3].innerHTML = data["nutrition_html"];
+    //keep the raw copies in step, so the modal prefills with what was typed
+    row.dataset.gym = data["gym"];
+    row.dataset.back = data["back"];
+    row.dataset.nutrition = data["nutrition"];
 }
 
 window.addEventListener('click', function (event) {
@@ -101,9 +105,11 @@ editGoals_Btn.onclick = function () { //log new player plan goals
 
     //default date to today, clear prior entries so a new dated entry is created
     document.getElementById("goals-date").value = new Date().toISOString().split('T')[0];
-    document.getElementById("goals-gym").value = rowWkoutGoals.children[1].innerText; //shows current goals in modal
-    document.getElementById("goals-back").value = rowWkoutGoals.children[2].innerText;
-    document.getElementById("goals-nutrition").value = rowWkoutGoals.children[3].innerText;
+    //the raw copies, not the cells: reading the rendered <br> text back would inject
+    //newlines into the textarea and compound them on every save
+    document.getElementById("goals-gym").value = rowWkoutGoals.dataset.gym || ""; //shows current goals in modal
+    document.getElementById("goals-back").value = rowWkoutGoals.dataset.back || "";
+    document.getElementById("goals-nutrition").value = rowWkoutGoals.dataset.nutrition || "";
 }
 
 saveGoalsBtn.onclick = function () {

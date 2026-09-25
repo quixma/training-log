@@ -85,11 +85,32 @@ def get_inszn_throwing_plan_dates():
 #workout goals on the workout dashboard. every caller names the kind it wants.
 PLAN_TYPES = ('pitching', 'workout')
 
-def get_player_goals(plan_type):
+#the sentence-per-line treatment every notes and goals panel renders with
+def break_sentences(text):
+    return (text or "").replace(".", ".<br>")
+
+#the prose columns of player_goals. date and plan_type are not prose, so they stay untouched.
+GOAL_FIELDS = ("pitching", "arsenal", "delivery", "execution", "gym", "back", "nutrition")
+
+def get_player_goals(plan_type, date=None):
+    #the newest goals of that kind, or the ones saved on a given date
     conn = get_db_connection()
     cursor = conn.cursor()
-    goals = cursor.execute('Select * from player_goals Where plan_type = ? order by id desc limit 1', (plan_type,)).fetchone()
+    if date:
+        goals = cursor.execute('Select * from player_goals Where plan_type = ? and date = ? order by id desc limit 1', (plan_type, date)).fetchone()
+    else:
+        goals = cursor.execute('Select * from player_goals Where plan_type = ? order by id desc limit 1', (plan_type,)).fetchone()
     conn.close()
+
+    if goals is None:
+        return None
+
+    #each raw goal rides along beside its formatted copy: the edit modal prefills from the raw
+    #one, so re-saving cannot feed the <br>-formatted copy back in and compound the breaks
+    goals = dict(goals)
+    for field in GOAL_FIELDS:
+        goals[field] = goals.get(field) or ""
+        goals[field + "_html"] = break_sentences(goals[field])
     return goals
 
 def get_player_goals_dates(plan_type):
@@ -249,7 +270,7 @@ def get_throwing_day_by_name(name):
 def get_game_notes():
     conn = get_db_connection()
     cursor = conn.cursor()
-    game_dates = cursor.execute("select date from game_journal where in_game = 'yes' order by date DESC").fetchall()
+    game_dates = cursor.execute("select date, opponent from game_journal where in_game = 'yes' order by date DESC").fetchall()
     game_notes = cursor.execute("select id, date, opponent, subjective_notes, feel_notes, mental_notes, delivery_notes, post_outing_notes from game_journal where in_game = 'yes' order by date DESC LIMIT 1").fetchall()
     conn.close()
     

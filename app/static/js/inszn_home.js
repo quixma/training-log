@@ -129,10 +129,15 @@ function UpdatePlayerGoalsTable(data) {
     const row = table.rows[0];
 
     row.cells[0].innerText = data["date"];
-    row.cells[1].innerText = data["pitching"];
-    row.cells[2].innerText = data["arsenal"];
-    row.cells[3].innerText = data["delivery"];
-    row.cells[4].innerText = data["execution"];
+    row.cells[1].innerHTML = data["pitching_html"]; //pre-formatted with <br> by the backend
+    row.cells[2].innerHTML = data["arsenal_html"];
+    row.cells[3].innerHTML = data["delivery_html"];
+    row.cells[4].innerHTML = data["execution_html"];
+    //keep the raw copies in step, so the modal prefills with what was typed
+    row.dataset.pitching = data["pitching"];
+    row.dataset.arsenal = data["arsenal"];
+    row.dataset.delivery = data["delivery"];
+    row.dataset.execution = data["execution"];
 }
 
 window.addEventListener('click', function (event) {
@@ -148,10 +153,12 @@ editGoals_Btn.onclick = function () { //log new player plan goals
 
     //default date to today, clear prior entries so a new dated entry is created
     document.getElementById("goals-date").value = new Date().toISOString().split('T')[0];
-    document.getElementById("goals-pitching").value = rowPlayerGoals.children[1].innerText;
-    document.getElementById("goals-arsenal").value = rowPlayerGoals.children[2].innerText;
-    document.getElementById("goals-delivery").value = rowPlayerGoals.children[3].innerText;
-    document.getElementById("goals-execution").value = rowPlayerGoals.children[4].innerText;
+    //the raw copies, not the cells: reading the rendered <br> text back would inject
+    //newlines into the textarea and compound them on every save
+    document.getElementById("goals-pitching").value = rowPlayerGoals.dataset.pitching || "";
+    document.getElementById("goals-arsenal").value = rowPlayerGoals.dataset.arsenal || "";
+    document.getElementById("goals-delivery").value = rowPlayerGoals.dataset.delivery || "";
+    document.getElementById("goals-execution").value = rowPlayerGoals.dataset.execution || "";
 }
 
 saveGoalsBtn.onclick = function () {

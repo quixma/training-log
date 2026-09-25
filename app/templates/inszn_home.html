@@ -56,12 +56,16 @@
           </tr>
         </thead>
         <tbody id="player_goals_body">
-          <tr id ="goals-data-row">
+          <tr id ="goals-data-row"
+              data-pitching="{{ player_goals["pitching"] if player_goals else "" }}"
+              data-arsenal="{{ player_goals["arsenal"] if player_goals else "" }}"
+              data-delivery="{{ player_goals["delivery"] if player_goals else "" }}"
+              data-execution="{{ player_goals["execution"] if player_goals else "" }}">
             <td data-label="Date">{{ (player_goals["date"] or "") if player_goals else "" }}</td>
-            <td data-label="Pitching">{{ (player_goals["pitching"] or "") if player_goals else "" }}</td>
-            <td data-label="Arsenal">{{ (player_goals["arsenal"] or "") if player_goals else "" }}</td>
-            <td data-label="Delivery">{{ (player_goals["delivery"] or "") if player_goals else "" }}</td>
-            <td data-label="Execution">{{ (player_goals["execution"] or "") if player_goals else "" }}</td>
+            <td data-label="Pitching">{{ (player_goals["pitching_html"] | safe) if player_goals else "" }}</td>
+            <td data-label="Arsenal">{{ (player_goals["arsenal_html"] | safe) if player_goals else "" }}</td>
+            <td data-label="Delivery">{{ (player_goals["delivery_html"] | safe) if player_goals else "" }}</td>
+            <td data-label="Execution">{{ (player_goals["execution_html"] | safe) if player_goals else "" }}</td>
           </tr>
         </tbody>
       </table>
@@ -367,9 +371,10 @@
     <div class="section-card-header">
       <h3>Game Notes</h3>
       <select id="retrieve-game-notes">
-        <option value="">View Game Notes by Date</option>
+        <option value="">View Previous Game Notes</option>
         {% for data in game_dates %}
-        <option value='{{ data["date"] }}'>{{ data["date"] }}</option>
+        {% set opponent = (data["opponent"] or "") | trim %}
+        <option value='{{ data["date"] }}'>{{ data["date"] }}{% if opponent %}: {{ opponent }}{% endif %}</option>
         {% endfor %}
       </select>
     </div>
