@@ -42,7 +42,7 @@ function addDrillRow(containerId, rowClass, prefix) {
     const weightOptions = BALL_WEIGHTS.map(w => `<option value="${w}">${w}</option>`).join('');
     newRow.innerHTML = `
       <input type="text" name="${prefix}_drill_name[]" placeholder="Drill Name">
-      <select name="${prefix}_ball_weight[]">
+      <select autocomplete="off" name="${prefix}_ball_weight[]">
         <option value="">Ball Weight</option>
         ${weightOptions}
       </select>

@@ -29,7 +29,7 @@
     <div class="section-card-header">
       <h3>Player Plan Goals</h3>
       <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-        <select id="retrieve-player-goals">
+        <select autocomplete="off" id="retrieve-player-goals">
           <option value="">View Prior Goals</option>
           {% for data in player_goals_dates %}
           <option value='{{ data["date"] }}'>{{ data["date"] }}</option>
@@ -69,7 +69,7 @@
     <div class="section-card-header">
       <h3>Weekly Structure/Progression</h3>
       <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-        <select id="retrieve-workout-notes">
+        <select autocomplete="off" id="retrieve-workout-notes">
           <option value="">View Prior Entries</option>
           {% for data in workout_notes_dates %}
           <option value='{{ data["date"] }}'>{{ data["date"] }}</option>
@@ -128,13 +128,13 @@
         <div class="section-card-header">
           <h3>Workout Notes</h3>
           <div class="filter-row">
-            <select id="retrieve-workout-log-notes">
+            <select autocomplete="off" id="retrieve-workout-log-notes">
               <option value="">View by Date</option>
               {% for x in wkout_notes_log_dates %}
               <option value='{{ x[0] }}'>{{ x[0] }}</option>
               {% endfor %}
             </select>
-            <select id="workout-log-notes-time">
+            <select autocomplete="off" id="workout-log-notes-time">
               <option value="">Select range…</option>
               <option value="3">Last 3 notes</option>
               <option value="7">Last 7 notes</option>
@@ -168,13 +168,13 @@
         <div class="section-card-header">
           <h3>Body Notes</h3>
           <div class="filter-row">
-            <select id="retrieve-body-notes">
+            <select autocomplete="off" id="retrieve-body-notes">
               <option value="">View by Date</option>
               {% for x in dates %}
               <option value='{{ x[0] }}'>{{ x[0] }}</option>
               {% endfor %}
             </select>
-            <select id="body-notes-time">
+            <select autocomplete="off" id="body-notes-time">
               <option value="">Select range…</option>
               <option value="3">Last 3 notes</option>
               <option value="7">Last 7 notes</option>

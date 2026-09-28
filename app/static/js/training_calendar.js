@@ -687,6 +687,15 @@ function openModal(id) {
 //----------------GET/DISPLAY WORKOUTS FROM DROPDOWNS----------------
 //switching workout type swaps in that type's name list and its most recent workout
 async function GetWorkoutsByType() {
+    //the type select opens on a blank placeholder, and picking it again means "nothing
+    //selected". the API only accepts real workout types, so clear the panel rather than
+    //fetch an empty type and surface a 400
+    if (!workoutTypeSelect.value) {
+        workoutSelect.innerHTML = '<option value="">Select Workout to View</option>';
+        UpdateExerciseTable({ exercises: [] });
+        return;
+    }
+
     const response = await fetch('/api/getWorkoutsByType',
         {
             method: 'POST',

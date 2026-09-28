@@ -17,7 +17,7 @@
     </div>
     <div class="field-group">
       <label for="throwing-block">Throwing Block</label>
-      <select id="throwing-block" name="throwing_block" required>
+      <select autocomplete="off" id="throwing-block" name="throwing_block" required>
         <option value="">Select Block</option>
         <option value="deload">Deload</option>
         <option value="on_ramp">On Ramp</option>
@@ -29,7 +29,7 @@
     </div>
     <div class="field-group">
       <label for="session-type">Session Type</label>
-      <select id="session-type" name="session_type" required>
+      <select autocomplete="off" id="session-type" name="session_type" required>
         <option value="">Select Type</option>
         {% for value, label in session_types %}
         <option value="{{ value }}">{{ label }}</option>
@@ -75,7 +75,7 @@
   <div id="drills-container">
     <div class="drill-row">
       <input type="text" name="drill_name[]" placeholder="Drill Name">
-      <select name="drill_ball_weight[]">
+      <select autocomplete="off" name="drill_ball_weight[]">
         <option value="">Ball Weight</option>
         {% for weight in ball_weights %}
         <option value="{{ weight }}">{{ weight }}</option>

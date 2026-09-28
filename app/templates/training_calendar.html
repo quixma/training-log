@@ -40,13 +40,13 @@
                 <div class="workout-rows" id="workoutRows">
                     <div class="workout-row">
                         <button type="button" class="btn-remove-row" aria-label="Remove this workout">&times;</button>
-                        <select class="workout-type" aria-label="Workout type">
+                        <select autocomplete="off" class="workout-type" aria-label="Workout type">
                             <option value="">Workout type</option>
                             {% for type in workout_types %}
                             <option value="{{ type }}">{{ type }}</option>
                             {% endfor %}
                         </select>
-                        <select class="workout-name" aria-label="Workout name">
+                        <select autocomplete="off" class="workout-name" aria-label="Workout name">
                             <option value="">Workout name</option>
                         </select>
                     </div>
@@ -102,7 +102,7 @@
 
         <div class="calendar-foot">
             <label for="month">Jump to</label>
-            <select id="month" aria-label="Month">
+            <select autocomplete="off" id="month" aria-label="Month">
                 <option value="0">Jan</option>
                 <option value="1">Feb</option>
                 <option value="2">Mar</option>
@@ -116,7 +116,7 @@
                 <option value="10">Nov</option>
                 <option value="11">Dec</option>
             </select>
-            <select id="year" aria-label="Year"></select>
+            <select autocomplete="off" id="year" aria-label="Year"></select>
             <button type="button" class="btn-today" id="jumpToday">Today</button>
 
             <!-- colour key for the day chips; built from WORKOUT_TYPES so it cannot drift -->
@@ -135,7 +135,7 @@
   <div class="section-card" id="warmup-card" data-record-id="{{ warmups[0]["id"] if warmups else "" }}">
     <div class="section-card-header">
       <h3>Warmups</h3>
-      <select id="retrieve-warmup">
+      <select autocomplete="off" id="retrieve-warmup">
         <option value="">Select Warmup to View</option>
         {% for data in warmup_names %}
         <option value='{{ data["name"] }}'>{{ data["name"] }}</option>
@@ -183,12 +183,13 @@
     <div class="section-card-header">
       <h3>Workouts</h3>
       <span class="workout-meta" id="workout-meta">{{ workout["workout_name"] }}</span>
-      <select id="retrieve-workout-type">
+      <select autocomplete="off" id="retrieve-workout-type">
+        <option value="">Select Workout Type</option>
         {% for workout_type in workout_types %}
         <option value='{{ workout_type }}'>{{ workout_type }}</option>
         {% endfor %}
       </select>
-      <select id="retrieve-workout">
+      <select autocomplete="off" id="retrieve-workout">
         <option value="">Select Workout to View</option>
         {% for data in workout_names %}
         <option value='{{ data["workout_name"] }}'>{{ data["workout_name"] }}</option>
@@ -242,7 +243,7 @@
       </div>
       <div class="field-group">
         <label for="edit-workout-type">Workout Type</label>
-        <select id="edit-workout-type">
+        <select autocomplete="off" id="edit-workout-type">
           {% for workout_type in workout_types %}
           <option value="{{ workout_type }}">{{ workout_type }}</option>
           {% endfor %}

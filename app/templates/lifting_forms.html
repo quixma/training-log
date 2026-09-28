@@ -26,7 +26,7 @@
     <input type="date" id="date" name="date" required>
 
     <label for="workout-type">Workout Type</label>
-    <select id="workout-type" name="workout_type" required>
+    <select autocomplete="off" id="workout-type" name="workout_type" required>
       {% for workout_type in workout_types %}
       <option value="{{ workout_type }}">{{ workout_type }}</option>
       {% endfor %}
@@ -105,7 +105,7 @@
     <textarea id="day-name" name="day_name" rows="1"></textarea>
 
     <label for="session-type">Session Type</label>
-    <select id="session-type" name="session_type" required>
+    <select autocomplete="off" id="session-type" name="session_type" required>
       <option value="">Select Type</option>
       {% for value, label in session_types %}
       <option value="{{ value }}">{{ label }}</option>
@@ -116,7 +116,7 @@
     <div id="drill-container-plyo" class="drill-container">
     <div class="plyo-drill-row">
       <input type="text" name="plyo_drill_name[]" placeholder="Drill Name">
-      <select name="plyo_ball_weight[]">
+      <select autocomplete="off" name="plyo_ball_weight[]">
         <option value="">Ball Weight</option>
         {% for weight in ball_weights %}
         <option value="{{ weight }}">{{ weight }}</option>
@@ -135,7 +135,7 @@
     <div id="drill-container-throwing" class="drill-container">
     <div class="throwing-drill-row">
       <input type="text" name="throwing_drill_name[]" placeholder="Drill Name">
-      <select name="throwing_ball_weight[]">
+      <select autocomplete="off" name="throwing_ball_weight[]">
         <option value="">Ball Weight</option>
         {% for weight in ball_weights %}
         <option value="{{ weight }}">{{ weight }}</option>

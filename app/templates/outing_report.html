@@ -32,7 +32,7 @@
 
     <div class="select-group">
       <label for="file1">Report File 1</label>
-      <select id="file1">
+      <select autocomplete="off" id="file1">
         <option value="">Select pitch type file</option>
         {% for filename in filenames %}
         <option value="{{ filename }}">{{ filename }}</option>
@@ -42,7 +42,7 @@
 
     <div class="select-group">
       <label for="file2">Report File 2</label>
-      <select id="file2">
+      <select autocomplete="off" id="file2">
         <option value="">Select batter hand file</option>
         {% for filename in filenames %}
         <option value="{{ filename }}">{{ filename }}</option>
@@ -52,7 +52,7 @@
 
     <div class="select-group">
       <label for="file3">Report File 3</label>
-      <select id="file3">
+      <select autocomplete="off" id="file3">
         <option value="">Select pbp file</option>
         {% for filename in filenames %}
         <option value="{{ filename }}">{{ filename }}</option>

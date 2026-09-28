@@ -30,7 +30,7 @@
 
     <div class="select-group">
       <label for="file">Report File</label>
-      <select id="file">
+      <select autocomplete="off" id="file">
         <option>Select file for report</option>
         {% for filename in filenames %}
         <option value="{{ filename }}">{{ filename }}</option>

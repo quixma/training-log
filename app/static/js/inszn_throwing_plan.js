@@ -4,7 +4,7 @@ function addDrillRow() {
     newRow.classList.add('drill-row');
     newRow.innerHTML = `
       <input type="text" name="drill_name[]" placeholder="Drill Name">
-      <select name="drill_type[]">
+      <select autocomplete="off" name="drill_type[]">
       	<option value =""> Drill Type </option>
       	<option value = "Plyo">Plyo</option>
       	<option value = "Mound_Plyo">Mound Plyo</option>
@@ -33,7 +33,7 @@ function addPreThrowDrillRow() {
     newRow.classList.add('prethrow-row');
     newRow.innerHTML = `
       <input type="text" name="prethrow_name[]" placeholder="Drill Name">
-      <select name="prethrow_drill_type[]">
+      <select autocomplete="off" name="prethrow_drill_type[]">
         <option value =""> Drill Type </option>
       	<option value = "Medball">Medball</option>
       	<option value = "CVB">CVB</option>

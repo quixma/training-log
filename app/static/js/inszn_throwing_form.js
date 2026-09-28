@@ -4,7 +4,7 @@ function addDrillRow() {
     newRow.classList.add('drill-row');
     newRow.innerHTML = `
       <input type="text" name="drill_name[]" placeholder="Drill Name">
-      <select name="drill_ball_weight[]">
+      <select autocomplete="off" name="drill_ball_weight[]">
         <option value="">Ball Weight</option>
         <option>3</option>
         <option>3.5</option>
