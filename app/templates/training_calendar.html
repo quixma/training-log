@@ -177,12 +177,13 @@
     </div>
 </div>
 <!-- ══ WORKOUTS TAB ══════════════════════════════ -->
-<!-- one tab for every workout type; the type select refetches that type's names and latest workout -->
+<!-- one tab for every workout type. nothing is rendered server side: the panel opens empty
+     and the type select fetches that type's names and its latest workout -->
 <div id="workouts" class="tabcontent">
-  <div class="section-card" id="workout-card" data-record-id="{{ workout["id"] if workout["id"] else "" }}">
+  <div class="section-card" id="workout-card" data-record-id="">
     <div class="section-card-header">
       <h3>Workouts</h3>
-      <span class="workout-meta" id="workout-meta">{{ workout["workout_name"] }}</span>
+      <span class="workout-meta" id="workout-meta"></span>
       <select autocomplete="off" id="retrieve-workout-type">
         <option value="">Select Workout Type</option>
         {% for workout_type in workout_types %}
@@ -196,10 +197,10 @@
       </select>
       <button id="editWorkout" class="btn-action">Edit Workout</button>
     </div>
-    <!-- session-level notes; hidden when the workout has none -->
-    <div class="workout-notes{% if not workout["notes"] %} hidden{% endif %}" id="workout-notes">
+    <!-- session-level notes; UpdateExerciseTable() unhides this when the workout has some -->
+    <div class="workout-notes hidden" id="workout-notes">
       <h4>Workout Notes</h4>
-      <p id="workout-notes-text">{{ workout["notes"] | safe }}</p>
+      <p id="workout-notes-text"></p>
     </div>
 	</div>
 	<div class="table-scroll">
@@ -212,16 +213,8 @@
             <th>Notes</th>
           </tr>
         </thead>
-        <tbody id="workout_body">
-          {% for ex in workout["exercises"] %}
-          <tr>
-            <td data-label="Block">{{ ex["ex_block"] }}</td>
-            <td data-label="Exercise">{{ ex["ex_name"] }}</td>
-            <td data-label="Sets/Reps">{{ ex["sets_reps"] }}</td>
-            <td data-label="Notes">{{ ex["ex_notes"] | safe }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
+        <!-- empty until a workout is picked; UpdateExerciseTable() builds the rows -->
+        <tbody id="workout_body"></tbody>
       </table>
     </div>
 </div>

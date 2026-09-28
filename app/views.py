@@ -3,7 +3,7 @@ from app import app
 from app.models import inszn_dash_data, get_inszn_throwing_plan_dates, get_game_notes, get_throwing_notes, get_throwing_plan, get_throwing_plan_prethrow, get_last7d_throw_breakdown
 from app.models import get_totalthrows4wk, get_totalworkingthrows4wk, get_throwing_notes_dates, get_bullpen_report_files, get_outing_report_files, get_throwing_day_types
 from app.models import get_RatingsAvgs, get_bodyNotes_dates, get_bodyNotes, get_workoutLogNotes, get_workoutLogNotes_dates, get_warmup_names, get_warmups
-from app.models import get_latest_workout, WORKOUT_TYPES, THROWING_SESSION_TYPES, THROWING_BALL_WEIGHTS
+from app.models import WORKOUT_TYPES, THROWING_SESSION_TYPES, THROWING_BALL_WEIGHTS
 from app.models import get_player_goals, get_player_goals_dates, get_workout_notes, get_workout_notes_dates
 from app.models import get_throwing_day_names, get_latest_throwing_day, getCalendarWorkouts, get_journal_entry_dates
 from flask import render_template, redirect, url_for
@@ -105,11 +105,10 @@ def training_calendar():
     #the warmup and workout tabs are the same panels the dashboard shows, so they need the same data
     warmup_names = get_warmup_names()
     warmups = get_warmups()
-    #no workout names are sent: the type select opens blank, so any list built here would be
-    #the first type's and selecting from it would post an empty type. the JS fills the list
-    #from getWorkoutsByType once a type is picked
-    workout = get_latest_workout(WORKOUT_TYPES[0])
+    #the workouts panel sends nothing: the type select opens blank, and anything built here
+    #would be the first type's - a name list whose selections post an empty type, and a table
+    #showing a workout no dropdown claims. the JS fills both from getWorkoutsByType once a
+    #type is picked
     return render_template('training_calendar.html', workout_types = WORKOUT_TYPES, workouts = workouts,
                            journal_dates = journal_dates,
-                           warmup_names = warmup_names, warmups = warmups,
-                           workout = workout)
+                           warmup_names = warmup_names, warmups = warmups)
