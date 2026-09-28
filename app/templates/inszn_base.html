@@ -4,6 +4,18 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Baseball Web App</title>
+
+    <!-- Home-screen install. Without a manifest, "Add to Home Screen" saves whatever
+         page happened to be open as the launch URL; start_url pins it to "/" so the
+         shortcut always lands on inszn_home. -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#1f5fa8">
+    <link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}" sizes="192x192">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Training Log">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/inszn_base.css') }}">
     {% block styles %}{% endblock %}
 </head>
