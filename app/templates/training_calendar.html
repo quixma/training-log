@@ -189,11 +189,10 @@
         <option value='{{ workout_type }}'>{{ workout_type }}</option>
         {% endfor %}
       </select>
+      <!-- deliberately empty: the names belong to whichever type is picked, and the type
+           select opens blank. GetWorkoutsByType() fills this in -->
       <select autocomplete="off" id="retrieve-workout">
         <option value="">Select Workout to View</option>
-        {% for data in workout_names %}
-        <option value='{{ data["workout_name"] }}'>{{ data["workout_name"] }}</option>
-        {% endfor %}
       </select>
       <button id="editWorkout" class="btn-action">Edit Workout</button>
     </div>

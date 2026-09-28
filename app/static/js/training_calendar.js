@@ -724,6 +724,10 @@ async function GetWorkoutsByType() {
 
 //tabName is 'warmup' or a workout_type value ('Lift', 'Back/Core', ...)
 async function GetSelectedWorkout(tabName) {
+    //with no type picked there is nothing to look a name up in, and an empty type is a 400
+    //at the API. the name list is empty in that state anyway, so this is a backstop
+    if (!tabName) return;
+
     const select = tabName === 'warmup' ? warmupSelect : workoutSelect;
     const data = { type: tabName, value: select.value };
 
