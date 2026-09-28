@@ -986,11 +986,18 @@ async function openSessionModal(workout) {
     openModal("logWeights-modal");
 }
 
-// placeholders, never values: an untouched row must save nothing rather than last
-// session's numbers
+// last session's numbers stay placeholders, never values: an untouched row must save
+// nothing rather than last session's numbers. the prescribed sets/reps is the exception -
+// it is what this workout asks for, so it fills the field as a real value
 function buildWeightRow(ex) {
     const row = document.getElementById("weight-row-template").content.firstElementChild.cloneNode(true);
     const placeholder = ex.placeholder || {};
+
+    // the prescription is the starting point, so a session done as written only needs its
+    // weights typed in. anything logged against this day wins - that is what was actually
+    // done - and a hand-added row has no prescription to fall back on
+    const setsRepsDone = ex.sets_reps_done === null || ex.sets_reps_done === undefined
+        || ex.sets_reps_done === "" ? ex.sets_reps_rx : ex.sets_reps_done;
 
     const label = row.querySelector(".row-ex-label");
     label.textContent = ex.ex_name || "";
@@ -999,7 +1006,7 @@ function buildWeightRow(ex) {
     row.dataset.setsRepsRx = ex.sets_reps_rx || "";
 
     const fields = [
-        [".row-sets-reps-done", ex.sets_reps_done, placeholder.sets_reps_done, "Sets/Reps"],
+        [".row-sets-reps-done", setsRepsDone, placeholder.sets_reps_done, "Sets/Reps"],
         [".row-weight-value", ex.weight_value, placeholder.weight_value, "Weight"],
         [".row-weight-note", ex.weight_note, placeholder.weight_note, "Note"]
     ];
