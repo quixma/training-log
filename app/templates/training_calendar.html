@@ -317,7 +317,10 @@
 <!-- one exercise row in the weight log; the name is a label, only the two inputs are typed into -->
 <template id="weight-row-template">
   <div class="modal-row weight-row">
-    <span class="row-ex-label"></span>
+    <span class="row-ex-label">
+      <span class="row-ex-block-tag"></span>
+      <span class="row-ex-name-text"></span>
+    </span>
     <input type="text" class="row-sets-reps-done" placeholder="Sets/Reps">
     <input type="number" step="any" class="row-weight-value" placeholder="Weight">
     <input type="text" class="row-weight-note row-notes" placeholder="Note">

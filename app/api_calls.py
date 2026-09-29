@@ -553,8 +553,9 @@ def saveWeightLog():
 
     return jsonify({"status": "log saved", "id": log_id}), 200
 
-def _blank_row(ex_block=None, ex_name=None, sets_reps_rx=None):
+def _blank_row(ex_block=None, ex_name=None, sets_reps_rx=None, ex_notes_rx=None):
     return {"ex_block": ex_block, "ex_name": ex_name, "sets_reps_rx": sets_reps_rx,
+            "ex_notes_rx": ex_notes_rx,
             "sets_reps_done": None, "weight_value": None, "weight_note": None,
             "placeholder": None}
 
@@ -579,6 +580,8 @@ def getWeightLog():
         for ex in logged["exercises"]:
             row = dict(ex)
             row["placeholder"] = None
+            #filled in below for the rows the definition still accounts for
+            row["ex_notes_rx"] = None
             stored.append(row)
 
         #_clean_weight_rows drops anything left blank, so a mid-session save only stores
@@ -609,10 +612,14 @@ def getWeightLog():
                     if index < len(candidates):
                         match = candidates[index]
                 if match is not None:
+                    #the prescription rides along with the stored row, so a note cleared
+                    #on a previous save is offered again exactly as the sets/reps is
+                    match["ex_notes_rx"] = ex["ex_notes_raw"]
                     exercises.append(match)
                     matched.add(id(match))
                 else:
-                    exercises.append(_blank_row(ex["ex_block"], ex["ex_name"], ex["sets_reps"]))
+                    exercises.append(_blank_row(ex["ex_block"], ex["ex_name"], ex["sets_reps"],
+                                                ex["ex_notes_raw"]))
 
             #a row the current definition no longer accounts for (added by hand, or the
             #definition changed since this was logged) must still not be dropped
@@ -626,7 +633,7 @@ def getWeightLog():
     #free text with nothing constraining it, so this can legitimately find nothing
     definition = get_workout_by_name(workout_type, workout_name) if workout_type in WORKOUT_TYPES else None
     if definition and definition.get("exercises"):
-        exercises = [_blank_row(ex["ex_block"], ex["ex_name"], ex["sets_reps"])
+        exercises = [_blank_row(ex["ex_block"], ex["ex_name"], ex["sets_reps"], ex["ex_notes_raw"])
                      for ex in definition["exercises"]]
     else:
         exercises = [_blank_row()]

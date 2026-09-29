@@ -991,7 +991,7 @@ async function openSessionModal(workout) {
     loggingFor = workout;
     weightName.textContent = (workout.name || workout.type) + " · " + workout.date;
     weightMeta.textContent = data.prefilled_from
-        ? "Greyed values are what you last logged on " + data.prefilled_from
+        ? "Greyed numbers are what you last logged on " + data.prefilled_from
         : "";
 
     weightRows.innerHTML = "";
@@ -1012,8 +1012,16 @@ function buildWeightRow(ex) {
     const setsRepsDone = ex.sets_reps_done === null || ex.sets_reps_done === undefined
         || ex.sets_reps_done === "" ? ex.sets_reps_rx : ex.sets_reps_done;
 
+    // the prescribed notes are a cue to read, not something the session records, so unlike
+    // the prescribed sets/reps they stay greyed out and an untouched row saves nothing.
+    // they beat last session's note to the slot: that is what this workout asks for today
+    const notePlaceholder = ex.ex_notes_rx || placeholder.weight_note;
+
     const label = row.querySelector(".row-ex-label");
-    label.textContent = ex.ex_name || "";
+    // the block is what the workout groups this exercise under (A1, B2, ...) - it comes
+    // from the definition and is not something the log edits, so it reads as a tag
+    label.querySelector(".row-ex-block-tag").textContent = ex.ex_block || "";
+    label.querySelector(".row-ex-name-text").textContent = ex.ex_name || "";
     row.dataset.exBlock = ex.ex_block || "";
     row.dataset.exName = ex.ex_name || "";
     row.dataset.setsRepsRx = ex.sets_reps_rx || "";
@@ -1021,7 +1029,7 @@ function buildWeightRow(ex) {
     const fields = [
         [".row-sets-reps-done", setsRepsDone, placeholder.sets_reps_done, "Sets/Reps"],
         [".row-weight-value", ex.weight_value, placeholder.weight_value, "Weight"],
-        [".row-weight-note", ex.weight_note, placeholder.weight_note, "Note"]
+        [".row-weight-note", ex.weight_note, notePlaceholder, "Note"]
     ];
     fields.forEach(function (field) {
         const input = row.querySelector(field[0]);
@@ -1042,7 +1050,7 @@ function buildWeightRow(ex) {
 
 function addWeightRow() {
     weightRows.appendChild(buildWeightRow({
-        ex_block: null, ex_name: null, sets_reps_rx: null,
+        ex_block: null, ex_name: null, sets_reps_rx: null, ex_notes_rx: null,
         sets_reps_done: null, weight_value: null, weight_note: null, placeholder: null
     }));
 }

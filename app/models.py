@@ -557,6 +557,9 @@ def _format_workout(cursor, workout):
             "ex_name": x['ex_name'] or "",
             "sets_reps": x['sets_reps'] or "",
             "ex_notes": ex_notes.replace(".", ".<br>"),
+            #the weight log prefills its note field with this, and an <input> would
+            #show the <br> markup rather than break on it
+            "ex_notes_raw": ex_notes,
             })
 
     notes = workout['notes'] or ""
