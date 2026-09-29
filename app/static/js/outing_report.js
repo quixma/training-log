@@ -62,7 +62,7 @@ const MVMT_KEYS = ['pitch_count', 'velo', 'max_velo', 'ivb', 'hb', 'rel_z', 'rel
 //the three tables that can be grouped by pitch type or by batter hand
 const GROUPED_TABLE_KEYS = {
     strikes: ['zone_pct', 'two_k_zone_pct', 'heart_pct'],
-    miss: ['csw_pct', 'whiff_pct', 'z_whiff_pct', 'o_whiff_pct', 'chase_pct'],
+    miss: ['csw_pct', 'whiff_pct', 'two_k_swstr_pct', 'z_whiff_pct', 'o_whiff_pct', 'chase_pct'],
     damage: ['woba', 'xwoba', 'xwobacon', 'babip', 'hard_hit_pct', 'gb_pct', 'fb_pct']
 };
 
@@ -75,13 +75,16 @@ const tableGroupings = { strikes: 'hand', miss: 'hand', damage: 'hand' };
 //excluded by the backend, which also leads each grouped table with its Overall row)
 function fillReportTable(bodyId, rows, keys) {
     const body = document.getElementById(bodyId);
+    //data-label drives the stacked card layout on mobile, taken from this table's header row
+    const headers = [...body.closest('table').querySelectorAll('thead th')].map(th => th.textContent.trim());
     body.innerHTML = '';
     rows.forEach(row => {
         const tr = document.createElement('tr');
         if (row.group === 'Overall') tr.classList.add('overall-row');
-        [row.group, ...keys.map(key => row[key])].forEach(val => {
+        [row.group, ...keys.map(key => row[key])].forEach((val, c) => {
             const td = document.createElement('td');
             td.textContent = val;
+            if (headers[c]) td.setAttribute('data-label', headers[c]);
             tr.appendChild(td);
         });
         body.appendChild(tr);
@@ -94,8 +97,9 @@ function renderGroupedTable(table) {
     const grouping = tableGroupings[table];
     const rows = reportData ? reportData[table][grouping] || [] : [];
 
-    fillReportTable(`${table}_body`, rows, GROUPED_TABLE_KEYS[table]);
+    //header first: fillReportTable reads the first column's label off it for the mobile cards
     document.querySelector(`.group-label[data-table="${table}"]`).textContent = GROUP_LABELS[grouping];
+    fillReportTable(`${table}_body`, rows, GROUPED_TABLE_KEYS[table]);
     document.querySelectorAll(`.group-toggle[data-table="${table}"] .group-btn`).forEach(btn => {
         btn.classList.toggle('active', btn.dataset.group === grouping);
     });
