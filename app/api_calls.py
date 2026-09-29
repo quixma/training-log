@@ -1,6 +1,6 @@
 from app import app
 from app.input_validation import UpdateThrowingPlanModel, PlayerGoalsModel, UpdateWorkoutModel, UpdateWarmupModel, UpdateThrowingDayModel, WorkoutNotesModel, WeightLogModel
-from app.models import get_db_connection, get_warmup_by_name, get_workout_by_name, get_workout_names, get_latest_workout, WORKOUT_TYPES, get_weight_log, get_previous_weight_log
+from app.models import get_db_connection, get_warmup_by_name, get_workout_by_name, get_workout_names, WORKOUT_TYPES, get_weight_log, get_previous_weight_log
 from app.models import get_throwing_day_by_name, get_bodyNotes, get_workoutLogNotes, get_throwing_workouts_by_name, get_warmup_names
 from app.models import get_workout_notes, get_player_goals
 from app.models import get_workout_for_edit, get_warmup_for_edit, get_throwing_day_for_edit
@@ -432,8 +432,9 @@ def getSelectedWorkout():
 
 @app.route("/api/getWorkoutsByType", methods = ["POST"])
 def getWorkoutsByType():
-    #the dashboard's one workout tab switches type without a page load, so it needs that type's
-    #name list and its most recent workout together
+    #the dashboard's one workout tab switches type without a page load, so it needs that
+    #type's name list. the workout itself is not sent: it takes a type and a name together
+    #to identify one, and the panel shows nothing until both have been picked
     data = request.get_json()
     workout_type = data.get("type")
 
@@ -442,7 +443,6 @@ def getWorkoutsByType():
 
     return jsonify({
         "names": [row["workout_name"] for row in get_workout_names(workout_type)],
-        "workout": get_latest_workout(workout_type),
     })
 
 #----------PLAYER GOALS------------

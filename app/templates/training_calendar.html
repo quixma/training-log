@@ -128,11 +128,14 @@
 </div>
 
 <!-- ══ WARMUP TAB ════════════════════════════ -->
+<!-- nothing is rendered server side: the panel opens empty and the name select fetches
+     the warmup it names, the same way the workouts tab works -->
 <div id="warmup_workouts" class="tabcontent">
-  
+
   <!-- Warmup options dropdown -->
-  <!-- data-record-id tracks which warmup is on screen so the edit modal knows what it is editing -->
-  <div class="section-card" id="warmup-card" data-record-id="{{ warmups[0]["id"] if warmups else "" }}">
+  <!-- data-record-id tracks which warmup is on screen so the edit modal knows what it is
+       editing; empty until one is picked -->
+  <div class="section-card" id="warmup-card" data-record-id="">
     <div class="section-card-header">
       <h3>Warmups</h3>
       <select autocomplete="off" id="retrieve-warmup">
@@ -159,20 +162,8 @@
             <th></th>
           </tr>
         </thead>
-        <tbody id="warmups_body">
-          {% for data in warmups %}
-          <tr>
-            <td data-label="Name">{{ data["name"] }}</td>
-				<td data-label="Rollout Exercises">{{ data["rollout_ex"] | safe }}</td>
-				<td data-label="Spine Exercises">{{ data["spine_ex"] | safe }}</td>
-				<td data-label="Hip Exercises">{{ data["hip_ex"] | safe }}</td>
-				<td data-label="Shoulder Exercises">{{ data["shoulder_ex"] | safe }}</td>
-				<td data-label="Arm Exercises">{{ data["arm_ex"] | safe }}</td>
-				<td data-label="Dynamic Exercises">{{ data["dynamic_ex"] | safe }}</td>
-				<td data-label="Notes">{{ data["notes"] | safe }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
+        <!-- empty until a warmup is picked; UpdateWarmupTable() builds the row -->
+        <tbody id="warmups_body"></tbody>
       </table>
     </div>
 </div>

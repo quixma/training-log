@@ -698,7 +698,8 @@ function closeModal(id) {
 }
 
 //----------------GET/DISPLAY WORKOUTS FROM DROPDOWNS----------------
-//switching workout type swaps in that type's name list and its most recent workout
+//switching workout type swaps in that type's name list. it takes both a type and a name to
+//identify a workout, so the panel stays empty until the second half of that is picked
 async function GetWorkoutsByType() {
     //the type select opens on a blank placeholder, and picking it again means "nothing
     //selected". the API only accepts real workout types, so clear the panel rather than
@@ -732,7 +733,9 @@ async function GetWorkoutsByType() {
         workoutSelect.appendChild(option);
     });
 
-    UpdateExerciseTable(result.workout); //updates default workout to show
+    //a type on its own does not name a workout, so the panel is cleared rather than filled
+    //with that type's latest - which read as though it were the one the name select showed
+    UpdateExerciseTable({ exercises: [] });
 }
 
 //tabName is 'warmup' or a workout_type value ('Lift', 'Back/Core', ...)
@@ -745,7 +748,10 @@ async function GetSelectedWorkout(tabName) {
     const data = { type: tabName, value: select.value };
 
     if (!data.value) {
-        console.log("Enter a search criteria")
+        //re-picking the blank placeholder means nothing is selected. leaving the last
+        //record on screen reads as though it belonged to what the dropdowns now say
+        if (tabName === 'warmup') UpdateWarmupTable({});
+        else UpdateExerciseTable({ exercises: [] });
         return;
     }
     else {
@@ -822,6 +828,9 @@ function UpdateWarmupTable(data) {
 
     warmupCard.dataset.recordId = data.id || "";
     syncEditButton(editWarmupBtn, warmupCard);
+
+    //no warmup picked: the panel stays empty rather than showing a row of blanks
+    if (!data.id) return;
 
     const row = tbody.insertRow();
     addCell(row, "Name").textContent = data.name;
