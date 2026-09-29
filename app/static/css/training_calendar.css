@@ -910,6 +910,10 @@ header h1 span { color: var(--accent); }
   max-width: 900px;
   max-height: 90vh;
   overflow-y: auto;
+  /* a drag inside the modal must not chain out to the page behind the overlay,
+     which on a phone reads as the modal refusing to scroll */
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   box-shadow: var(--shadow-card);
   position: relative;
   animation: modalIn 0.2s ease;

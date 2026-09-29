@@ -680,8 +680,21 @@ const EXERCISE_FIELDS = {
     '.row-ex-notes': 'ex_notes',
 }
 
+// a modal always opens at the top. the panel keeps whatever scroll offset it was
+// hidden at, and the save button sits at the very bottom - so closing by saving
+// re-showed the panel mid-scroll, and the first touch gesture went nowhere
 function openModal(id) {
-    document.getElementById(id).classList.add('active');
+    const modal = document.getElementById(id);
+    const inner = modal.querySelector('.modal-inner');
+    if (inner) inner.scrollTop = 0;
+    modal.classList.add('active');
+}
+
+function closeModal(id) {
+    const modal = document.getElementById(id);
+    const inner = modal.querySelector('.modal-inner');
+    if (inner) inner.scrollTop = 0;
+    modal.classList.remove('active');
 }
 
 //----------------GET/DISPLAY WORKOUTS FROM DROPDOWNS----------------
@@ -918,14 +931,12 @@ function wirePanels() {
 
     // Close buttons
     document.querySelectorAll('.modal-close').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.getElementById(btn.dataset.modal).classList.remove('active');
-        });
+        btn.addEventListener('click', () => closeModal(btn.dataset.modal));
     });
     // Click outside to close
     document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('click', e => {
-            if (e.target === modal) modal.classList.remove('active');
+            if (e.target === modal) closeModal(modal.id);
         });
     });
 
@@ -954,11 +965,9 @@ init();
 // nothing to log against a throwing day or a warmup, so those open read-only
 const VIEW_ONLY_TYPES = ["Throwing", "Warmup"];
 
-const weightModal = document.getElementById("logWeights-modal");
 const weightRows = document.getElementById("weight-rows");
 const weightName = document.getElementById("weight-log-name");
 const weightMeta = document.getElementById("weight-log-meta");
-const viewModal = document.getElementById("viewSession-modal");
 const viewTitle = document.getElementById("view-session-title");
 const viewBody = document.getElementById("view-session-body");
 
@@ -1073,7 +1082,7 @@ async function submitWeightLog() {
             return e.id === loggingFor.id ? Object.assign({}, e, { done: 1, logged: 1 }) : e;
         }));
 
-    weightModal.classList.remove("active");
+    closeModal("logWeights-modal");
     loggingFor = null;
     showCalendar(currentMonth, currentYear);
 }
