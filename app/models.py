@@ -1,6 +1,7 @@
 import sqlite3
 import os
 import io
+import re
 import pandas as pd
 from config import Config
 
@@ -544,6 +545,44 @@ def get_warmups():
 #and the workouts.workout_type CHECK constraint, so they have to stay in step with the schema
 WORKOUT_TYPES = ('Lift', 'Armcare', 'Back/Core', 'Individual Workout', 'Mobility', 'Conditioning', "Throwing", "Warmup")
 
+#── exercise block ordering ───────────────────────────────────────────────
+#a workout is written down in blocks, and the block is what says what order it runs in.
+#nothing constrains what gets typed into the field though, so the order is only honoured
+#when the whole workout agrees on one of the two shapes below.
+
+#"A", "B", "C" and "A1", "A2", "B1": the letter is the block, the number the slot in it
+_LETTER_FIRST_BLOCK = re.compile(r"^([A-Za-z])(\d*)$")
+#"1", "2", "3" and "1A", "1B", "2A": the same idea the other way round
+_NUMBER_FIRST_BLOCK = re.compile(r"^(\d+)([A-Za-z]?)$")
+
+def _block_sort_key(block):
+    #(shape, primary, secondary), or None for anything that is neither shape. each half is
+    #compared as it reads - letters alphabetically, numbers numerically - so B2 sorts ahead
+    #of B10 rather than after it, which is what string ordering would do
+    block = (block or "").strip()
+
+    match = _LETTER_FIRST_BLOCK.match(block)
+    if match:
+        return ("letter", match.group(1).upper(), int(match.group(2)) if match.group(2) else 0)
+
+    match = _NUMBER_FIRST_BLOCK.match(block)
+    if match:
+        return ("number", int(match.group(1)), match.group(2).upper())
+
+    return None
+
+def order_by_block(exercises):
+    #every block has to parse, and to the same shape: a workout that leaves one blank, or
+    #mixes "A1" with "1A", has no ordering to honour and keeps the order it was entered in
+    keys = [_block_sort_key(ex["ex_block"]) for ex in exercises]
+    if not keys or any(key is None for key in keys):
+        return exercises
+    if len({key[0] for key in keys}) > 1:
+        return exercises
+
+    #sorted() is stable, so exercises sharing a block stay in the order they were entered
+    return [ex for _, ex in sorted(zip(keys, exercises), key=lambda pair: pair[0][1:])]
+
 def _format_workout(cursor, workout):
     #shared card shape for every workout type: the session row plus its exercises, with notes
     #line-broken the way the templates render them
@@ -568,7 +607,9 @@ def _format_workout(cursor, workout):
         "id": workout['ID'],
         "workout_name": workout['workout_name'],
         "notes": notes.replace(".", ".<br>"),
-        "exercises": exercises_formatted,
+        #the block, not the order the exercises happened to be typed in, is what the
+        #workout is read in - on the workout page and in the weight log alike
+        "exercises": order_by_block(exercises_formatted),
         }
 
 def get_workout_names(workout_type):
@@ -669,7 +710,10 @@ def get_workout_for_edit(workout_id):
         "workout_type": workout["workout_type"],
         "workout_name": workout["workout_name"] or "",
         "notes": workout["notes"] or "",
-        "exercises": [_blank_nulls(x, ("ex_block", "ex_name", "sets_reps", "ex_notes")) for x in exercises],
+        #the same order the workout is read in everywhere else. update_workout rewrites the
+        #rows in the order the modal holds them, so saving settles the stored order to match
+        "exercises": order_by_block(
+            [_blank_nulls(x, ("ex_block", "ex_name", "sets_reps", "ex_notes")) for x in exercises]),
         }
 
 def get_warmup_for_edit(warmup_id):
@@ -822,7 +866,9 @@ def _format_weight_log(cursor, log):
         "date_completed": log["date_completed"],
         "workout_name": log["workout_name"],
         "workout_type": log["workout_type"],
-        "exercises": [dict(row) for row in rows],
+        #ex_order is the order the modal saved them in, which is the block order unless a
+        #row was added by hand - and a hand-added row has no block, so that falls back here
+        "exercises": order_by_block([dict(row) for row in rows]),
         }
 
 def get_weight_log(daily_workout_id):
