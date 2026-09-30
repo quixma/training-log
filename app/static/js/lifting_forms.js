@@ -11,10 +11,10 @@ function addExRow(containerId, rowClass = 'ex-row') {
     const newRow = document.createElement('div');
     newRow.classList.add(rowClass);
     newRow.innerHTML = `
-      <input type="text" name="ex_block[]" placeholder="Exercise Block">
-      <input type="text" name="ex_name[]" placeholder="Exercise Name">
-      <input type="text" name="sets_reps[]" placeholder="Sets/Reps">
-      <input type="text" name="ex_notes[]" placeholder="Exercise Notes">
+      <input type="text" autocomplete="off" name="ex_block[]" placeholder="Block">
+      <input type="text" autocomplete="off" name="ex_name[]" placeholder="Exercise Name">
+      <input type="text" autocomplete="off" name="sets_reps[]" placeholder="Sets/Reps">
+      <input type="text" autocomplete="off" name="ex_notes[]" placeholder="Exercise Notes">
     `;
     container.appendChild(newRow);
 }
