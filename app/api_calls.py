@@ -627,7 +627,11 @@ def getWeightLog():
         else:
             exercises = stored
 
-        return jsonify({"logged": True, "prefilled_from": None, "exercises": exercises}), 200
+        #the workout's own notes are a cue to read while logging, the same as the
+        #prescribed sets/reps and exercise notes. blank when the calendar's free-text
+        #name matched no definition
+        return jsonify({"logged": True, "prefilled_from": None, "exercises": exercises,
+                        "notes": definition["notes"] if definition else ""}), 200
 
     #otherwise the rows come from the workout definition. the calendar stores the name as
     #free text with nothing constraining it, so this can legitimately find nothing
@@ -667,7 +671,8 @@ def getWeightLog():
 
     return jsonify({"logged": False,
                     "prefilled_from": previous["date_completed"] if previous else None,
-                    "exercises": exercises}), 200
+                    "exercises": exercises,
+                    "notes": definition["notes"] if definition else ""}), 200
 
 #── workout dashboard notes ──────────────────────────────────────────────
 #same shape as the goals pair above: every save is a new dated row, so the

@@ -865,6 +865,15 @@ header h1 span { color: var(--accent); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
+/* ── Weight Log Notes ───────────────────────── */
+.weight-log-notes {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+.weight-log-notes.hidden { display: none; }
+
 /* ── Workout Notes Panel ────────────────────── */
 .workout-notes {
   padding: 14px 20px;

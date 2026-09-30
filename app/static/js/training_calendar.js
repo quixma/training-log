@@ -978,6 +978,7 @@ const VIEW_ONLY_TYPES = ["Throwing", "Warmup"];
 const weightRows = document.getElementById("weight-rows");
 const weightName = document.getElementById("weight-log-name");
 const weightMeta = document.getElementById("weight-log-meta");
+const weightNotes = document.getElementById("weight-log-notes");
 const viewTitle = document.getElementById("view-session-title");
 const viewBody = document.getElementById("view-session-body");
 
@@ -1003,6 +1004,8 @@ async function openSessionModal(workout) {
     weightMeta.textContent = data.prefilled_from
         ? "Greyed numbers are what you last logged on " + data.prefilled_from
         : "";
+    weightNotes.innerHTML = data.notes || ""; //pre-formatted with <br> by the backend
+    weightNotes.classList.toggle("hidden", !data.notes);
 
     weightRows.innerHTML = "";
     data.exercises.forEach(function (ex) { weightRows.appendChild(buildWeightRow(ex)); });
