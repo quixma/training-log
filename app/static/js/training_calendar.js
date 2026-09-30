@@ -440,6 +440,7 @@ function addWorkoutRow() {
     row.querySelector(".workout-name").innerHTML = NAME_PLACEHOLDER;
     row.style.removeProperty("--row-color");
     el.rows.appendChild(row);
+    clearRow(row);
     syncRowState();
     row.querySelector(".workout-type").focus();
 }
@@ -1058,10 +1059,12 @@ function buildWeightRow(ex) {
 }
 
 function addWeightRow() {
-    weightRows.appendChild(buildWeightRow({
+    const row = buildWeightRow({
         ex_block: null, ex_name: null, sets_reps_rx: null, ex_notes_rx: null,
         sets_reps_done: null, weight_value: null, weight_note: null, placeholder: null
-    }));
+    });
+    weightRows.appendChild(row);
+    clearRow(row);
 }
 
 function collectWeightRows() {

@@ -66,6 +66,11 @@ function addModalRow(containerId, templateId, values) {
         });
     }
     container.appendChild(row);
+    //a row built from a record carries its values on purpose; only a blank one added by
+    //hand needs guarding against the browser filling it from the row above
+    if (!values) {
+        clearRow(row);
+    }
     return row;
 }
 

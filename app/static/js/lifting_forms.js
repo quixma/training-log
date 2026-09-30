@@ -20,19 +20,6 @@ function addExRow(containerId, rowClass = 'ex-row') {
     clearRow(newRow);
 }
 
-//every row shares one name (ex_name[] for all of them), and on iOS a freshly inserted
-//field comes up holding the value of the field above it - same name, same form, so the
-//browser treats the new one as that field and restores its value. the row is blank when
-//it is built, so anything in it arrived on insertion: clear it once it is in the document,
-//and again on the next frame in case the value lands after layout rather than during it
-function clearRow(row) {
-    const blank = () => row.querySelectorAll('input').forEach(input => {
-        if (input.value !== '') input.value = '';
-    });
-    blank();
-    requestAnimationFrame(blank);
-}
-
 function deleteExRow(containerId, rowClass = 'ex-row') {
     const container = document.getElementById(containerId);
     const divElements = container.querySelectorAll(`.${rowClass}`);
@@ -64,6 +51,7 @@ function addDrillRow(containerId, rowClass, prefix) {
       <input type="text" name="${prefix}_drill_notes[]" placeholder="Drill Notes">
     `;
     container.appendChild(newRow);
+    clearRow(newRow);
 }
 
 function deleteDrillRow(containerId, rowClass) {

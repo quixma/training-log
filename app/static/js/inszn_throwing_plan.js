@@ -14,6 +14,7 @@ function addDrillRow() {
   	  <input type="text" id="drill_throw_count[]" name="drill_throw_count[]">
     `;
     container.appendChild(newRow);
+    clearRow(newRow);
 }
 
 function deleteDrillRow() {
@@ -42,6 +43,7 @@ function addPreThrowDrillRow() {
       </select>
     `;
     container.appendChild(newRow);
+    clearRow(newRow);
 }
 
 function deletePreThrowDrillRow() {

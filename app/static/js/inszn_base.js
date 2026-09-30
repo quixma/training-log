@@ -27,3 +27,17 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+//a row added to a form is blank when it is built, so anything in it was put there by the
+//browser once it entered the document: on iOS a freshly inserted field comes up holding
+//the value of the field above it, which shares its name. clear the row on insertion, and
+//again on the next frame in case the value lands after layout rather than during it.
+//every select these rows carry opens with an empty-valued placeholder option, so clearing
+//one returns it to that placeholder
+function clearRow(row) {
+    const blank = () => row.querySelectorAll('input, select, textarea').forEach(field => {
+        if (field.value !== '') field.value = '';
+    });
+    blank();
+    requestAnimationFrame(blank);
+}

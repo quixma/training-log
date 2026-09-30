@@ -29,6 +29,7 @@ function addDrillRow() {
       <input type="number" name="throw_count[]" placeholder="Throw Count">
     `;
     container.appendChild(newRow);
+    clearRow(newRow);
 }
 
 function deleteDrillRow() {
