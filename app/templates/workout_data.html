@@ -1,0 +1,25 @@
+{% extends "inszn_base.html" %}
+{% block styles %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Silkscreen:wght@400;700&display=swap">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tools-theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/workout_data.css') }}">
+{% endblock %}
+{% block content %}
+
+<header>
+  <h1><span>//</span> Workout Data <span>//</span></h1>
+</header>
+
+<div class="page-content">
+
+  <div class="empty-state">
+    <h2>Coming soon</h2>
+    <p>Workout data page coming soon.</p>
+  </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/workout_data.js') }}"></script>
+{% endblock %}

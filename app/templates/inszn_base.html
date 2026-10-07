@@ -30,6 +30,10 @@
             <span class="icon">🗓️</span>
             <span class="link-text">Training Calendar</span>
         </a>
+        <a href="{{ url_for('workout_dashboard') }}">
+            <span class="icon">📊</span>
+            <span class="link-text">Workout Dashboard</span>
+        </a>
 
         <div class="sidebar-section-title"><span class="link-text">Throwing</span></div>
         <a href="{{ url_for('inszn_throwing_form') }}">
@@ -49,9 +53,9 @@
             <span class="icon">&#127947;</span>
             <span class="link-text">Workout Log</span>
         </a>
-        <a href="{{ url_for('workout_dashboard') }}">
-            <span class="icon">📊</span>
-            <span class="link-text">Workout Dashboard</span>
+        <a href="{{ url_for('workout_data') }}">
+            <span class="icon">&#128200;</span>
+            <span class="link-text">Workout Data</span>
         </a>
         <a href="{{ url_for('lifting_forms') }}">
             <span class="icon">&#9917;</span>

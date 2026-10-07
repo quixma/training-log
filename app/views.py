@@ -83,6 +83,11 @@ def workout_dashboard():
                           workout_notes = workout_notes, workout_notes_dates = workout_notes_dates,
                           wkout_notes_log = wkout_notes_log, wkout_notes_log_dates = wkout_notes_log_dates)
 
+#nothing behind it yet: the page is a placeholder until there is workout data to chart
+@app.route('/workout_data', methods=["GET"])
+def workout_data():
+    return render_template('workout_data.html')
+
 @app.route('/workout_form', methods=["GET", "POST"])
 def workout_form():
     return render_template('workout_form.html')
