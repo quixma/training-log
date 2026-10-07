@@ -241,19 +241,6 @@ def get_throwing_day_names():
     conn.close()
     return names
 
-def get_latest_throwing_day():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    day = cursor.execute("select id, date, day_name, session_type, notes from throwing_days order by ID desc limit 1").fetchone()
-    if day is None: #nothing logged yet, hand the template an empty card instead of crashing
-        conn.close()
-        return {"id": None, "day_name": None, "date": None, "session_type": None, "notes": "", "drills": []}
-
-    day_formatted = _format_throwing_day(cursor, day)
-    conn.close()
-    return day_formatted
-
 def get_throwing_day_by_name(name):
     #names repeat across dates, so this returns the most recently logged one
     conn = get_db_connection()

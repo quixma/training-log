@@ -434,3 +434,532 @@ body input[type="submit"]:hover {
 }
 .tablinks.active { border-bottom-color: var(--accent); }
 .tablinks:active { transform: none; box-shadow: none; }
+
+/* ============================================
+   View Warmups / View Workouts / View Throwing Days tabs and their edit modals.
+   Moved here from training_calendar.css and inszn_home.css with the panels themselves.
+   ============================================ */
+
+/* the form tabs are a single centred card; these two stack a card over a table */
+#warmup_workouts,
+#workouts,
+#ThrowingDays {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  flex-direction: column;
+  gap: 24px;
+}
+#warmup_workouts.active,
+#workouts.active,
+#ThrowingDays.active { display: flex; }
+
+
+/* ── Section Card ───────────────────────────── */
+.section-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  min-width: 0;
+}
+
+.section-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.section-card-header h3 {
+  font-family: var(--mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.card-body { padding: 20px 24px 24px; }
+
+/* ── Throwing Day Meta / Notes ──────────────── */
+.day-meta {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-right: auto;
+}
+.day-notes {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-base);
+}
+.day-notes.hidden { display: none; }
+.day-notes h4 {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-label);
+  margin-bottom: 6px;
+}
+.day-notes p {
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* ── Tab Panel Tables ───────────────────────── */
+#warmup_workouts .table-scroll,
+#workouts .table-scroll,
+#ThrowingDays .table-scroll { overflow-x: auto; }
+
+#warmup_workouts table,
+#workouts table,
+#ThrowingDays table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+
+#warmup_workouts thead tr,
+#workouts thead tr,
+#ThrowingDays thead tr { background: rgba(10,10,10,0.03); border-bottom: 1px solid var(--border); }
+
+#warmup_workouts thead th,
+#workouts thead th,
+#ThrowingDays thead th {
+  padding: 11px 14px;
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-label);
+  white-space: nowrap;
+}
+
+#warmup_workouts tbody tr,
+#workouts tbody tr,
+#ThrowingDays tbody tr { border-bottom: 1px solid var(--border); transition: background var(--transition); }
+#warmup_workouts tbody tr:nth-child(even),
+#workouts tbody tr:nth-child(even),
+#ThrowingDays tbody tr:nth-child(even) { background: var(--bg-row-alt); }
+#warmup_workouts tbody tr:hover,
+#workouts tbody tr:hover,
+#ThrowingDays tbody tr:hover { background: var(--bg-row-hover); }
+
+#warmup_workouts tbody td,
+#workouts tbody td,
+#ThrowingDays tbody td { padding: 11px 14px; color: var(--text-primary); vertical-align: top; line-height: 1.5; }
+#warmup_workouts tbody td:first-child,
+#workouts tbody td:first-child,
+#ThrowingDays tbody td:first-child { color: var(--text-secondary); font-size: 0.8rem; white-space: nowrap; }
+
+/* ── Tab Panel Card Controls ────────────────── */
+.section-card-header select {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  padding: 7px 32px 7px 10px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%230a0a0a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  max-width: 220px;
+}
+.section-card-header select:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.section-card-header select option { background: var(--bg-card); color: var(--text-primary); }
+
+.workout-meta {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-right: auto;
+}
+
+.btn-action {
+  padding: 6px 14px;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.btn-action.hidden { display: none; } /* nothing on screen to edit */
+.btn-action:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* ── Workout Notes Panel ────────────────────── */
+.workout-notes {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-base);
+}
+.workout-notes.hidden { display: none; }
+.workout-notes h4 {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-label);
+  margin-bottom: 6px;
+}
+.workout-notes p {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* ── Modal Overlay ──────────────────────────── */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(10, 10, 10, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.modal.active { display: flex; }
+
+.modal-inner {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+  /* a drag inside the modal must not chain out to the page behind the overlay,
+     which on a phone reads as the modal refusing to scroll */
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  box-shadow: var(--shadow-card);
+  position: relative;
+  animation: modalIn 0.2s ease;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 36px 20px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg-card);
+  z-index: 1;
+}
+.modal-header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 0;
+  background: var(--border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+.modal-header h2 {
+  font-family: var(--mono);
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.4rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition), background var(--transition);
+}
+.modal-close:hover { color: var(--text-primary); background: var(--bg-input); }
+
+.modal-content {
+  padding: 28px 36px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Modal Form Fields ──────────────────────── */
+.modal-content label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-label);
+  margin-bottom: 6px;
+}
+.modal-content input[type="text"],
+.modal-content input[type="number"],
+.modal-content input[type="date"],
+.modal-content select,
+.modal-content textarea {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color var(--transition), background var(--transition), box-shadow var(--transition);
+  -webkit-appearance: none;
+  appearance: none;
+}
+.modal-content input:focus,
+.modal-content select:focus,
+.modal-content textarea:focus {
+  border-color: var(--border-focus);
+  background: var(--bg-input-focus);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.modal-content input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none;
+  opacity: 0.7;
+  cursor: pointer;
+}
+.modal-content textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+.modal-content .field-group { display: flex; flex-direction: column; }
+
+/* Modal save button */
+.modal-content button.btn-save {
+  align-self: stretch;
+  padding: 14px;
+  background: var(--accent);
+  color: var(--bg-card);
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background var(--transition), transform 0.1s ease, box-shadow var(--transition);
+}
+.modal-content button.btn-save:hover {
+  background: var(--accent);
+}
+
+/* ── Modal Repeater Rows (edit workout / throwing day) ── */
+.modal-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-row {
+  display: grid;
+  grid-template-columns: 70px 1fr 100px;   /* block / exercise / sets-reps */
+  gap: 10px;
+  padding: 12px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--transition);
+}
+
+.modal-row.drill-row { grid-template-columns: 2fr 1fr 1fr; }
+.modal-row:hover { border-color: var(--border); }
+.modal-row .row-notes { grid-column: 1 / -1; }
+
+/* the row inputs sit in a grid, so they keep the modal's field styling but no stacking margin */
+.modal-row input,
+.modal-row select { margin-bottom: 0; }
+
+.modal-btn-group { display: flex; gap: 10px; }
+.modal-btn-group button {
+  padding: 8px 16px;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.modal-btn-group button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+.modal-btn-group button.btn-remove-row:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: var(--danger-dim);
+}
+
+/* destructive action sits under the save button, muted until hovered */
+.modal-content button.btn-danger {
+  align-self: stretch;
+  padding: 12px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.modal-content button.btn-danger:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: var(--danger-dim);
+}
+
+/* ── Mobile: tab panel tables read as stacked cards ─────
+   every cell in these two panels carries data-label, so the header row becomes
+   noise and each row can stack into a labelled card instead of scrolling sideways. */
+@media (max-width: 900px) {
+  #warmup_workouts thead,
+  #workouts thead,
+  #ThrowingDays thead { display: none; }
+
+  #warmups_body tr,
+  #workout_body tr,
+  #throwing_day_body tr {
+    display: block;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 12px;
+    background: var(--bg-card);
+    overflow: hidden;
+  }
+
+  /* the zebra striping reads as broken cards once the rows are blocks */
+  #warmups_body tr:nth-child(even),
+  #workout_body tr:nth-child(even),
+  #throwing_day_body tr:nth-child(even) { background: var(--bg-card); }
+
+  #warmups_body td,
+  #workout_body td,
+  #throwing_day_body td {
+    display: block;
+    width: auto;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    white-space: normal !important;   /* beats nowrap on td:first-child */
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+  }
+
+  #warmups_body td:last-child,
+  #workout_body td:last-child,
+  #throwing_day_body td:last-child { border-bottom: none; }
+
+  /* rich note bodies ({{ ... | safe }}) can carry markup that blows out the width */
+  #warmups_body td *,
+  #workout_body td *,
+  #throwing_day_body td * { max-width: 100%; }
+
+  /* only cells that actually carry a label get a heading, so the empty
+     trailing cell in the warmups row stays blank */
+  #warmup_workouts td[data-label]::before,
+  #workouts td[data-label]::before,
+  #ThrowingDays td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+
+  /* card controls stack instead of squeezing next to the heading */
+  .section-card-header select { max-width: 100%; width: 100%; }
+}
+
+/* ── C:\TOOLS overrides for the panels and modals ── */
+.section-card { border-radius: 0; }
+
+.modal-content { border: 1px solid var(--border); border-radius: 0; }
+
+/* a modal must cover the window chrome, which sits at z-index 1100 */
+.modal { z-index: 1200; }
+
+/* the page-wide button press above reaches the modal's x; it is a glyph, not a button */
+body button.modal-close,
+body button.modal-close:active { box-shadow: none; transform: none; }
+
+/* the form tabs space their fields at 20px; the modals were built around 16px */
+.modal-content .field-group { margin-bottom: 16px; }
+
+/* save buttons: black -> accent with a collapsing shadow, as the submit buttons above */
+.modal-content button.btn-save {
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 0;
+}
+.modal-content button.btn-save:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ── Modal rows on narrow screens ────────────────────────────────
+   .modal-row uses fixed pixel columns, which leave the exercise name under a
+   character wide on a phone. Give the name its own row and let the other
+   inputs share the next one. */
+@media (max-width: 600px) {
+  .modal-content { padding: 20px 16px 24px; }
+  .modal-row { padding: 10px; gap: 8px; }
+  .modal-row,
+  .modal-row.drill-row { grid-template-columns: 1fr 1fr; }
+  .modal-row .row-ex-name { grid-column: 1 / -1; }
+}

@@ -651,35 +651,10 @@ function wireEvents() {
     });
 }
 
-// ── Warmup / Workout Panels ───────────────────────────────────────────────────
+// ── Modals ────────────────────────────────────────────────────────────────────
 //
-// The Warmup Options and Workouts tabs, moved here from workout_dashboard.js along
-// with the panels themselves. The dropdowns fetch a record, the tables rerender from
-// it, and the edit modals act on whatever record is currently on screen.
-
-//initialize drop down menu selectors
-const warmupSelect = document.getElementById('retrieve-warmup')
-const workoutTypeSelect = document.getElementById('retrieve-workout-type')
-const workoutSelect = document.getElementById('retrieve-workout')
-
-//edit modals for the workout and warmup currently on screen. the cards carry the record's
-//id in data-record-id, refreshed whenever the tables swap in a different record
-const workoutCard = document.getElementById('workout-card')
-const warmupCard = document.getElementById('warmup-card')
-const editWorkoutBtn = document.getElementById('editWorkout')
-const editWarmupBtn = document.getElementById('editWarmup')
-const saveWorkoutBtn = document.getElementById('saveWorkout')
-const saveWarmupBtn = document.getElementById('saveWarmup')
-const deleteWorkoutBtn = document.getElementById('deleteWorkout')
-const deleteWarmupBtn = document.getElementById('deleteWarmup')
-
-//pairs each exercise row field with its key in the workout payload
-const EXERCISE_FIELDS = {
-    '.row-ex-block': 'ex_block',
-    '.row-ex-name': 'ex_name',
-    '.row-sets-reps': 'sets_reps',
-    '.row-ex-notes': 'ex_notes',
-}
+// The weight log and the read-only session view. The warmup and workout panels
+// that used to share these now live on the workout input page.
 
 // a modal always opens at the top. the panel keeps whatever scroll offset it was
 // hidden at, and the save button sits at the very bottom - so closing by saving
@@ -698,247 +673,7 @@ function closeModal(id) {
     modal.classList.remove('active');
 }
 
-//----------------GET/DISPLAY WORKOUTS FROM DROPDOWNS----------------
-//switching workout type swaps in that type's name list. it takes both a type and a name to
-//identify a workout, so the panel stays empty until the second half of that is picked
-async function GetWorkoutsByType() {
-    //the type select opens on a blank placeholder, and picking it again means "nothing
-    //selected". the API only accepts real workout types, so clear the panel rather than
-    //fetch an empty type and surface a 400
-    if (!workoutTypeSelect.value) {
-        workoutSelect.innerHTML = '<option value="">Select Workout to View</option>';
-        UpdateExerciseTable({ exercises: [] });
-        return;
-    }
-
-    const response = await fetch('/api/getWorkoutsByType',
-        {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', },
-            body: JSON.stringify({ type: workoutTypeSelect.value })
-        });
-
-    if (!response.ok) {
-        console.log('Update failed:', await response.text());
-        alert('Update failed. See console.');
-        return;
-    }
-
-    const result = await response.json();
-
-    workoutSelect.innerHTML = '<option value="">Select Workout to View</option>';
-    result.names.forEach(name => {
-        const option = document.createElement('option');
-        option.value = name;
-        option.textContent = name;
-        workoutSelect.appendChild(option);
-    });
-
-    //a type on its own does not name a workout, so the panel is cleared rather than filled
-    //with that type's latest - which read as though it were the one the name select showed
-    UpdateExerciseTable({ exercises: [] });
-}
-
-//tabName is 'warmup' or a workout_type value ('Lift', 'Back/Core', ...)
-async function GetSelectedWorkout(tabName) {
-    //with no type picked there is nothing to look a name up in, and an empty type is a 400
-    //at the API. the name list is empty in that state anyway, so this is a backstop
-    if (!tabName) return;
-
-    const select = tabName === 'warmup' ? warmupSelect : workoutSelect;
-    const data = { type: tabName, value: select.value };
-
-    if (!data.value) {
-        //re-picking the blank placeholder means nothing is selected. leaving the last
-        //record on screen reads as though it belonged to what the dropdowns now say
-        if (tabName === 'warmup') UpdateWarmupTable({});
-        else UpdateExerciseTable({ exercises: [] });
-        return;
-    }
-    else {
-        const response = await fetch('/api/getSelectedWorkout',
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', },
-                body: JSON.stringify(data)
-            });
-
-        // Check if response is ok before parsing, display to html
-        if (!response.ok) {
-            console.log('Update failed:', await response.text());
-            alert('Update failed. See console.');
-            return;
-        }
-
-        const result = await response.json();
-
-        if (tabName === "warmup") {
-            UpdateWarmupTable(result);
-        }
-        else {
-            UpdateExerciseTable(result);
-        }
-    }
-}
-
-//cells built here have to carry the same data-label the template renders, since the
-//mobile layout turns those labels into each row's headings
-function addCell(row, label) {
-    const cell = row.insertCell();
-    cell.setAttribute('data-label', label);
-    return cell;
-}
-
-//every workout type shares one table and one shape:
-//{workout_name, notes, exercises: [{ex_block, ex_name, sets_reps, ex_notes}, ...]}
-function UpdateExerciseTable(data) {
-    const tbody = document.getElementById('workout_body');
-    const metaSpan = document.getElementById('workout-meta');
-
-    //the edit modal acts on whatever is on screen, so the card's id moves with the table
-    workoutCard.dataset.recordId = data.id || "";
-    syncEditButton(editWorkoutBtn, workoutCard);
-
-    if (metaSpan) {
-        metaSpan.textContent = data.workout_name || "";
-    }
-
-    //session-level notes ride along with every workout payload; hide the panel when there are none
-    const notesPanel = document.getElementById('workout-notes');
-    const notesText = document.getElementById('workout-notes-text');
-    if (notesPanel && notesText) {
-        notesText.innerHTML = data.notes || ""; //pre-formatted with <br> by the backend
-        notesPanel.classList.toggle('hidden', !data.notes);
-    }
-
-    tbody.innerHTML = "";
-    data.exercises.forEach(ex => {
-        const row = tbody.insertRow();
-        //data-label drives the stacked card layout on mobile, so rebuilt cells need it too
-        addCell(row, "Block").textContent = ex.ex_block;
-        addCell(row, "Exercise").textContent = ex.ex_name;
-        addCell(row, "Sets/Reps").textContent = ex.sets_reps;
-        addCell(row, "Notes").innerHTML = ex.ex_notes; //pre-formatted with <br> by the backend
-    });
-}
-
-//warmup shape is one row of exercise-category columns, not a list of exercises
-function UpdateWarmupTable(data) {
-    const tbody = document.getElementById('warmups_body');
-    tbody.innerHTML = "";
-
-    warmupCard.dataset.recordId = data.id || "";
-    syncEditButton(editWarmupBtn, warmupCard);
-
-    //no warmup picked: the panel stays empty rather than showing a row of blanks
-    if (!data.id) return;
-
-    const row = tbody.insertRow();
-    addCell(row, "Name").textContent = data.name;
-    addCell(row, "Rollout Exercises").innerHTML = data.rollout_ex;
-    addCell(row, "Spine Exercises").innerHTML = data.spine_ex;
-    addCell(row, "Hip Exercises").innerHTML = data.hip_ex;
-    addCell(row, "Shoulder Exercises").innerHTML = data.shoulder_ex;
-    addCell(row, "Arm Exercises").innerHTML = data.arm_ex;
-    addCell(row, "Dynamic Exercises").innerHTML = data.dynamic_ex;
-    addCell(row, "Notes").innerHTML = data.notes;
-}
-
-//---------EDIT WORKOUTS FUNCTIONS---------------
-//── edit the workout on screen ───────────────────────────────────────────
-editWorkoutBtn.onclick = async function () {
-    const record = await fetchRecordForEdit('workout', workoutCard.dataset.recordId);
-    if (!record) {
-        return;
-    }
-    document.getElementById("edit-workout-date").value = record.date;
-    document.getElementById("edit-workout-type").value = record.workout_type;
-    document.getElementById("edit-workout-name").value = record.workout_name;
-    document.getElementById("edit-workout-notes").value = record.notes;
-    //fills in exercise details, sets, reps etc
-    fillModalRows('edit-ex-rows', 'ex-row-template', record.exercises, EXERCISE_FIELDS);
-
-    openModal('editWorkout-modal');
-}
-
-document.getElementById('addExRow').onclick = () => addModalRow('edit-ex-rows', 'ex-row-template');
-document.getElementById('removeExRow').onclick = () => removeModalRow('edit-ex-rows');
-
-saveWorkoutBtn.onclick = function () {
-    const updatedWorkout = {
-        id: Number(workoutCard.dataset.recordId),
-        date: document.getElementById("edit-workout-date").value,
-        workout_type: document.getElementById("edit-workout-type").value,
-        workout_name: document.getElementById("edit-workout-name").value,
-        notes: document.getElementById("edit-workout-notes").value,
-        exercises: readModalRows('edit-ex-rows', EXERCISE_FIELDS)
-    }
-
-    submitRecordChange('/api/updateWorkout', updatedWorkout, 'Update failed.');
-}
-
-deleteWorkoutBtn.onclick = function () {
-    if (!confirm("Delete this workout and its exercises? This cannot be undone.")) {
-        return;
-    }
-
-    submitRecordChange('/api/deleteRecord',
-        { record_type: 'workout', id: Number(workoutCard.dataset.recordId) }, 'Delete failed.');
-}
-
-//── edit the warmup on screen ────────────────────────────────────────────
-editWarmupBtn.onclick = async function () {
-    const record = await fetchRecordForEdit('warmup', warmupCard.dataset.recordId);
-    if (!record) {
-        return;
-    }
-
-    document.getElementById("edit-warmup-date").value = record.date;
-    document.getElementById("edit-warmup-name").value = record.name;
-    document.getElementById("edit-warmup-rollout").value = record.rollout_ex;
-    document.getElementById("edit-warmup-spine").value = record.spine_ex;
-    document.getElementById("edit-warmup-hip").value = record.hip_ex;
-    document.getElementById("edit-warmup-shoulder").value = record.shoulder_ex;
-    document.getElementById("edit-warmup-arm").value = record.arm_ex;
-    document.getElementById("edit-warmup-dynamic").value = record.dynamic_ex;
-    document.getElementById("edit-warmup-notes").value = record.notes;
-
-    openModal('editWarmup-modal');
-}
-
-saveWarmupBtn.onclick = function () {
-    const updatedWarmup = {
-        id: Number(warmupCard.dataset.recordId),
-        date: document.getElementById("edit-warmup-date").value,
-        name: document.getElementById("edit-warmup-name").value,
-        rollout_ex: document.getElementById("edit-warmup-rollout").value,
-        spine_ex: document.getElementById("edit-warmup-spine").value,
-        hip_ex: document.getElementById("edit-warmup-hip").value,
-        shoulder_ex: document.getElementById("edit-warmup-shoulder").value,
-        arm_ex: document.getElementById("edit-warmup-arm").value,
-        dynamic_ex: document.getElementById("edit-warmup-dynamic").value,
-        notes: document.getElementById("edit-warmup-notes").value
-    }
-
-    submitRecordChange('/api/updateWarmup', updatedWarmup, 'Update failed.');
-}
-
-deleteWarmupBtn.onclick = function () {
-    if (!confirm("Delete this warmup? This cannot be undone.")) {
-        return;
-    }
-
-    submitRecordChange('/api/deleteRecord',
-        { record_type: 'warmup', id: Number(warmupCard.dataset.recordId) }, 'Delete failed.');
-}
-
-
-//the three dropdowns, the modal plumbing, and the initial edit-button state
-function wirePanels() {
-    warmupSelect.addEventListener("change", () => GetSelectedWorkout('warmup'));
-    workoutTypeSelect.addEventListener("change", GetWorkoutsByType);
-    workoutSelect.addEventListener("change", () => GetSelectedWorkout(workoutTypeSelect.value));
-
+function wireModals() {
     // Close buttons
     document.querySelectorAll('.modal-close').forEach(btn => {
         btn.addEventListener('click', () => closeModal(btn.dataset.modal));
@@ -949,9 +684,6 @@ function wirePanels() {
             if (e.target === modal) closeModal(modal.id);
         });
     });
-
-    syncEditButton(editWorkoutBtn, workoutCard);
-    syncEditButton(editWarmupBtn, warmupCard);
 }
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
@@ -961,7 +693,7 @@ function init() {
     buildYears();
     buildLegend();
     wireEvents();
-    wirePanels();
+    wireModals();
     showCalendar(currentMonth, currentYear);
 }
 
@@ -1131,8 +863,8 @@ function escapeHtml(value) {
     return holder.innerHTML;
 }
 
-// both views reuse the layout the record already has elsewhere: the Warmup Options tab
-// here, and the Throwing Days tab on the home page
+// both views reuse the layout the record already has on the workout input page: its
+// View Warmups tab and its View Throwing Days tab
 function warmupMarkup(warmup) {
     const columns = [
         ["Name", escapeHtml(warmup.name)], ["Rollout Exercises", warmup.rollout_ex],

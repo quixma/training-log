@@ -63,6 +63,8 @@ header h1 span { color: var(--accent); }
 .tablinks:hover { color: var(--text-primary); }
 .tablinks.active { color: var(--accent); border-bottom-color: var(--accent); }
 .tablinks.tab-link { margin-left: auto; }
+/* only the first link pushes right; a second auto margin would split the gap between them */
+.tablinks.tab-link ~ .tablinks.tab-link { margin-left: 0; }
 .tablinks.tab-link:hover { color: var(--accent); }
 
 /* ── Tab Content ─────────────────────────────── */
@@ -330,7 +332,9 @@ header h1 span { color: var(--accent); }
   transition: background var(--transition), border-color var(--transition);
 }
 .reminder-check:hover { border-color: var(--text-secondary); }
-.reminder-check:checked {
+/* .reminder-list is in the selector for weight, not scope: a clicked box keeps focus, and
+   `.card-body input:focus` would otherwise outrank this and paint the tick white on white */
+.reminder-list .reminder-check:checked {
   background: var(--accent);
   border-color: var(--accent);
 }
@@ -395,7 +399,7 @@ header h1 span { color: var(--accent); }
 }
 .reminder-delete:hover { border-color: var(--accent); }
 .reminder-delete:hover::after { color: var(--accent); }
-.reminder-delete:checked {
+.reminder-list .reminder-delete:checked {
   background: var(--accent);
   border-color: var(--accent);
 }
@@ -495,23 +499,15 @@ header h1 span { color: var(--accent); }
   background: var(--accent-dim);
 }
 
-/* ── Tab Panel Tables ───────────────────────── */
-/* ported from workout_dashboard.css. scoped to the two tab panels so the bare
+/* ── Session View Tables ────────────────────── */
+/* ported from workout_dashboard.css. scoped to the read-only session modal so the bare
    element selectors can't reach .table-calendar, which lays out on border-spacing */
-#warmup_workouts .table-scroll,
-#workouts .table-scroll,
 #view-session-body .table-scroll { overflow-x: auto; }
 
-#warmup_workouts table,
-#workouts table,
 #view-session-body table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
 
-#warmup_workouts thead tr,
-#workouts thead tr,
 #view-session-body thead tr { background: rgba(10,10,10,0.03); border-bottom: 1px solid var(--border); }
 
-#warmup_workouts thead th,
-#workouts thead th,
 #view-session-body thead th {
   padding: 11px 14px;
   text-align: left;
@@ -524,79 +520,12 @@ header h1 span { color: var(--accent); }
   white-space: nowrap;
 }
 
-#warmup_workouts tbody tr,
-#workouts tbody tr,
 #view-session-body tbody tr { border-bottom: 1px solid var(--border); transition: background var(--transition); }
-#warmup_workouts tbody tr:nth-child(even),
-#workouts tbody tr:nth-child(even),
 #view-session-body tbody tr:nth-child(even) { background: var(--bg-row-alt); }
-#warmup_workouts tbody tr:hover,
-#workouts tbody tr:hover,
 #view-session-body tbody tr:hover { background: var(--bg-row-hover); }
 
-#warmup_workouts tbody td,
-#workouts tbody td,
 #view-session-body tbody td { padding: 11px 14px; color: var(--text-primary); vertical-align: top; line-height: 1.5; }
-#warmup_workouts tbody td:first-child,
-#workouts tbody td:first-child,
 #view-session-body tbody td:first-child { color: var(--text-secondary); font-size: 0.8rem; white-space: nowrap; }
-
-/* ── Tab Panel Card Controls ────────────────── */
-.section-card-header select {
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-primary);
-  font-family: var(--mono);
-  font-size: 0.78rem;
-  padding: 7px 32px 7px 10px;
-  outline: none;
-  cursor: pointer;
-  transition: border-color var(--transition), box-shadow var(--transition);
-  -webkit-appearance: none;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%230a0a0a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  max-width: 220px;
-}
-.section-card-header select:focus {
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px var(--accent-dim);
-}
-.section-card-header select option { background: var(--bg-card); color: var(--text-primary); }
-
-.workout-meta {
-  font-family: var(--mono);
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-right: auto;
-}
-
-.btn-action {
-  padding: 6px 14px;
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--transition);
-  white-space: nowrap;
-}
-.btn-action.hidden { display: none; } /* nothing on screen to edit */
-.btn-action:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-dim);
-}
 
 /* ── Calendar Grid ──────────────────────────── */
 .calendar-scroll { padding: 16px 18px; }
@@ -874,28 +803,6 @@ header h1 span { color: var(--accent); }
 }
 .weight-log-notes.hidden { display: none; }
 
-/* ── Workout Notes Panel ────────────────────── */
-.workout-notes {
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-base);
-}
-.workout-notes.hidden { display: none; }
-.workout-notes h4 {
-  font-family: var(--mono);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-label);
-  margin-bottom: 6px;
-}
-.workout-notes p {
-  font-size: 0.85rem;
-  color: var(--text-primary);
-  line-height: 1.5;
-}
-
 /* ── Modal Overlay ──────────────────────────── */
 .modal {
   display: none;
@@ -1092,42 +999,6 @@ header h1 span { color: var(--accent); }
   color: var(--accent);
   background: var(--accent-dim);
 }
-.modal-btn-group button.btn-remove-row:hover {
-  border-color: var(--danger);
-  color: var(--danger);
-  background: var(--danger-dim);
-}
-
-/* destructive action sits under the save button, muted until hovered */
-.modal-content button.btn-danger {
-  align-self: stretch;
-  padding: 12px;
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  font-family: var(--mono);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all var(--transition);
-}
-.modal-content button.btn-danger:hover {
-  border-color: var(--danger);
-  color: var(--danger);
-  background: var(--danger-dim);
-}
-
-/* the calendar's own .btn-remove-row is the absolutely-positioned x on a workout row.
-   the modal's Remove Exercise button borrows the class, so put it back in flow. */
-.modal-btn-group button.btn-remove-row {
-  position: static;
-  width: auto;
-  height: auto;
-  font-size: 0.8rem;
-}
 
 /* ── Responsive ─────────────────────────────── */
 @media (max-width: 1200px) {
@@ -1181,17 +1052,13 @@ header h1 span { color: var(--accent); }
   .event-tooltip { display: none !important; }
 }
 
-/* ── Mobile: tab panel tables read as stacked cards ─────
-   Same treatment as the workout dashboard: every cell in these two panels
+/* ── Mobile: session view tables read as stacked cards ─────
+   Same treatment as the workout dashboard: every cell in the session view
    carries data-label, so the header row becomes noise and each row can stack
    into a labelled card instead of scrolling sideways. */
 @media (max-width: 900px) {
-  #warmup_workouts thead,
-  #workouts thead,
   #view-session-body thead { display: none; }
 
-  #warmups_body tr,
-  #workout_body tr,
   #view-session-body tbody tr {
     display: block;
     border: 1px solid var(--border);
@@ -1202,12 +1069,8 @@ header h1 span { color: var(--accent); }
   }
 
   /* the zebra striping reads as broken cards once the rows are blocks */
-  #warmups_body tr:nth-child(even),
-  #workout_body tr:nth-child(even),
   #view-session-body tbody tr:nth-child(even) { background: var(--bg-card); }
 
-  #warmups_body td,
-  #workout_body td,
   #view-session-body tbody td {
     display: block;
     width: auto;
@@ -1221,19 +1084,13 @@ header h1 span { color: var(--accent); }
     color: var(--text-primary);
   }
 
-  #warmups_body td:last-child,
-  #workout_body td:last-child,
   #view-session-body tbody td:last-child { border-bottom: none; }
 
   /* rich note bodies ({{ ... | safe }}) can carry markup that blows out the width */
-  #warmups_body td *,
-  #workout_body td *,
   #view-session-body tbody td * { max-width: 100%; }
 
   /* only cells that actually carry a label get a heading, so the empty
      trailing cell in the warmups row stays blank */
-  #warmup_workouts td[data-label]::before,
-  #workouts td[data-label]::before,
   #view-session-body td[data-label]::before {
     content: attr(data-label);
     display: block;
@@ -1244,9 +1101,6 @@ header h1 span { color: var(--accent); }
     color: var(--text-secondary);
     margin-bottom: 4px;
   }
-
-  /* card controls stack instead of squeezing next to the heading */
-  .section-card-header select { max-width: 100%; width: 100%; }
 }
 
 @media (max-width: 500px) {
@@ -1267,8 +1121,8 @@ header h1 span { color: var(--accent); }
 }
 
 /* ── Throwing day view ──────────────────────── */
-/* ported from inszn_home.css so the read-only view matches the Throwing Days tab;
-   that stylesheet is not loaded on this page */
+/* matches the View Throwing Days tab on the workout input page; lifting_forms.css,
+   which styles that tab, is not loaded on this page */
 .day-notes {
   padding: 16px 24px;
   border-bottom: 1px solid var(--border);
@@ -1390,7 +1244,6 @@ header h1 span { color: var(--accent); }
 .legend-swatch { border-radius: 0; }
 
 /* buttons follow the same press as every other page */
-.btn-action,
 .btn-save,
 .btn-today,
 .nav-btn,
@@ -1402,7 +1255,6 @@ header h1 span { color: var(--accent); }
               background var(--transition), color var(--transition);
 }
 
-.btn-action:active,
 .btn-save:active,
 .btn-today:active,
 .nav-btn:active,

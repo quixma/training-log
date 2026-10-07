@@ -35,21 +35,6 @@ var editGoals_Btn = document.getElementById('editGoals')
 var saveGoalsBtn = document.getElementById('saveGoals')
 var rowPlayerGoals = document.getElementById("goals-data-row");
 
-//edit modal for the logged throwing day currently on screen. the card carries the day's
-//id in data-record-id, refreshed whenever the table swaps in a different day
-const throwingDayCard = document.getElementById('throwing-day-card')
-const editThrowingDayBtn = document.getElementById('editThrowingDay')
-const saveThrowingDayBtn = document.getElementById('saveThrowingDay')
-const deleteThrowingDayBtn = document.getElementById('deleteThrowingDay')
-
-//pairs each drill row field with its key in the throwing day payload
-const DRILL_FIELDS = {
-    '.row-drill-name': 'drill_name',
-    '.row-ball-weight': 'ball_weight',
-    '.row-throw-count': 'throw_count',
-    '.row-drill-notes': 'drill_notes',
-}
-
 //throwing plan and notes labels
 const throwingPlanSelect = document.getElementById('retrieve-throwing-plan');
 const throwingNoteSelect = document.getElementById('retrieve-throwing-notes');
@@ -58,7 +43,6 @@ const throwingDaySelect = document.getElementById('throwing-day-type');
 const throwingDayTimeSelect = document.getElementById('throwing-day-time');
 const gameNoteSelect = document.getElementById('retrieve-game-notes');
 const playerGoalsSelect = document.getElementById('retrieve-player-goals');
-const throwingDayViewSelect = document.getElementById('retrieve-throwing-day');
 
 //add event listeners
 throwingPlanSelect.addEventListener("change", GetThrowingPlan);
@@ -68,7 +52,6 @@ throwingDaySelect.addEventListener("change", GetThrowingNotesByDay);
 throwingDayTimeSelect.addEventListener("change", GetThrowingNotesByDay);
 gameNoteSelect.addEventListener("change", GetGameNotes);
 playerGoalsSelect.addEventListener("change", GetPlayerGoals);
-throwingDayViewSelect.addEventListener("change", GetThrowingDay);
 
 //chart event listeners
 metricSelect.addEventListener("change", getData);
@@ -93,7 +76,6 @@ GetThrowingNotesByDay();
 GetGameNotes();
 GetPlayerGoals();
 getData(); //chart api data
-syncEditButton(editThrowingDayBtn, throwingDayCard);
 
 
 //tab control on home screen
@@ -328,51 +310,6 @@ saveTP_Btn.onclick = function () {
         });
 }
 
-//-------------EDIT/SAVE/DELETE THROWING DAY-----------
-editThrowingDayBtn.onclick = async function () {
-    const record = await fetchRecordForEdit('throwing_day', throwingDayCard.dataset.recordId);
-    if (!record) {
-        return;
-    }
-
-    document.getElementById("edit-day-date").value = record.date;
-    document.getElementById("edit-day-name").value = record.day_name;
-    document.getElementById("edit-day-session-type").value = record.session_type;
-    document.getElementById("edit-day-notes").value = record.notes;
-    fillModalRows('edit-plyo-rows', 'drill-row-template', record.plyo_drills, DRILL_FIELDS);
-    fillModalRows('edit-throwing-rows', 'drill-row-template', record.throwing_drills, DRILL_FIELDS);
-
-    openModal('editThrowingDay-modal');
-}
-
-document.getElementById('addPlyoRow').onclick = () => addModalRow('edit-plyo-rows', 'drill-row-template');
-document.getElementById('removePlyoRow').onclick = () => removeModalRow('edit-plyo-rows');
-document.getElementById('addThrowingRow').onclick = () => addModalRow('edit-throwing-rows', 'drill-row-template');
-document.getElementById('removeThrowingRow').onclick = () => removeModalRow('edit-throwing-rows');
-
-saveThrowingDayBtn.onclick = function () {
-    const updatedDay = {
-        id: Number(throwingDayCard.dataset.recordId),
-        date: document.getElementById("edit-day-date").value,
-        day_name: document.getElementById("edit-day-name").value,
-        session_type: document.getElementById("edit-day-session-type").value,
-        notes: document.getElementById("edit-day-notes").value,
-        plyo_drills: readModalRows('edit-plyo-rows', DRILL_FIELDS),
-        throwing_drills: readModalRows('edit-throwing-rows', DRILL_FIELDS)
-    }
-
-    submitRecordChange('/api/updateThrowingDay', updatedDay, 'Update failed.');
-}
-
-deleteThrowingDayBtn.onclick = function () {
-    if (!confirm("Delete this throwing day and its drills? This cannot be undone.")) {
-        return;
-    }
-
-    submitRecordChange('/api/deleteRecord',
-        { record_type: 'throwing_day', id: Number(throwingDayCard.dataset.recordId) }, 'Delete failed.');
-}
-
 
 //----------GAME NOTES FUNCTIONS-----------
 async function GetGameNotes() {
@@ -496,67 +433,6 @@ function addCell(row, label) {
     const cell = row.insertCell();
     cell.setAttribute('data-label', label);
     return cell;
-}
-
-//------------THROWING DAY TAB FUNCTIONS-----------
-//logged throwing days: pick a day by name, swap its drills and notes into the tab
-async function GetThrowingDay() {
-    const name = throwingDayViewSelect.value;
-
-    if (!name) {
-        console.log("Enter a search criteria")
-        return;
-    }
-    else {
-        const response = await fetch('/api/getThrowingDay',
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', },
-                body: JSON.stringify({ value: name })
-            });
-
-        // Check if response is ok before parsing, display to html
-        if (!response.ok) {
-            console.log('Update failed:', await response.text());
-            alert('Update failed. See console.');
-            return;
-        }
-
-        const data = await response.json();
-        UpdateThrowingDayTable(data);
-    }
-}
-
-//throwing day shape: {day_name, date, session_type, notes, drills: [{set, drill_name, ball_weight, throw_count, drill_notes}, ...]}
-function UpdateThrowingDayTable(data) {
-    const tbody = document.getElementById('throwing_day_body');
-    const metaSpan = document.getElementById('throwing-day-meta');
-
-    //the edit modal acts on whatever is on screen, so the card's id moves with the table
-    throwingDayCard.dataset.recordId = data.id || "";
-    syncEditButton(editThrowingDayBtn, throwingDayCard);
-    const notesPanel = document.getElementById('throwing-day-notes');
-    const notesText = document.getElementById('throwing-day-notes-text');
-
-    if (metaSpan) {
-        metaSpan.textContent = data.date ? `${data.date} \u00b7 ${data.session_type}` : "";
-    }
-
-    if (notesPanel && notesText) {
-        notesText.innerHTML = data.notes || ""; //pre-formatted with <br> by the backend
-        notesPanel.classList.toggle('hidden', !data.notes);
-    }
-
-    tbody.innerHTML = "";
-    data.drills.forEach(drill => {
-        const row = tbody.insertRow();
-        //data-label drives the stacked card layout on mobile, so rebuilt cells need it too
-        addCell(row, "Set").textContent = drill.set;
-        addCell(row, "Drill").textContent = drill.drill_name;
-        addCell(row, "Ball").textContent = drill.ball_weight;
-        addCell(row, "Throws").textContent = drill.throw_count;
-        addCell(row, "Notes").innerHTML = drill.drill_notes; //pre-formatted with <br> by the backend
-    });
 }
 
 //---------CHART FUNCTIONS------------

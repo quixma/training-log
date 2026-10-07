@@ -5,7 +5,7 @@ from app.models import get_totalthrows4wk, get_totalworkingthrows4wk, get_throwi
 from app.models import get_RatingsAvgs, get_bodyNotes_dates, get_bodyNotes, get_workoutLogNotes, get_workoutLogNotes_dates, get_warmup_names
 from app.models import WORKOUT_TYPES, THROWING_SESSION_TYPES, THROWING_BALL_WEIGHTS
 from app.models import get_player_goals, get_player_goals_dates, get_workout_notes, get_workout_notes_dates
-from app.models import get_throwing_day_names, get_latest_throwing_day, getCalendarWorkouts, get_journal_entry_dates
+from app.models import get_throwing_day_names, getCalendarWorkouts, get_journal_entry_dates
 from flask import render_template, redirect, url_for
 
 
@@ -33,9 +33,6 @@ def inszn_home():
     player_goals = get_player_goals('pitching')
     player_goals_dates = get_player_goals_dates('pitching')
     throws_breakdown = get_last7d_throw_breakdown()
-    #the throwing days tab opens on the most recently logged day and swaps the rest in via /api/getThrowingDay
-    throwing_day_names = get_throwing_day_names()
-    throwing_day = get_latest_throwing_day()
 
     for x in throwing_plan: #get id of throwing plan
         tableID = x['id']
@@ -44,9 +41,7 @@ def inszn_home():
                            tableID = tableID, plan_dates = plan_dates, notes_dates = notes_dates, throwing_days = throwing_days,
                            peak_velo = peak_velo, avg_readiness = avg_readiness, acr = acr, throws_breakdown = throws_breakdown,
                            prev_throw_day = prev_throw_day, days_last_game = days_last_game, throws4wk = throws4wk, workingthrows4wk = workingthrows4wk, avg_velos = avg_velos,
-                           game_notes = game_notes, game_dates = game_dates, player_goals = player_goals, player_goals_dates = player_goals_dates,
-                           throwing_day_names = throwing_day_names, throwing_day = throwing_day,
-                           session_types = THROWING_SESSION_TYPES, ball_weights = THROWING_BALL_WEIGHTS)
+                           game_notes = game_notes, game_dates = game_dates, player_goals = player_goals, player_goals_dates = player_goals_dates)
 
 @app.route('/inszn_throwing_form', methods=["GET", "POST"])
 def inszn_throwing_form():
@@ -94,18 +89,19 @@ def workout_form():
 
 @app.route('/lifting_forms', methods=["GET", "POST"])
 def lifting_forms():
+    #only the dropdowns' options: every view panel opens on a blank placeholder, so a table
+    #built here would show a record no dropdown claims - the latest warmup or throwing day,
+    #or the first type's workout. the JS fills each table once something is actually picked
+    warmup_names = get_warmup_names()
+    throwing_day_names = get_throwing_day_names()
     return render_template('lifting_forms.html', workout_types = WORKOUT_TYPES,
-                           session_types = THROWING_SESSION_TYPES, ball_weights = THROWING_BALL_WEIGHTS)
+                           session_types = THROWING_SESSION_TYPES, ball_weights = THROWING_BALL_WEIGHTS,
+                           warmup_names = warmup_names, throwing_day_names = throwing_day_names)
 
 @app.route('/training_calendar', methods=["GET", "POST"])
 def training_calendar():
     workouts = getCalendarWorkouts()
     #the days already logged in either journal, so the side panel's links can strike themselves out
     journal_dates = get_journal_entry_dates()
-    #only the dropdown's options: both panels open on a blank placeholder, so a table built
-    #here would show a record no dropdown claims - the latest warmup, or the first type's
-    #workout. the JS fills each table once something is actually picked
-    warmup_names = get_warmup_names()
     return render_template('training_calendar.html', workout_types = WORKOUT_TYPES, workouts = workouts,
-                           journal_dates = journal_dates,
-                           warmup_names = warmup_names)
+                           journal_dates = journal_dates)

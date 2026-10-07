@@ -372,7 +372,7 @@ def getInsznThrowingPlan():
 
 @app.route("/api/getThrowingDay", methods = ["POST"])
 def getThrowingDay():
-    #the home dashboard's throwing days tab swaps days without a page load
+    #the workout input page's throwing days tab swaps days without a page load
     data = request.get_json()
     name = data.get("value")
 

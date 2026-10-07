@@ -26,8 +26,10 @@ async function fetchRecordForEdit(recordType, recordId) {
     return await response.json();
 }
 
-//save and delete share this: post, then reload so every table on the page reflects the change
-async function submitRecordChange(url, payload, failureMessage) {
+//save and delete share this: post, then reload so every table on the page reflects the change.
+//returnTab is the id of the tab to reopen after the reload, for pages whose edit modals sit
+//on a tab other than the first; it rides the URL hash, which a reload keeps
+async function submitRecordChange(url, payload, failureMessage, returnTab) {
     const response = await fetch(url,
         {
             method: 'POST',
@@ -39,6 +41,9 @@ async function submitRecordChange(url, payload, failureMessage) {
         console.log(failureMessage, await response.text());
         alert(`${failureMessage} See console.`);
         return;
+    }
+    if (returnTab) {
+        window.location.hash = returnTab;
     }
     window.location.reload();
 }

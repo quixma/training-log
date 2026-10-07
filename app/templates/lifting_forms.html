@@ -8,7 +8,7 @@
 {% endblock %}
 {% block content %}
 <header>
-  <h1><span>//</span> Workout Forms <span>//</span></h1>
+  <h1><span>//</span> Workout Input/Edit <span>//</span></h1>
 </header>
 
 <!-- Tab Nav -->
@@ -16,6 +16,9 @@
   <button class="tablinks active" onclick="openTab(event, 'workout_form')">Workout Form</button>
   <button class="tablinks" onclick="openTab(event, 'warmup_form')">Warmup Form</button>
   <button class="tablinks" onclick="openTab(event, 'throwing_day_form')">Throwing Form</button>
+  <button class="tablinks" data-tab="warmup_workouts" onclick="openTab(event, 'warmup_workouts')">View Warmups</button>
+  <button class="tablinks" data-tab="workouts" onclick="openTab(event, 'workouts')">View Workouts</button>
+  <button class="tablinks" data-tab="ThrowingDays" onclick="openTab(event, 'ThrowingDays')">View Throwing Days</button>
 </div>
 
 <!-- ══ WORKOUT INPUT FORM TAB ══════════════════════════════ -->
@@ -159,6 +162,303 @@
 </form>
 </div>
 
+<!-- ══ WARMUP TAB ════════════════════════════ -->
+<!-- nothing is rendered server side: the panel opens empty and the name select fetches
+     the warmup it names, the same way the workouts tab works -->
+<div id="warmup_workouts" class="tabcontent">
+
+  <!-- Warmup options dropdown -->
+  <!-- data-record-id tracks which warmup is on screen so the edit modal knows what it is
+       editing; empty until one is picked -->
+  <div class="section-card" id="warmup-card" data-record-id="">
+    <div class="section-card-header">
+      <h3>Warmups</h3>
+      <select autocomplete="off" id="retrieve-warmup">
+        <option value="">Select Warmup to View</option>
+        {% for data in warmup_names %}
+        <option value='{{ data["name"] }}'>{{ data["name"] }}</option>
+        {% endfor %}
+      </select>
+      <button id="editWarmup" class="btn-action">Edit Warmup</button>
+    </div>
+	</div>
+	<div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Rollout Exercises</th>
+            <th>Spine Exercises</th>
+            <th>Hip Exercises</th>
+            <th>Shoulder Exercises</th>
+				<th>Arm Exercises</th>
+				<th>Dynamic Exercises</th>
+				<th>Notes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <!-- empty until a warmup is picked; UpdateWarmupTable() builds the row -->
+        <tbody id="warmups_body"></tbody>
+      </table>
+    </div>
+</div>
+<!-- ══ WORKOUTS TAB ══════════════════════════════ -->
+<!-- one tab for every workout type. nothing is rendered server side: the panel opens empty
+     and the type select fetches that type's names and its latest workout -->
+<div id="workouts" class="tabcontent">
+  <div class="section-card" id="workout-card" data-record-id="">
+    <div class="section-card-header">
+      <h3>Workouts</h3>
+      <span class="workout-meta" id="workout-meta"></span>
+      <select autocomplete="off" id="retrieve-workout-type">
+        <option value="">Select Workout Type</option>
+        {% for workout_type in workout_types %}
+        <option value='{{ workout_type }}'>{{ workout_type }}</option>
+        {% endfor %}
+      </select>
+      <!-- deliberately empty: the names belong to whichever type is picked, and the type
+           select opens blank. GetWorkoutsByType() fills this in -->
+      <select autocomplete="off" id="retrieve-workout">
+        <option value="">Select Workout to View</option>
+      </select>
+      <button id="editWorkout" class="btn-action">Edit Workout</button>
+    </div>
+    <!-- session-level notes; UpdateExerciseTable() unhides this when the workout has some -->
+    <div class="workout-notes hidden" id="workout-notes">
+      <h4>Workout Notes</h4>
+      <p id="workout-notes-text"></p>
+    </div>
+	</div>
+	<div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Block</th>
+            <th>Exercise</th>
+            <th>Sets/Reps</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <!-- empty until a workout is picked; UpdateExerciseTable() builds the rows -->
+        <tbody id="workout_body"></tbody>
+      </table>
+    </div>
+</div>
+
+<!-- ══ THROWING DAYS TAB ═════════════════════ -->
+<!-- logged throwing days from the throwing day form. nothing is rendered server side: the
+     panel opens empty and the name select fetches the day it names, as the other view tabs do -->
+<div id="ThrowingDays" class="tabcontent">
+
+  <!-- data-record-id tracks which day is on screen so the edit modal knows what it is
+       editing; empty until one is picked -->
+  <div class="section-card" id="throwing-day-card" data-record-id="">
+    <div class="section-card-header">
+      <h3>Throwing Days</h3>
+      <span class="day-meta" id="throwing-day-meta"></span>
+      <select autocomplete="off" id="retrieve-throwing-day">
+        <option value="">Select Throwing Day to View</option>
+        {% for data in throwing_day_names %}
+        <option value='{{ data["day_name"] }}'>{{ data["day_name"] }}</option>
+        {% endfor %}
+      </select>
+      <button id="editThrowingDay" class="btn-action">Edit Day</button>
+    </div>
+    <!-- day-level notes; UpdateThrowingDayTable() unhides this when the day has some -->
+    <div class="day-notes hidden" id="throwing-day-notes">
+      <h4>Day Breakdown / Notes</h4>
+      <p id="throwing-day-notes-text"></p>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Set</th>
+            <th>Drill</th>
+            <th>Ball</th>
+            <th>Throws</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <!-- empty until a day is picked; UpdateThrowingDayTable() builds the rows -->
+        <tbody id="throwing_day_body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- end #ThrowingDays -->
+
+<!-- ── Edit Workout Modal ───────────────────── -->
+<!-- edits the workout the Workouts tab is showing, exercise rows included -->
+<div id="editWorkout-modal" class="modal">
+  <div class="modal-inner">
+    <div class="modal-header">
+      <h2>Edit Workout</h2>
+      <button class="modal-close" data-modal="editWorkout-modal">&#x2715;</button>
+    </div>
+    <div class="modal-content">
+      <div class="field-group">
+        <label for="edit-workout-date">Date</label>
+        <input type="date" id="edit-workout-date">
+      </div>
+      <div class="field-group">
+        <label for="edit-workout-type">Workout Type</label>
+        <select autocomplete="off" id="edit-workout-type">
+          {% for workout_type in workout_types %}
+          <option value="{{ workout_type }}">{{ workout_type }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field-group">
+        <label for="edit-workout-name">Workout Name</label>
+        <textarea id="edit-workout-name" rows="1"></textarea>
+      </div>
+      <div class="field-group">
+        <label>Exercises</label>
+        <div id="edit-ex-rows" class="modal-rows"></div>
+      </div>
+      <div class="modal-btn-group">
+        <button type="button" id="addExRow">+ Add Exercise</button>
+        <button type="button" class="btn-remove-row" id="removeExRow">Remove Exercise</button>
+      </div>
+      <div class="field-group">
+        <label for="edit-workout-notes">Notes</label>
+        <textarea id="edit-workout-notes" rows="5"></textarea>
+      </div>
+      <button id="saveWorkout" class="btn-save">Save Workout</button>
+      <button id="deleteWorkout" class="btn-danger">Delete Workout</button>
+    </div>
+  </div>
+</div>
+
+<!-- one exercise row, cloned per exercise when the modal opens -->
+<template id="ex-row-template">
+  <div class="modal-row">
+    <input type="text" class="row-ex-block" placeholder="Block">
+    <input type="text" class="row-ex-name" placeholder="Exercise Name">
+    <input type="text" class="row-sets-reps" placeholder="Sets/Reps">
+    <input type="text" class="row-ex-notes row-notes" placeholder="Exercise Notes">
+  </div>
+</template>
+
+<!-- ── Edit Warmup Modal ────────────────────── -->
+<div id="editWarmup-modal" class="modal">
+  <div class="modal-inner">
+    <div class="modal-header">
+      <h2>Edit Warmup</h2>
+      <button class="modal-close" data-modal="editWarmup-modal">&#x2715;</button>
+    </div>
+    <div class="modal-content">
+      <div class="field-group">
+        <label for="edit-warmup-date">Date</label>
+        <input type="date" id="edit-warmup-date">
+      </div>
+      <div class="field-group">
+        <label for="edit-warmup-name">Warmup Name</label>
+        <textarea id="edit-warmup-name" rows="1"></textarea>
+      </div>
+      <div class="field-group">
+        <label for="edit-warmup-rollout">Rollout/Soft Tissue</label>
+        <textarea id="edit-warmup-rollout" rows="3"></textarea>
+      </div>
+      <div class="field-group">
+        <label for="edit-warmup-spine">Spine</label>
+        <textarea id="edit-warmup-spine" rows="3"></textarea>
+      </div>
+      <div class="field-group">
+        <label for="edit-warmup-hip">Hips/Lower Leg</label>
+        <textarea id="edit-warmup-hip" rows="3"></textarea>
+      </div>
+      <div class="field-group">
+        <label for="edit-warmup-shoulder">Shoulder</label>
+        <textarea id="edit-warmup-shoulder" rows="3"></textarea>
+      </div>
+      <div class="field-group">
+        <label for="edit-warmup-arm">Arm</label>
+        <textarea id="edit-warmup-arm" rows="3"></textarea>
+      </div>
+      <div class="field-group">
+        <label for="edit-warmup-dynamic">Dynamic/Misc</label>
+        <textarea id="edit-warmup-dynamic" rows="3"></textarea>
+      </div>
+      <div class="field-group">
+        <label for="edit-warmup-notes">Notes</label>
+        <textarea id="edit-warmup-notes" rows="4"></textarea>
+      </div>
+      <button id="saveWarmup" class="btn-save">Save Warmup</button>
+      <button id="deleteWarmup" class="btn-danger">Delete Warmup</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Edit Throwing Day Modal ──────────────── -->
+<!-- edits the logged day the Throwing Days tab is showing, both drill blocks included -->
+<div id="editThrowingDay-modal" class="modal">
+  <div class="modal-inner">
+    <div class="modal-header">
+      <h2>Edit Throwing Day</h2>
+      <button class="modal-close" data-modal="editThrowingDay-modal">&#x2715;</button>
+    </div>
+    <div class="modal-content">
+      <div class="field-group">
+        <label for="edit-day-date">Date</label>
+        <input type="date" id="edit-day-date">
+      </div>
+      <div class="field-group">
+        <label for="edit-day-name">Throwing Day Name</label>
+        <textarea id="edit-day-name" rows="1"></textarea>
+      </div>
+      <div class="field-group">
+        <label for="edit-day-session-type">Session Type</label>
+        <select autocomplete="off" id="edit-day-session-type">
+          <option value="">Select Type</option>
+          {% for value, label in session_types %}
+          <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Plyo Set</label>
+        <div id="edit-plyo-rows" class="modal-rows"></div>
+      </div>
+      <div class="modal-btn-group">
+        <button type="button" id="addPlyoRow">+ Add Drill</button>
+        <button type="button" class="btn-remove-row" id="removePlyoRow">Remove Drill</button>
+      </div>
+      <div class="field-group">
+        <label>Throwing Drills</label>
+        <div id="edit-throwing-rows" class="modal-rows"></div>
+      </div>
+      <div class="modal-btn-group">
+        <button type="button" id="addThrowingRow">+ Add Drill</button>
+        <button type="button" class="btn-remove-row" id="removeThrowingRow">Remove Drill</button>
+      </div>
+      <div class="field-group">
+        <label for="edit-day-notes">Day Breakdown / Notes</label>
+        <textarea id="edit-day-notes" rows="5"></textarea>
+      </div>
+      <button id="saveThrowingDay" class="btn-save">Save Throwing Day</button>
+      <button id="deleteThrowingDay" class="btn-danger">Delete Throwing Day</button>
+    </div>
+  </div>
+</div>
+
+<!-- one drill row, cloned per drill into either block when the modal opens -->
+<template id="drill-row-template">
+  <div class="modal-row drill-row">
+    <input type="text" class="row-drill-name" placeholder="Drill Name">
+    <select autocomplete="off" class="row-ball-weight">
+      <option value="">Ball Weight</option>
+      {% for weight in ball_weights %}
+      <option value="{{ weight }}">{{ weight }}</option>
+      {% endfor %}
+    </select>
+    <input type="text" class="row-throw-count" placeholder="Throw Count (e.g. 5-10)">
+    <input type="text" class="row-drill-notes row-notes" placeholder="Drill Notes">
+  </div>
+</template>
+
+<script src="{{ url_for('static', filename='js/record_edit.js') }}"></script>
 <script src="{{ url_for('static', filename='js/lifting_forms.js') }}"></script>
 
 {% endblock %}
