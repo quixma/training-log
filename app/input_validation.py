@@ -15,6 +15,7 @@ class ThrowingLogModel(BaseModel):
     body_weight: Optional[Annotated[float, Field(gt= 0)]]
     total_throws: Optional[Annotated[int, Field(ge = 0)]]
     non_baseball_throws: Optional[Annotated[int, Field(ge = 0)]]
+    plyo_throws: Optional[Annotated[int, Field(ge = 0)]]
     working_set_throws: Optional[Annotated[int, Field(ge = 0)]]
     max_velo: Optional[Annotated[float, Field(gt= 0)]]
     acr: Optional[float]

@@ -315,6 +315,7 @@ def get_last7d_throw_breakdown():
                COALESCE(ts.total_throws, 0) as total_throws,
                COALESCE(ts.working_set_throws, 0) as working_set_throws,
                COALESCE(ts.non_baseball_throws, 0) as non_baseball_throws,
+               COALESCE(ts.plyo_throws, 0) as plyo_throws,
                COALESCE(gj.game_throws, 0) as game_throws
         FROM date_series ds
         LEFT JOIN throwing_sessions ts ON ts.date = ds.day
@@ -329,17 +330,21 @@ def get_last7d_throw_breakdown():
         working_set_throws = row["working_set_throws"] or 0
         game_throws = row["game_throws"] or 0
         non_baseball_throws = row["non_baseball_throws"] or 0
+        plyo_throws = row["plyo_throws"] or 0
 
         #working_set_throws already has bullpen_throws folded in by updateThrowCount() when a game is logged,
         #so subtracting only game_throws here keeps bullpen throws in this bucket rather than "other_throws"
-        #non_baseball_throws is tracked separately on throwing_sessions and never folded into total_throws,
-        #so it's kept out of the game/working-set/other split entirely
+        #working set, implement (non_baseball_throws) and plyo throws are all subsets of total_throws, so
+        #"other_throws" is whatever is left of the total once they are taken out and the bar height matches
+        #total_throws for the day
         breakdown.append({
             "date": row["date"],
             "game_throws": game_throws,
             "working_set_throws": max(working_set_throws - game_throws, 0),
-            "other_throws": max(total_throws - working_set_throws, 0),
+            "other_throws": max(total_throws - working_set_throws - non_baseball_throws - plyo_throws, 0),
             "non_baseball_throws": non_baseball_throws,
+            "plyo_throws": plyo_throws,
+            "total_throws": total_throws,
         })
 
     return breakdown

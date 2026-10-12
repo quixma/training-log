@@ -118,7 +118,9 @@ window.PitchCharts = (function () {
     // chroma, CVD and normal-vision separation all pass at four slots.
     // Aqua and yellow fall under 3:1 contrast, so a chart using them
     // owes the reader visible labels or the numbers alongside.
-    var CATEGORICAL = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100'];
+    // The fifth slot (magenta) was added later and has not been through
+    // that validation.
+    var CATEGORICAL = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#c9409a'];
 
     function series(i) { return CATEGORICAL[i % CATEGORICAL.length]; }
 

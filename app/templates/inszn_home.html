@@ -18,12 +18,9 @@
 <div class="tab">
   <button class="tablinks active" onclick="openTab(event, 'Plan')">Throwing Plan</button>
   <button class="tablinks" onclick="openTab(event, 'Dashboard')">Throwing Dashboard</button>
-  <button class="tablinks" onclick="openTab(event, 'GameNotes')">Game Notes</button>
   <button class="tablinks" onclick="openTab(event, 'Notes')">Throwing Notes</button>
-  <div class="tab-right-group">
-    <button class="tablinks" onclick="window.location.href='{{ url_for('training_calendar') }}'">Training Calendar</button>
-    <button class="tablinks" onclick="window.location.href='{{ url_for('workout_dashboard') }}'">Workout Dashboard</button>
-  </div>
+  <button class="tablinks" onclick="openTab(event, 'GameNotes')">Game Notes</button>
+
 </div>
 
 <!-- ══ PLAN TAB ══════════════════════════════ -->
@@ -335,6 +332,11 @@
         <option value="body_weight">Bodyweight</option>
         <option value="total_throws">Total Throws</option>
         <option value="totalThrows7d">Total Throws by Week</option>
+        <option value="working_set_throws">Working Set Throws</option>
+        <option value="workingThrows7d">Working Set Throws by Week</option>
+        <option value="non_baseball_throws">Implement Throws</option>
+        <option value="plyo_throws">Plyo Throws</option>
+        <option value="game_throws">Game Throws</option>
         <option value="avg_velo">Avg Velo</option>
         <option value="max_velo">Max Velo</option>
 		  <option value="ip">Innings Pitched</option> 

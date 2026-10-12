@@ -470,9 +470,9 @@ async function getData() {
 function updateChart(data) {
     clearCharts()
     metricMap = metricSelect.value;
-    if (metricMap == "totalThrows7d") {
+    if (metricMap == "totalThrows7d" || metricMap == "workingThrows7d") {
         label_dataX = data.date;
-        label_dataY = data.totalThrows7d;
+        label_dataY = data[metricMap];
     }
     else if (metricMap == "body_weight") {
         label_dataX = data.date;
@@ -490,7 +490,7 @@ function updateChart(data) {
             labels: label_dataX,
             datasets: [
                 {
-                    label: metricMap,
+                    label: metricSelect.selectedOptions[0].text,
                     data: label_dataY,
                     borderWidth: 2,
                     borderColor: PitchCharts.series(0),
@@ -554,7 +554,7 @@ function initializeChart() {
     });
 }
 
-function throwsBreakdownOptions(isNarrow) {
+function throwsBreakdownOptions(isNarrow, breakdown) {
     return {
         responsive: true,
         aspectRatio: PitchCharts.plotAspect(isNarrow),
@@ -563,7 +563,16 @@ function throwsBreakdownOptions(isNarrow) {
             x: {
                 stacked: true,
                 //a fixed seven-day window, so every day keeps its label
-                ticks: PitchCharts.dateTicks(isNarrow, false)
+                ticks: {
+                    ...PitchCharts.dateTicks(isNarrow, false),
+                    //each date carries the day's total throws; on a phone the total drops to a
+                    //second line because seven "9/18 (55)" labels do not fit side by side
+                    callback: function (value, index) {
+                        const total = '(' + breakdown[index].total_throws + ')';
+                        const day = breakdown[index].date;
+                        return isNarrow ? [PitchCharts.shortDate(day), total] : day + ' ' + total;
+                    }
+                }
             },
             y: {
                 stacked: true,
@@ -617,13 +626,18 @@ function initializeThrowsBreakdownChart() {
                     ...PitchCharts.stackedBarSpec(2, '#ffffff')
                 },
                 {
-                    label: 'Non-Baseball Throws',
+                    label: 'Implement Throws',
                     data: breakdown.map(d => d.non_baseball_throws),
                     ...PitchCharts.stackedBarSpec(3, '#ffffff')
+                },
+                {
+                    label: 'Plyo Throws',
+                    data: breakdown.map(d => d.plyo_throws),
+                    ...PitchCharts.stackedBarSpec(4, '#ffffff')
                 }
             ]
         },
-        options: throwsBreakdownOptions(PitchCharts.isNarrow())
+        options: throwsBreakdownOptions(PitchCharts.isNarrow(), breakdown)
     });
 
     UpdateThrowsBreakdownStats(breakdown);
@@ -633,15 +647,15 @@ function UpdateThrowsBreakdownStats(breakdown) {
     const gameThrows7d = breakdown.reduce((sum, d) => sum + d.game_throws, 0);
     const workingSetThrows7d = breakdown.reduce((sum, d) => sum + d.working_set_throws, 0);
     const nonBaseballThrows7d = breakdown.reduce((sum, d) => sum + d.non_baseball_throws, 0);
-    //baseball-only total: non-baseball throws are tracked separately and never count toward total throws
-    const totalThrows7d = breakdown.reduce((sum, d) => sum + d.game_throws + d.working_set_throws + d.other_throws, 0);
+    //every segment of the bar is a subset of the day's total throws
+    const totalThrows7d = breakdown.reduce((sum, d) => sum + d.total_throws, 0);
 
     const statsEl = document.getElementById('throwsBreakdownStats');
     statsEl.innerHTML = `
         <div class="stat-item"><span class="stat-label">Total (7d)</span><span class="stat-value">${totalThrows7d}</span></div>
         <div class="stat-item"><span class="stat-label">Working Set (7d)</span><span class="stat-value">${workingSetThrows7d}</span></div>
         <div class="stat-item"><span class="stat-label">Game (7d)</span><span class="stat-value">${gameThrows7d}</span></div>
-        <div class="stat-item"><span class="stat-label">Non-Baseball (7d)</span><span class="stat-value">${nonBaseballThrows7d}</span></div>
+        <div class="stat-item"><span class="stat-label">Implement (7d)</span><span class="stat-value">${nonBaseballThrows7d}</span></div>
     `;
 }
 

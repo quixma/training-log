@@ -34,6 +34,7 @@ def submit_insznthrow():
             "body_weight": request.form.get("body_weight"),
             "total_throws": request.form.get("total_throws"),
             "non_baseball_throws": request.form.get('non-baseball-throws'),
+            "plyo_throws": request.form.get('plyo_throws'),
             "working_set_throws": request.form.get("working_set_throws"),
             "max_velo": request.form.get("max_velocity"),
             "acr": 0,
@@ -53,8 +54,8 @@ def submit_insznthrow():
         #insert data
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO throwing_sessions (date, throwing_block, session_type, body_weight, total_throws, non_baseball_throws, working_set_throws, max_velo, acr, rpe, arm_readiness, notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
-                       (form_data["date"], form_data["throwing_block"], form_data["session_type"], form_data["body_weight"], form_data["total_throws"], form_data["non_baseball_throws"], form_data["working_set_throws"], form_data["max_velo"], form_data["acr"], form_data["rpe"], form_data["arm_readiness"], form_data["notes"]))
+        cursor.execute("INSERT INTO throwing_sessions (date, throwing_block, session_type, body_weight, total_throws, non_baseball_throws, plyo_throws, working_set_throws, max_velo, acr, rpe, arm_readiness, notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                       (form_data["date"], form_data["throwing_block"], form_data["session_type"], form_data["body_weight"], form_data["total_throws"], form_data["non_baseball_throws"], form_data["plyo_throws"], form_data["working_set_throws"], form_data["max_velo"], form_data["acr"], form_data["rpe"], form_data["arm_readiness"], form_data["notes"]))
         
         session_id = cursor.lastrowid
         for x in range(len(drill_names)):

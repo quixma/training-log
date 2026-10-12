@@ -143,10 +143,20 @@ def outing_report_data():
 INSZN_CHART_METRICS = {
     "body_weight": "throwing_sessions",
     "total_throws": "throwing_sessions",
+    "working_set_throws": "throwing_sessions",
+    "non_baseball_throws": "throwing_sessions",
+    "plyo_throws": "throwing_sessions",
     "acr": "throwing_sessions",
     "avg_velo": "game_journal",
     "max_velo": "game_journal",
     "ip": "game_journal",
+    "game_throws": "game_journal",
+}
+
+#weekly metric -> the throwing_sessions column it sums. Same allowlist role as above.
+INSZN_CHART_WEEKLY_METRICS = {
+    "totalThrows7d": "total_throws",
+    "workingThrows7d": "working_set_throws",
 }
 
 @app.route('/api/inszn_chart_data', methods = ["POST"])
@@ -168,17 +178,18 @@ def inszn_chart_data():
         conn.close()
         return jsonify([])
 
-    if(metric == 'totalThrows7d'):
+    weekly_column = INSZN_CHART_WEEKLY_METRICS.get(metric)
+    if weekly_column is not None:
         weeks = int(days / 7)
-        #groups dates as a whole week, listing in dict as the week starting on monday date, calc sum of total throws for that week
-        total_throws = cursor.execute("select DATE(date, 'weekday 0', '-7 days') AS week_start, sum(total_throws) from throwing_sessions GROUP By week_start ORDER By week_start DESC LIMIT ?",(weeks,)).fetchall()
+        #groups dates as a whole week, listing in dict as the week starting on monday date, calc sum of the column for that week
+        total_throws = cursor.execute(f"select DATE(date, 'weekday 0', '-7 days') AS week_start, sum(\"{weekly_column}\") from throwing_sessions GROUP By week_start ORDER By week_start DESC LIMIT ?",(weeks,)).fetchall()
         conn.close()
         throws_dict = {
-            "totalThrows7d": [],
+            metric: [],
             "date": []
             }
         for row in total_throws:
-            throws_dict["totalThrows7d"].append(row[1])
+            throws_dict[metric].append(row[1])
             throws_dict["date"].append(row[0])
 
         return jsonify(throws_dict)

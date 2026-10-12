@@ -40,6 +40,7 @@ function addPreThrowDrillRow() {
       	<option value = "CVB">CVB</option>
       	<option value = "AB">AB</option>
 		<option value = "Club">Club</option>
+        <option value = "Plyo">Plyo</option>
       </select>
     `;
     container.appendChild(newRow);
