@@ -281,6 +281,15 @@ header h1 span {
   border-color: var(--border);
 }
 
+/* the row the remove button will act on */
+.ex-row.selected,
+.plyo-drill-row.selected,
+.throwing-drill-row.selected {
+  border-color: var(--accent);
+  /* a shadow ring thickens the border without resizing the row */
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
 /* ── Button Groups ──────────────────────────── */
 .btn-group {
   display: flex;
@@ -805,6 +814,8 @@ body input[type="submit"]:hover {
 
 .modal-row.drill-row { grid-template-columns: 2fr 1fr 1fr; }
 .modal-row:hover { border-color: var(--border); }
+/* the row the remove button will act on */
+.modal-row.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
 .modal-row .row-notes { grid-column: 1 / -1; }
 
 /* the row inputs sit in a grid, so they keep the modal's field styling but no stacking margin */

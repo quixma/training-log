@@ -230,6 +230,12 @@
   border-color: var(--border);
 }
 
+/* the row the remove button will act on; the shadow ring thickens the border without resizing the row */
+.drill-row.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
 .drill-row input {
   margin-bottom: 0 !important;
 }

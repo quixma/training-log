@@ -1,3 +1,31 @@
+//removes the row the user picked; with nothing picked it falls back to the last row
+function deleteSelectedRow(containerId, rowClass) {
+    const container = document.getElementById(containerId); //parent element of all the rows
+    const divElements = container.querySelectorAll(`.${rowClass}`); //divs in which the rows live
+    const rowAmount = divElements.length;
+    if (rowAmount === 0) return;
+
+    const picked = container.querySelector(`.${rowClass}.selected`);
+    (picked || divElements[rowAmount - 1]).remove();
+}
+
+//clicking or tabbing into a row picks it as the one the remove button acts on. one pick
+//per container. delegated from the document because rows are added after load
+function selectFormRow(event) {
+    const row = event.target.closest('.drill-row, .prethrow-row');
+    if (!row) {
+        return;
+    }
+    row.parentElement.querySelectorAll(':scope > .selected').forEach(other => {
+        if (other !== row) {
+            other.classList.remove('selected');
+        }
+    });
+    row.classList.add('selected');
+}
+document.addEventListener('click', selectFormRow);
+document.addEventListener('focusin', selectFormRow);
+
 function addDrillRow() {
     const container = document.getElementById('drills-container');
     const newRow = document.createElement('div');
@@ -18,14 +46,7 @@ function addDrillRow() {
 }
 
 function deleteDrillRow() {
-    const container = document.getElementById('drills-container'); //parent element of all the drill rows
-    const divElements = container.querySelectorAll(".drill-row"); //divs in which drill rows live
-    const rowAmount = divElements.length;
-    const indextoDelete = rowAmount - 1;
-
-    divElements[indextoDelete].remove();
-
-
+    deleteSelectedRow('drills-container', 'drill-row');
 }
 
 function addPreThrowDrillRow() {
@@ -48,12 +69,5 @@ function addPreThrowDrillRow() {
 }
 
 function deletePreThrowDrillRow() {
-    const container = document.getElementById('prethrow-container'); //parent element of all the drill rows
-    const divElements = container.querySelectorAll(".prethrow-row"); //divs in which drill rows live
-    const rowAmount = divElements.length;
-    const indextoDelete = rowAmount - 1;
-
-    divElements[indextoDelete].remove();
-
-
+    deleteSelectedRow('prethrow-container', 'prethrow-row');
 }

@@ -185,6 +185,13 @@
   border-color: var(--border);
 }
 
+/* the row the remove button will act on; the shadow ring thickens the border without resizing the row */
+.prethrow-row.selected,
+.drill-row.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
 /* inline label inside drill row */
 .drill-row label {
   font-size: 0.66rem;

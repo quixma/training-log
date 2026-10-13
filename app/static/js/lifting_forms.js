@@ -20,15 +20,38 @@ function addExRow(containerId, rowClass = 'ex-row') {
     clearRow(newRow);
 }
 
-function deleteExRow(containerId, rowClass = 'ex-row') {
+//removes the row the user picked; with nothing picked it falls back to the last row
+function deleteFormRow(containerId, rowClass) {
     const container = document.getElementById(containerId);
     const divElements = container.querySelectorAll(`.${rowClass}`);
     const rowAmount = divElements.length;
     if (rowAmount === 0) return;
-    const indextoDelete = rowAmount - 1;
 
-    divElements[indextoDelete].remove();
+    const picked = container.querySelector(`.${rowClass}.selected`);
+    (picked || divElements[rowAmount - 1]).remove();
 }
+
+function deleteExRow(containerId, rowClass = 'ex-row') {
+    deleteFormRow(containerId, rowClass);
+}
+
+//clicking or tabbing into a row of the new workout / throwing day forms picks it as the
+//one the remove button acts on. one pick per container. delegated from the document
+//because rows are added after load
+function selectFormRow(event) {
+    const row = event.target.closest('.ex-container > div, .drill-container > div');
+    if (!row) {
+        return;
+    }
+    row.parentElement.querySelectorAll(':scope > .selected').forEach(other => {
+        if (other !== row) {
+            other.classList.remove('selected');
+        }
+    });
+    row.classList.add('selected');
+}
+document.addEventListener('click', selectFormRow);
+document.addEventListener('focusin', selectFormRow);
 
 //ball weights offered by the throwing day form's drill rows; mirrors THROWING_BALL_WEIGHTS in models.py
 const BALL_WEIGHTS = ['3', '3.5', '4', '5', '6', '7', '9', '11', '16', '21', '32', '48', '64', 'jav', 'football', 'club', 'volleyball', 'tennis'];
@@ -55,12 +78,7 @@ function addDrillRow(containerId, rowClass, prefix) {
 }
 
 function deleteDrillRow(containerId, rowClass) {
-    const container = document.getElementById(containerId);
-    const divElements = container.querySelectorAll(`.${rowClass}`);
-    const rowAmount = divElements.length;
-    if (rowAmount === 0) return;
-
-    divElements[rowAmount - 1].remove();
+    deleteFormRow(containerId, rowClass);
 }
 
 // ── Warmup / Workout Panels ───────────────────────────────────────────────────

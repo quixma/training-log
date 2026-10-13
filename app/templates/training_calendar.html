@@ -151,6 +151,7 @@
       </div>
       <div class="modal-btn-group">
         <button type="button" id="addWeightRow">+ Add Exercise</button>
+        <button type="button" id="removeWeightRow">Remove Exercise</button>
       </div>
       <button id="saveWeightLog" class="btn-save">Save Log</button>
     </div>
@@ -169,12 +170,16 @@
   </div>
 </div>
 
-<!-- one exercise row in the weight log; the name is a label, only the two inputs are typed into -->
+<!-- one exercise row in the weight log; the name is a label, only the two inputs are typed into.
+     the checkbox is what saves the row: an unchecked exercise is not written to the log -->
 <template id="weight-row-template">
   <div class="modal-row weight-row">
-    <span class="row-ex-label">
-      <span class="row-ex-block-tag"></span>
-      <span class="row-ex-name-text"></span>
+    <span class="row-ex-head">
+      <input type="checkbox" class="row-completed" title="Mark as completed" aria-label="Mark as completed">
+      <span class="row-ex-label">
+        <span class="row-ex-block-tag"></span>
+        <span class="row-ex-name-text"></span>
+      </span>
     </span>
     <input type="text" class="row-sets-reps-done" placeholder="Sets/Reps">
     <input type="number" step="any" class="row-weight-value" placeholder="Weight">

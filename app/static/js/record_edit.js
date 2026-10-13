@@ -79,12 +79,32 @@ function addModalRow(containerId, templateId, values) {
     return row;
 }
 
+//removes the row the user picked; with nothing picked it falls back to the last row
 function removeModalRow(containerId) {
     const container = document.getElementById(containerId);
-    if (container.lastElementChild) {
-        container.removeChild(container.lastElementChild);
+    const row = container.querySelector('.modal-row.selected') || container.lastElementChild;
+    if (row) {
+        container.removeChild(row);
     }
 }
+
+//clicking or tabbing into a row picks it as the one the remove button acts on. one pick
+//per container, so the plyo and throwing sets each keep their own. delegated from the
+//document because rows are cloned in after load
+function selectModalRow(event) {
+    const row = event.target.closest('.modal-rows > .modal-row');
+    if (!row) {
+        return;
+    }
+    row.parentElement.querySelectorAll('.modal-row.selected').forEach(other => {
+        if (other !== row) {
+            other.classList.remove('selected');
+        }
+    });
+    row.classList.add('selected');
+}
+document.addEventListener('click', selectModalRow);
+document.addEventListener('focusin', selectModalRow);
 
 function fillModalRows(containerId, templateId, items, fieldMap) {
     document.getElementById(containerId).innerHTML = "";

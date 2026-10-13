@@ -770,6 +770,8 @@ function buildWeightRow(ex) {
     row.dataset.exBlock = ex.ex_block || "";
     row.dataset.exName = ex.ex_name || "";
     row.dataset.setsRepsRx = ex.sets_reps_rx || "";
+    // a row that came back from the log was completed; everything else starts unchecked
+    row.querySelector(".row-completed").checked = !!ex.completed;
 
     const fields = [
         [".row-sets-reps-done", setsRepsDone, placeholder.sets_reps_done, "Sets/Reps"],
@@ -802,11 +804,32 @@ function addWeightRow() {
     clearRow(row);
 }
 
+// removes the row the user picked; with nothing picked it falls back to the last row
+function removeWeightRow() {
+    const row = weightRows.querySelector(".weight-row.selected") || weightRows.lastElementChild;
+    if (row) {
+        weightRows.removeChild(row);
+    }
+}
+
+// clicking or tabbing into a row picks it as the one the remove button acts on.
+// delegated from the container because rows are built after load
+function selectWeightRow(event) {
+    const row = event.target.closest(".weight-row");
+    if (!row) return;
+    weightRows.querySelectorAll(".weight-row.selected").forEach(function (other) {
+        if (other !== row) other.classList.remove("selected");
+    });
+    row.classList.add("selected");
+}
+
 function collectWeightRows() {
     const rows = [];
     weightRows.querySelectorAll(".weight-row").forEach(function (row) {
         const typed = row.querySelector(".row-ex-name-input");
         rows.push({
+            // the server only stores the rows marked completed
+            completed: row.querySelector(".row-completed").checked,
             ex_block: row.dataset.exBlock || null,
             ex_name: typed ? typed.value : (row.dataset.exName || null),
             sets_reps_rx: row.dataset.setsRepsRx || null,
@@ -843,13 +866,31 @@ async function submitWeightLog() {
 }
 
 async function openViewModal(workout) {
-    const data = await postJSON("/api/getSelectedWorkout",
-        { type: workout.type, value: workout.name },
-        "Could not load this session.");
-    if (!data) return;
+    // the calendar holds a session by name only, so one that was since deleted or renamed
+    // on the workout input page still sits on its days. that is a 404 here and an expected
+    // state, not a failure - it gets said in the modal rather than through postJSON's alert
+    const response = await fetch("/api/getSelectedWorkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: workout.type, value: workout.name })
+    });
+    if (!response.ok && response.status !== 404) {
+        console.log("Could not load this session.:", await response.text());
+        alert("Could not load this session. See console.");
+        return;
+    }
 
     viewTitle.textContent = workout.name || workout.type;
-    viewBody.innerHTML = workout.type === "Warmup" ? warmupMarkup(data) : throwingDayMarkup(data);
+    if (response.status === 404) {
+        const missing = document.createElement("p");
+        missing.className = "empty-state";
+        missing.textContent = "This " + (workout.type === "Warmup" ? "warmup" : "throwing day") +
+            " is no longer saved. It was deleted or renamed after it was added to this day.";
+        viewBody.replaceChildren(missing);
+    } else {
+        const data = await response.json();
+        viewBody.innerHTML = workout.type === "Warmup" ? warmupMarkup(data) : throwingDayMarkup(data);
+    }
     openModal("viewSession-modal");
 }
 
@@ -900,4 +941,7 @@ function throwingDayMarkup(day) {
 }
 
 document.getElementById("addWeightRow").addEventListener("click", addWeightRow);
+document.getElementById("removeWeightRow").addEventListener("click", removeWeightRow);
+weightRows.addEventListener("click", selectWeightRow);
+weightRows.addEventListener("focusin", selectWeightRow);
 document.getElementById("saveWeightLog").addEventListener("click", submitWeightLog);

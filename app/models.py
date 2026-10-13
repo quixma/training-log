@@ -829,6 +829,14 @@ def get_throwing_workouts_by_name():
     return names
 
 #--------TRAINING CALENDAR----------
+#the order a day's workouts are displayed in, whatever order they were added in.
+#built from a fixed tuple, never user input, so it is safe to place in the query text.
+#a type missing from the list sorts last; ties keep the order they were added in
+CALENDAR_DISPLAY_ORDER = ('Warmup', 'Throwing', 'Armcare', 'Lift', 'Conditioning', 'Back/Core', 'Individual Workout', 'Mobility')
+CALENDAR_ORDER_BY = ("CASE w.workout_type "
+                     + " ".join(f"WHEN '{t}' THEN {i}" for i, t in enumerate(CALENDAR_DISPLAY_ORDER))
+                     + f" ELSE {len(CALENDAR_DISPLAY_ORDER)} END, w.ID")
+
 def getCalendarWorkouts():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -840,7 +848,7 @@ def getCalendarWorkouts():
                              FROM training_calendar_daily_wkouts w
                              JOIN training_calendar c ON c.ID = w.session_id
                              LEFT JOIN workout_weight_log l ON l.daily_workout_id = w.ID
-                             ORDER BY w.ID""").fetchall()
+                             ORDER BY c.workout_date, """ + CALENDAR_ORDER_BY).fetchall()
     workouts = [dict(row) for row in rows]
     return workouts
 

@@ -973,6 +973,8 @@ header h1 span { color: var(--accent); }
 
 .modal-row.drill-row { grid-template-columns: 2fr 1fr 1fr; }
 .modal-row:hover { border-color: var(--border); }
+/* the row the remove button will act on; the shadow ring thickens the border without resizing the row */
+.modal-row.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
 .modal-row .row-notes { grid-column: 1 / -1; }
 
 /* the row inputs sit in a grid, so they keep the modal's field styling but no stacking margin */
@@ -1148,6 +1150,44 @@ header h1 span { color: var(--accent); }
 .modal-row.weight-row { grid-template-columns: 1fr 110px 110px; }
 .modal-row.weight-row .row-ex-label,
 .modal-row.weight-row .row-ex-name-input { min-width: 0; }
+
+/* the completed checkbox sits to the left of the exercise name, in the same cell */
+.modal-row.weight-row .row-ex-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.modal-row.weight-row .row-ex-head .row-ex-name-input { flex: 1 1 auto; }
+.modal-row.weight-row .row-completed {
+  appearance: none;
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  padding: 0;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+.modal-row.weight-row .row-completed:hover { border-color: var(--text-secondary); }
+.modal-row.weight-row .row-completed:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+/* the tick is drawn rather than a glyph so it scales with the box */
+.modal-row.weight-row .row-completed:checked::after {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 8px;
+  margin: 2px 0 0 5px;
+  border: solid var(--bg-card);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
 .modal-row.weight-row .row-ex-label {
   display: flex;
   align-items: baseline;
@@ -1312,7 +1352,7 @@ header h1 span { color: var(--accent); }
 
   /* weight log: name on its own line, then sets/reps + weight, then note */
   .modal-row.weight-row { grid-template-columns: 1fr 1fr; }
-  .modal-row.weight-row .row-ex-label { grid-column: 1 / -1; }
+  .modal-row.weight-row .row-ex-head { grid-column: 1 / -1; }
 
   /* the editable exercise row stacks the same way */
   .modal-row,

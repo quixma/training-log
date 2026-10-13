@@ -1,6 +1,7 @@
 from app import app
 from app.input_validation import UpdateThrowingPlanModel, PlayerGoalsModel, UpdateWorkoutModel, UpdateWarmupModel, UpdateThrowingDayModel, WorkoutNotesModel, WeightLogModel
 from app.models import get_db_connection, get_warmup_by_name, get_workout_by_name, get_workout_names, WORKOUT_TYPES, get_weight_log, get_previous_weight_log
+from app.models import CALENDAR_ORDER_BY
 from app.models import get_throwing_day_by_name, get_bodyNotes, get_workoutLogNotes, get_throwing_workouts_by_name, get_warmup_names
 from app.models import get_workout_notes, get_player_goals
 from app.models import get_workout_for_edit, get_warmup_for_edit, get_throwing_day_for_edit
@@ -505,11 +506,17 @@ def getPlayerGoals():
 #a log belongs to one scheduled workout, so daily_workout_id is the key throughout
 
 def _clean_weight_rows(exercises):
-    #an untouched placeholder row carries nothing, so it must not become a stored row.
+    #the modal's completed checkbox is the mark for saving: a row sent with completed false
+    #is never stored, and one sent with completed true is stored even with no numbers typed.
+    #a row sent without the flag at all falls back to the older rule, where an untouched
+    #placeholder row carries nothing and so must not become a stored row.
     cleaned = []
     for ex in exercises or []:
         row = {key: (None if value == "" else value) for key, value in ex.items()}
-        if row.get("sets_reps_done") is None and row.get("weight_value") is None and row.get("weight_note") is None:
+        if "completed" in row:
+            if row.pop("completed") is not True:
+                continue
+        elif row.get("sets_reps_done") is None and row.get("weight_value") is None and row.get("weight_note") is None:
             continue
         cleaned.append(row)
     return cleaned
@@ -544,7 +551,7 @@ def saveWeightLog():
     #an all-blank save must not create a record. checked after validation so a payload that
     #is both blank and malformed reports the real error rather than this one
     if not validated.exercises:
-        return jsonify({"error": "at least one exercise must be filled in"}), 400
+        return jsonify({"error": "at least one exercise must be marked completed"}), 400
 
     #a stale id (the calendar row was edited or deleted while the modal was open) would
     #otherwise hit the FK constraint inside save_weight_log and surface as a 500
@@ -568,7 +575,7 @@ def _blank_row(ex_block=None, ex_name=None, sets_reps_rx=None, ex_notes_rx=None)
     return {"ex_block": ex_block, "ex_name": ex_name, "sets_reps_rx": sets_reps_rx,
             "ex_notes_rx": ex_notes_rx,
             "sets_reps_done": None, "weight_value": None, "weight_note": None,
-            "placeholder": None}
+            "placeholder": None, "completed": False}
 
 @app.route("/api/getWeightLog", methods = ["POST"])
 def getWeightLog():
@@ -591,6 +598,8 @@ def getWeightLog():
         for ex in logged["exercises"]:
             row = dict(ex)
             row["placeholder"] = None
+            #being in the log is what completed means, so a stored row reopens checked
+            row["completed"] = True
             #filled in below for the rows the definition still accounts for
             row["ex_notes_rx"] = None
             stored.append(row)
@@ -867,7 +876,7 @@ def calendar_day(cursor, session_id):
                              JOIN training_calendar c ON c.ID = w.session_id
                              LEFT JOIN workout_weight_log l ON l.daily_workout_id = w.ID
                              WHERE w.session_id = ?
-                             ORDER BY w.ID""", (session_id,)).fetchall()
+                             ORDER BY """ + CALENDAR_ORDER_BY, (session_id,)).fetchall()
     return [dict(row) for row in rows]
 
 @app.route("/api/getWorkoutNamesByType", methods = ["POST"])
