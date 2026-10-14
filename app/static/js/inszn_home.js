@@ -132,14 +132,6 @@ function UpdatePlayerGoalsTable(data) {
     row.dataset.execution = data["execution"];
 }
 
-window.addEventListener('click', function (event) {
-    if (event.target == modalGoals) {
-        modalGoals.style.display = "none";
-    }
-    if (event.target == modalTP) {
-        modalTP.style.display = "none";
-    }
-});
 editGoals_Btn.onclick = function () { //log new player plan goals
     openModal('editGoals-modal');
 

@@ -247,13 +247,14 @@ td button,
 }
 
 td button:hover,
-.btn-action.hidden { display: none; } /* nothing on screen to edit */
-
 .btn-action:hover {
   border-color: var(--accent);
   color: var(--accent);
   background: var(--accent-dim);
 }
+
+/* nothing on screen to edit */
+.btn-action.hidden { display: none; }
 
 /* ── Modal Overlay ──────────────────────────── */
 .modal {
