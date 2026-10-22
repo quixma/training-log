@@ -16,6 +16,7 @@
 
 <!-- Tab Nav -->
 <div class="tab">
+  <button class="tablinks" onclick="openTab(event, 'PlayerGoals')">Player Plan Goals</button>
   <button class="tablinks active" onclick="openTab(event, 'Plan')">Throwing Plan</button>
   <button class="tablinks" onclick="openTab(event, 'Dashboard')">Throwing Dashboard</button>
   <button class="tablinks" onclick="openTab(event, 'Notes')">Throwing Notes</button>
@@ -23,8 +24,8 @@
 
 </div>
 
-<!-- ══ PLAN TAB ══════════════════════════════ -->
-<div id="Plan" class="tabcontent active">
+<!-- ══ PLAYER PLAN GOALS TAB ═════════════════ -->
+<div id="PlayerGoals" class="tabcontent">
 
   <!-- Player Plan Goals -->
   <div class="section-card">
@@ -68,6 +69,11 @@
     </div>
   </div>
 
+</div><!-- end #PlayerGoals -->
+
+<!-- ══ PLAN TAB ══════════════════════════════ -->
+<div id="Plan" class="tabcontent active">
+
   <!-- Throwing Plan -->
   <div class="section-card">
     <div class="section-card-header">
@@ -102,6 +108,31 @@
             <td><button id="editTP">Edit Plan</button></td>
           </tr>
           {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Last Throwing Note -->
+  <div class="section-card">
+    <div class="section-card-header">
+      <h3>Last Throwing Note</h3>
+      {% if last_throwing_note %}
+      <span class="section-card-date">{{ last_throwing_note["date"] }}</span>
+      {% endif %}
+    </div>
+    <div class="table-scroll">
+      <table>
+        <tbody id="last_throwing_note_body">
+          {% if last_throwing_note %}
+          <tr>
+            <td data-label="Notes">{{ last_throwing_note["notes_html"] | safe }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td data-label="Notes">No throwing notes logged yet.</td>
+          </tr>
+          {% endif %}
         </tbody>
       </table>
     </div>

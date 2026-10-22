@@ -13,9 +13,9 @@ def get_db_connection():
 def get_throwing_notes():
     conn = get_db_connection()
     cursor = conn.cursor()
-    #anchor on the most recent logged session rather than today, matching the rest of the dashboard,
-    #so the panel still shows the last 7 days of throwing after a break in logging
-    cursor.execute("Select notes, date, id from throwing_sessions Where date >= date((select max(date) from throwing_sessions), '-6 days') ORDER BY  date DESC")
+    #the notes panel opens on the three most recent logged sessions rather than a date
+    #window, so it still fills with notes after a break in logging
+    cursor.execute("Select notes, date, id from throwing_sessions Order by date DESC, id DESC LIMIT 3")
     notes = cursor.fetchall()
     conn.close()
     
@@ -29,6 +29,25 @@ def get_throwing_notes():
             "id": row["id"],
     })
     return updated_notes
+
+def get_last_throwing_note():
+    #the single most recent throwing session's note, shown beneath the throwing plan
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("Select notes, date, id from throwing_sessions Order by date DESC, id DESC LIMIT 1")
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row:
+        return None
+
+    notes = row["notes"] or ""
+    return {
+        "date": row["date"],
+        "notes": notes,
+        "notes_html": notes.replace(".", ".<br>"),
+        "id": row["id"],
+    }
 
 def get_throwing_plan():
     conn = get_db_connection()

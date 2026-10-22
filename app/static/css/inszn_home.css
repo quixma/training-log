@@ -123,6 +123,22 @@ header h1 span {
   color: var(--text-secondary);
 }
 
+/* the date that labels a single-record card (e.g. Last Throwing Note) */
+.section-card-date {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* the last-note card is one full-width cell, so it must wrap rather than
+   inherit the nowrap that a table's first column normally gets */
+#last_throwing_note_body td {
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
 /* ── Tables ─────────────────────────────────── */
 .table-scroll {
   overflow-x: auto;

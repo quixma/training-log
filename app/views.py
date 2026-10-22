@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from app import app
-from app.models import inszn_dash_data, get_inszn_throwing_plan_dates, get_game_notes, get_throwing_notes, get_throwing_plan, get_throwing_plan_prethrow, get_last7d_throw_breakdown
+from app.models import inszn_dash_data, get_inszn_throwing_plan_dates, get_game_notes, get_throwing_notes, get_last_throwing_note, get_throwing_plan, get_throwing_plan_prethrow, get_last7d_throw_breakdown
 from app.models import get_totalthrows4wk, get_totalworkingthrows4wk, get_throwing_notes_dates, get_bullpen_report_files, get_outing_report_files, get_throwing_day_types
 from app.models import get_RatingsAvgs, get_bodyNotes_dates, get_bodyNotes, get_workoutLogNotes, get_workoutLogNotes_dates, get_warmup_names
 from app.models import WORKOUT_TYPES, THROWING_SESSION_TYPES, THROWING_BALL_WEIGHTS
@@ -21,6 +21,7 @@ def bullpen_report():
 @app.route('/inszn-home', methods = ["GET", "POST"])
 def inszn_home():
     throwing_notes = get_throwing_notes()  
+    last_throwing_note = get_last_throwing_note()
     throwing_plan, drills = get_throwing_plan()
     tp_prethrow = get_throwing_plan_prethrow()
     plan_dates = get_inszn_throwing_plan_dates()
@@ -41,7 +42,8 @@ def inszn_home():
                            tableID = tableID, plan_dates = plan_dates, notes_dates = notes_dates, throwing_days = throwing_days,
                            peak_velo = peak_velo, avg_readiness = avg_readiness, acr = acr, throws_breakdown = throws_breakdown,
                            prev_throw_day = prev_throw_day, days_last_game = days_last_game, throws4wk = throws4wk, workingthrows4wk = workingthrows4wk, avg_velos = avg_velos,
-                           game_notes = game_notes, game_dates = game_dates, player_goals = player_goals, player_goals_dates = player_goals_dates)
+                           game_notes = game_notes, game_dates = game_dates, player_goals = player_goals, player_goals_dates = player_goals_dates,
+                           last_throwing_note = last_throwing_note)
 
 @app.route('/inszn_throwing_form', methods=["GET", "POST"])
 def inszn_throwing_form():
