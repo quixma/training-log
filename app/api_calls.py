@@ -291,14 +291,16 @@ def getThrowingNotes():
     
     conn = get_db_connection()
     cursor = conn.cursor()
-    results = cursor.execute('Select date, notes from throwing_sessions Where date <= ? Order by date desc LIMIT ?', (date,time,)).fetchall()
+    results = cursor.execute('Select id, date, notes from throwing_sessions Where date <= ? Order by date desc LIMIT ?', (date,time,)).fetchall()
     conn.close()
     
     updated_notes = [] #adds linebreak after every .
     for row in results:
         notes = row["notes"] or ""
         updated_notes.append({
+            "id": row["id"],
             "date": row["date"],
+            "notes": notes,
             "notes_html": notes.replace(".", ".<br>"),
     })
     return jsonify([dict(row) for row in updated_notes])
@@ -311,14 +313,16 @@ def getThrowingNotesByDay():
     
     conn = get_db_connection()
     cursor = conn.cursor()
-    results = cursor.execute('Select date, notes from throwing_sessions Where session_type = ? Order by date desc LIMIT ?', (throwing_day,time,)).fetchall()
+    results = cursor.execute('Select id, date, notes from throwing_sessions Where session_type = ? Order by date desc LIMIT ?', (throwing_day,time,)).fetchall()
     conn.close()
     
     updated_notes = [] #adds linebreak after every .
     for row in results:
         notes = row["notes"] or ""
         updated_notes.append({
+            "id": row["id"],
             "date": row["date"],
+            "notes": notes,
             "notes_html": notes.replace(".", ".<br>"),
     })
     return jsonify([dict(row) for row in updated_notes])

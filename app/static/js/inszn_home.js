@@ -29,6 +29,10 @@ const rowTP = editTP_Btn.closest("tr");
 var modalTP = document.getElementById('editTP-modal')
 var saveTP_Btn = document.getElementById('saveTP')
 
+//edit throwing notes button/modal
+var modalNotes = document.getElementById('editNotes-modal')
+var saveNotes_Btn = document.getElementById('saveNotes')
+
 //player goals button/modal
 var modalGoals = document.getElementById('editGoals-modal')
 var editGoals_Btn = document.getElementById('editGoals')
@@ -378,15 +382,65 @@ async function GetThrowingNotes() {
 }
 function UpdateThrowingNotesTable(data) {
     const notesTable = document.getElementById('throwing_notes_body');
-    const table_rows = notesTable.rows.length;
 
     notesTable.innerHTML = "";
     data.forEach(data => {
         const row = notesTable.insertRow();
-        addCell(row, "Date").innerHTML = data.date;
-        addCell(row, "NOtes").innerHTML = data.notes_html;
+        row.id = data.id;
+        row.dataset.notes = data.notes || "";
+        addCell(row, "Date").innerText = data.date;
+        addCell(row, "Notes").innerHTML = data.notes_html;
+        //rebuilt rows need the edit button too, or filtering silently removes the way to edit
+        row.insertCell().innerHTML = '<button class="editNotes">Edit Notes</button>';
     })
 
+}
+
+//the notes table is rebuilt whenever it is filtered, so listen on the body instead of
+//binding a handler to each button as it is rendered
+document.getElementById('throwing_notes_body').addEventListener('click', function (e) {
+    const btn = e.target.closest('.editNotes');
+    if (!btn) return;
+
+    const rowNotes = btn.closest('tr');
+    modalNotes.dataset.sessionID = rowNotes.id;
+    document.getElementById('edit-notes-date').value = rowNotes.children[0].innerText.trim();
+    //the visible cell is the <br>-formatted version; edit the raw text when the row carries it
+    document.getElementById('edit-notes-text').value = rowNotes.dataset.notes !== undefined
+        ? rowNotes.dataset.notes
+        : rowNotes.children[1].innerText;
+
+    openModal('editNotes-modal');
+});
+
+saveNotes_Btn.onclick = function () {
+    const updatedNotes = {
+        notesID: Number(modalNotes.dataset.sessionID),
+        date: document.getElementById("edit-notes-date").value,
+        throwing_notes: document.getElementById("edit-notes-text").value
+    }
+
+    fetch('/api/updateNotes',
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', },
+            body: JSON.stringify(updatedNotes)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Update success:', data);
+            modalNotes.classList.remove('active');
+            window.location.reload();
+        })
+        .catch(error => {
+            console.error('Update failed:', error);
+            alert('Update failed. See console.');
+        });
 }
 async function GetThrowingNotesByDay() {
     const notes_data = {

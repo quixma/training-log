@@ -462,7 +462,7 @@
         </thead>
         <tbody id="throwing_notes_body">
           {% for data in throwing_notes %}
-          <tr id="{{ data['id'] }}">
+          <tr id="{{ data['id'] }}" data-notes="{{ data['notes'] }}">
             <td data-label="Date">{{ data["date"] }}</td>
             <td data-label="Notes">{{ data["notes_html"] | safe }}</td>
             <td><button class="editNotes">Edit Notes</button></td>
@@ -539,6 +539,27 @@
         <textarea id="goals-execution" name="execution" rows="3"></textarea>
       </div>
       <button id="saveGoals">Save Goals</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Edit Throwing Notes Modal ─────────────── -->
+<div id="editNotes-modal" class="modal">
+  <div class="modal-inner">
+    <div class="modal-header">
+      <h2>Edit Throwing Notes</h2>
+      <button class="modal-close" data-modal="editNotes-modal">&#x2715;</button>
+    </div>
+    <div class="modal-content">
+      <div class="field-group">
+        <label for="edit-notes-date">Date</label>
+        <input type="date" id="edit-notes-date" name="date">
+      </div>
+      <div class="field-group">
+        <label for="edit-notes-text">Throwing Notes</label>
+        <textarea id="edit-notes-text" name="throwing_notes" rows="10"></textarea>
+      </div>
+      <button id="saveNotes">Save Changes</button>
     </div>
   </div>
 </div>

@@ -24,6 +24,7 @@ def get_throwing_notes():
         notes = row["notes"] or ""
         updated_notes.append({
             "date": row["date"],
+            "notes": notes,  #raw text, so the edit modal round-trips without adding newlines
             "notes_html": notes.replace(".", ".<br>"),
             "id": row["id"],
     })
