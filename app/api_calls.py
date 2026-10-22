@@ -148,10 +148,17 @@ INSZN_CHART_METRICS = {
     "non_baseball_throws": "throwing_sessions",
     "plyo_throws": "throwing_sessions",
     "acr": "throwing_sessions",
+    "peak_velo_catch": "throwing_sessions",
     "avg_velo": "game_journal",
     "max_velo": "game_journal",
     "ip": "game_journal",
     "game_throws": "game_journal",
+}
+
+#metric keys that chart a column of a different name; the SELECT aliases the column back
+#to the metric key so the chart JS can keep reading rows as data[metric]
+INSZN_CHART_COLUMNS = {
+    "peak_velo_catch": "max_velo",
 }
 
 #weekly metric -> the throwing_sessions column it sums. Same allowlist role as above.
@@ -221,9 +228,10 @@ def inszn_chart_data():
 
     #metric/table come from the allowlist above; date and the day offset are bound.
     #an N-day window ending on the anchor date spans anchor-(N-1)
+    column = INSZN_CHART_COLUMNS.get(metric, metric)
     results = cursor.execute(
-    f'SELECT "{metric}", date FROM "{table}" '
-    f'WHERE date >= date(?, ?) AND "{metric}" IS NOT NULL '
+    f'SELECT "{column}" AS "{metric}", date FROM "{table}" '
+    f'WHERE date >= date(?, ?) AND "{column}" IS NOT NULL '
     f'ORDER BY date DESC',
     (date[0], f"-{days} days"),).fetchall()
     conn.close()
