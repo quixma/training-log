@@ -833,7 +833,7 @@ def get_throwing_workouts_by_name():
 #the order a day's workouts are displayed in, whatever order they were added in.
 #built from a fixed tuple, never user input, so it is safe to place in the query text.
 #a type missing from the list sorts last; ties keep the order they were added in
-CALENDAR_DISPLAY_ORDER = ('Warmup', 'Throwing', 'Armcare', 'Lift', 'Conditioning', 'Back/Core', 'Individual Workout', 'Mobility')
+CALENDAR_DISPLAY_ORDER = ('Warmup', 'Throwing', 'Armcare', 'Conditioning', 'Lift', 'Back/Core', 'Individual Workout', 'Mobility')
 CALENDAR_ORDER_BY = ("CASE w.workout_type "
                      + " ".join(f"WHEN '{t}' THEN {i}" for i, t in enumerate(CALENDAR_DISPLAY_ORDER))
                      + f" ELSE {len(CALENDAR_DISPLAY_ORDER)} END, w.ID")
