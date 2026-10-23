@@ -91,7 +91,12 @@ function openTab(evt, tabName) {
 }
 
 function openModal(id) {
-    document.getElementById(id).classList.add('active');
+    const modal = document.getElementById(id);
+    modal.classList.add('active');
+    //a modal remembers where it was scrolled last time and restores that offset when it is
+    //shown again, which can leave the header out of view; always start at the header
+    const inner = modal.querySelector('.modal-inner');
+    if (inner) inner.scrollTop = 0;
 }
 
 //-------------PLAYER GOALS  FUNCTIONS-------------
