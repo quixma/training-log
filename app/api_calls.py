@@ -563,7 +563,7 @@ def saveWeightLog():
     #an all-blank save must not create a record. checked after validation so a payload that
     #is both blank and malformed reports the real error rather than this one
     if not validated.exercises:
-        return jsonify({"error": "at least one exercise must be marked completed"}), 400
+        return jsonify({"error": "complete one exercise before submission"}), 400
 
     #a stale id (the calendar row was edited or deleted while the modal was open) would
     #otherwise hit the FK constraint inside save_weight_log and surface as a 500

@@ -107,7 +107,7 @@ function typeSlug(type) {
 
 // every route this page talks to is POST + JSON. returns the parsed body, or null
 // after reporting the failure, so callers branch once instead of unpacking a response.
-async function postJSON(url, body, failureMessage) {
+async function postJSON(url, body, failureMessage, showServerError) {
     const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -115,8 +115,15 @@ async function postJSON(url, body, failureMessage) {
     });
 
     if (!response.ok) {
-        console.log(failureMessage + ":", await response.text());
-        alert(failureMessage + ". See console.");
+        const text = await response.text();
+        console.log(failureMessage + ":", text);
+        // some callers have a meaningful, user-facing reason (e.g. "complete one exercise
+        // before submission"); show it instead of the generic failure line
+        let detail = "";
+        if (showServerError) {
+            try { detail = JSON.parse(text).error || ""; } catch (e) { detail = ""; }
+        }
+        alert(detail || (failureMessage + ". See console."));
         return null;
     }
     return response.json();
@@ -850,7 +857,7 @@ async function submitWeightLog() {
         workout_name: loggingFor.name,
         workout_type: loggingFor.type,
         exercises: collectWeightRows()
-    }, "Could not save this log.");
+    }, "Could not save this log.", true);
     if (!saved) return;
 
     // a logged workout must never still read as outstanding in the card it was logged from
