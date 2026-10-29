@@ -665,32 +665,32 @@ function initializeThrowsBreakdownChart() {
                 {
                     label: 'Regular Throws',
                     data: breakdown.map(d => d.other_throws),
-                    ...PitchCharts.stackedBarSpec(0, '#ffffff')
+                    ...PitchCharts.stackedBarSpec(2, '#ffffff')
                 },
                 {
                     label: 'Game Throws',
                     data: breakdown.map(d => d.game_throws),
-                    ...PitchCharts.stackedBarSpec(1, '#ffffff')
+                    ...PitchCharts.stackedBarSpec(0, '#ffffff')
                 },
                 {
                     label: 'Bullpen / High Intent',
                     data: breakdown.map(d => d.high_intent_throws),
-                    ...PitchCharts.stackedBarSpec(2, '#ffffff')
+                    ...PitchCharts.stackedBarSpec(5, '#ffffff')
                 },
                 {
                     label: 'Working Set Throws',
                     data: breakdown.map(d => d.working_set_throws),
-                    ...PitchCharts.stackedBarSpec(3, '#ffffff')
+                    ...PitchCharts.stackedBarSpec(1, '#ffffff')
                 },
                 {
                     label: 'Implement Throws',
                     data: breakdown.map(d => d.non_baseball_throws),
-                    ...PitchCharts.stackedBarSpec(4, '#ffffff')
+                    ...PitchCharts.stackedBarSpec(3, '#ffffff')
                 },
                 {
                     label: 'Plyo Throws',
                     data: breakdown.map(d => d.plyo_throws),
-                    ...PitchCharts.stackedBarSpec(5, '#ffffff')
+                    ...PitchCharts.stackedBarSpec(4, '#ffffff')
                 }
             ]
         },
