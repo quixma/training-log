@@ -3,25 +3,26 @@ from pydantic import BaseModel, Field
 from datetime import date
 
 class ThrowingLogDrillEntry(BaseModel):
-    drill_name: Optional[str]
-    ball_weight: Optional[str]
-    drill_velo: Optional[Annotated[float, Field(gt= 0)]]
-    throw_count: Optional[Annotated[int, Field(gt= 0)]]
+    throw_type: Optional[Literal["implement", "plyo", "regular", "working_set", "bullpen_high_intent"]] = None
+    ball_weight: Optional[str] = None
+    throw_count: Optional[Annotated[int, Field(gt= 0)]] = None
 
 class ThrowingLogModel(BaseModel):
     date: date
     throwing_block: Literal["deload", "on_ramp", "velo_phase", "pre_season", "in_season", "return_to_throw"]
     session_type: Literal["recovery", "recovery+", "game_prep", "hybrid_a", "hybrid_b_pitching", "hybrid_b_delivery", "extension_day", "mound_blend", "plyo_velo", "pitch_design", "command_training", "bullpen", "live_abs"]
-    body_weight: Optional[Annotated[float, Field(gt= 0)]]
-    total_throws: Optional[Annotated[int, Field(ge = 0)]]
-    non_baseball_throws: Optional[Annotated[int, Field(ge = 0)]]
-    plyo_throws: Optional[Annotated[int, Field(ge = 0)]]
-    working_set_throws: Optional[Annotated[int, Field(ge = 0)]]
-    max_velo: Optional[Annotated[float, Field(gt= 0)]]
-    acr: Optional[float]
-    rpe: Optional[Annotated[float, Field(ge= 1, le=10)]]
-    arm_readiness: Optional[Annotated[float, Field(ge= 1, le=10)]]
-    notes: Optional[str]
+    body_weight: Optional[Annotated[float, Field(gt= 0)]] = None
+    total_throws: Optional[Annotated[int, Field(ge = 0)]] = None
+    non_baseball_throws: Optional[Annotated[int, Field(ge = 0)]] = None
+    plyo_throws: Optional[Annotated[int, Field(ge = 0)]] = None
+    working_set_throws: Optional[Annotated[int, Field(ge = 0)]] = None
+    high_intent_throws: Optional[Annotated[int, Field(ge = 0)]] = None
+    adjusted_throws: Optional[Annotated[float, Field(ge = 0)]] = None
+    max_velo: Optional[Annotated[float, Field(gt= 0)]] = None
+    acr: Optional[float] = None
+    rpe: Optional[Annotated[float, Field(ge= 1, le=10)]] = None
+    arm_readiness: Optional[Annotated[float, Field(ge= 1, le=10)]] = None
+    notes: Optional[str] = None
     drills: list[ThrowingLogDrillEntry]
 
 class ThrowingPlanPrethrowDrillEntry(BaseModel):

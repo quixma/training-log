@@ -120,7 +120,7 @@ window.PitchCharts = (function () {
     // owes the reader visible labels or the numbers alongside.
     // The fifth slot (magenta) was added later and has not been through
     // that validation.
-    var CATEGORICAL = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#c9409a'];
+    var CATEGORICAL = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#c9409a', '#6d4aff'];
 
     function series(i) { return CATEGORICAL[i % CATEGORICAL.length]; }
 

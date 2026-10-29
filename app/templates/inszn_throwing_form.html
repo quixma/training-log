@@ -7,6 +7,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/inszn_throwing_form.css') }}">
 {% endblock %}
 {% block content %}
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
 <form id="inszn-throwing-form" method="POST" action="/submit_insznthrow">
   <h2>Throwing Journal</h2>
 
@@ -40,21 +49,8 @@
 
   <div class="row-3col">
     <div class="field-group">
-      <label for="non-baseball-throws">Implement Throws</label>
-      <input type="number" id="non-baseball-throws" name="non-baseball-throws" placeholder="0">
-    </div>
-    <div class="field-group">
-      <label for="plyo-throws">Plyo Throws</label>
-      <input type="number" id="plyo-throws" name="plyo_throws" placeholder="0">
-    </div>
-    <div class="field-group">
-      <label for="working-set-throws">Working Set Throws</label>
-      <input type="number" id="working-set-throws" name="working_set_throws" placeholder="0">
-    </div>
-
-    <div class="field-group">
       <label for="total-throws">Total Throws</label>
-      <input type="number" id="total-throws" name="total_throws" placeholder="0">
+      <input type="number" id="total-throws" name="total_throws" placeholder="0" min="0" required>
     </div>
     
     <div class="field-group">
@@ -78,20 +74,24 @@
   <h3>Session Breakdown</h3>
   <div id="drills-container">
     <div class="drill-row">
-      <input type="text" name="drill_name[]" placeholder="Drill Name">
+      <select autocomplete="off" name="throw_type[]">
+        <option value="">Throw Type</option>
+        {% for value, label in throw_types %}
+        <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
       <select autocomplete="off" name="drill_ball_weight[]">
         <option value="">Ball Weight</option>
         {% for weight in ball_weights %}
         <option value="{{ weight }}">{{ weight }}</option>
         {% endfor %}
       </select>
-      <input type="number" step="0.01" name="drill_velocity[]" placeholder="Max Velo">
-      <input type="number" name="throw_count[]" placeholder="Throw Count">
+      <input type="number" name="throw_count[]" placeholder="Throw Count" min="1">
     </div>
   </div>
   <div class="btn-group">
-    <button type="button" onclick="addDrillRow()">+ Add Drill</button>
-    <button type="button" class="btn-delete" onclick="deleteDrillRow()">Remove Drill Row</button>
+    <button type="button" onclick="addDrillRow()">+ Add Row</button>
+    <button type="button" class="btn-delete" onclick="deleteDrillRow()">Remove Row</button>
   </div>
 
   <div class="field-group">

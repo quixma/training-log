@@ -144,7 +144,9 @@ def outing_report_data():
 INSZN_CHART_METRICS = {
     "body_weight": "throwing_sessions",
     "total_throws": "throwing_sessions",
+    "adjusted_throws": "throwing_sessions",
     "working_set_throws": "throwing_sessions",
+    "high_intent_throws": "throwing_sessions",
     "non_baseball_throws": "throwing_sessions",
     "plyo_throws": "throwing_sessions",
     "acr": "throwing_sessions",
@@ -164,6 +166,7 @@ INSZN_CHART_COLUMNS = {
 #weekly metric -> the throwing_sessions column it sums. Same allowlist role as above.
 INSZN_CHART_WEEKLY_METRICS = {
     "totalThrows7d": "total_throws",
+    "adjustedThrows7d": "adjusted_throws",
     "workingThrows7d": "working_set_throws",
 }
 

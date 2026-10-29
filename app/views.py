@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from app import app
 from app.models import inszn_dash_data, get_inszn_throwing_plan_dates, get_game_notes, get_throwing_notes, get_last_throwing_note, get_throwing_plan, get_throwing_plan_prethrow, get_last7d_throw_breakdown
-from app.models import get_totalthrows4wk, get_totalworkingthrows4wk, get_throwing_notes_dates, get_bullpen_report_files, get_outing_report_files, get_throwing_day_types
+from app.models import get_totalthrows4wk, get_adjustedthrows4wk, get_throwing_notes_dates, get_bullpen_report_files, get_outing_report_files, get_throwing_day_types
 from app.models import get_RatingsAvgs, get_bodyNotes_dates, get_bodyNotes, get_workoutLogNotes, get_workoutLogNotes_dates, get_warmup_names
-from app.models import WORKOUT_TYPES, THROWING_SESSION_TYPES, THROWING_BALL_WEIGHTS
+from app.models import WORKOUT_TYPES, THROWING_SESSION_TYPES, THROWING_BALL_WEIGHTS, THROW_TYPES
 from app.models import get_player_goals, get_player_goals_dates, get_workout_notes, get_workout_notes_dates
 from app.models import get_throwing_day_names, getCalendarWorkouts, get_journal_entry_dates
 from flask import render_template, redirect, url_for
@@ -29,7 +29,7 @@ def inszn_home():
     throwing_days = get_throwing_day_types()
     peak_velo, avg_readiness, acr, prev_throw_day, days_last_game, avg_velos = inszn_dash_data()
     throws4wk = get_totalthrows4wk()
-    workingthrows4wk = get_totalworkingthrows4wk()
+    adjustedthrows4wk = get_adjustedthrows4wk()
     game_notes, game_dates = get_game_notes()
     player_goals = get_player_goals('pitching')
     player_goals_dates = get_player_goals_dates('pitching')
@@ -41,14 +41,14 @@ def inszn_home():
     return render_template('inszn_home.html',throwing_notes = throwing_notes, throwing_plan=throwing_plan, drills=drills, tp_prethrow = tp_prethrow,
                            tableID = tableID, plan_dates = plan_dates, notes_dates = notes_dates, throwing_days = throwing_days,
                            peak_velo = peak_velo, avg_readiness = avg_readiness, acr = acr, throws_breakdown = throws_breakdown,
-                           prev_throw_day = prev_throw_day, days_last_game = days_last_game, throws4wk = throws4wk, workingthrows4wk = workingthrows4wk, avg_velos = avg_velos,
+                           prev_throw_day = prev_throw_day, days_last_game = days_last_game, throws4wk = throws4wk, adjustedthrows4wk = adjustedthrows4wk, avg_velos = avg_velos,
                            game_notes = game_notes, game_dates = game_dates, player_goals = player_goals, player_goals_dates = player_goals_dates,
                            last_throwing_note = last_throwing_note)
 
 @app.route('/inszn_throwing_form', methods=["GET", "POST"])
 def inszn_throwing_form():
     return render_template('inszn_throwing_form.html', session_types = THROWING_SESSION_TYPES,
-                           ball_weights = THROWING_BALL_WEIGHTS)
+                           ball_weights = THROWING_BALL_WEIGHTS, throw_types = THROW_TYPES)
 
 @app.route('/game_form', methods=["GET", "POST"])
 def game_form():

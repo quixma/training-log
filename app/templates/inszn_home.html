@@ -261,12 +261,20 @@
         <span class="card-row-value">{{ data[2] }}</span>
       </div>
       <div class="card-row">
+        <span class="card-row-label">Adjusted throws</span>
+        <span class="card-row-value">{{ data[5] }}</span>
+      </div>
+      <div class="card-row">
         <span class="card-row-label">Max Velo:</span>
         <span class="card-row-value">{{ data[4] }}</span>
       </div>
       <div class="card-row">
         <span class="card-row-label">Working Set Throws:</span>
         <span class="card-row-value">{{ data[3] }}</span>
+      </div>
+      <div class="card-row">
+        <span class="card-row-label">High Intent Throws:</span>
+        <span class="card-row-value">{{ data[6] }}</span>
       </div>
       {% endfor %}
     </div>
@@ -287,14 +295,14 @@
       {% endfor %}
     </div>
     <div class="card">
-    <h3>Weekly Working Throws (Last 4 Wks)</h3>
-      {% for data in workingthrows4wk %}
+      <h3>Weekly Adjusted Throws (Last 4 Wks)</h3>
+      {% for data in adjustedthrows4wk %}
       <div class="card-row">
         <span class="card-row-label">{{ data[0] }}</span>
         <span class="card-row-value">{{ data[1] }}</span>
       </div>
       {% endfor %}
-      </div>
+    </div>
   </div>
   
   <div class="summary-col">
@@ -362,9 +370,12 @@
         <option value="">Select metric…</option>
         <option value="body_weight">Bodyweight</option>
         <option value="total_throws">Total Throws</option>
+        <option value="adjusted_throws">Adjusted Throws (Workload)</option>
         <option value="totalThrows7d">Total Throws by Week</option>
+        <option value="adjustedThrows7d">Adjusted Throws by Week</option>
         <option value="working_set_throws">Working Set Throws</option>
         <option value="workingThrows7d">Working Set Throws by Week</option>
+        <option value="high_intent_throws">Bullpen / High Intent Throws</option>
         <option value="non_baseball_throws">Implement Throws</option>
         <option value="plyo_throws">Plyo Throws</option>
         <option value="game_throws">Game Throws</option>

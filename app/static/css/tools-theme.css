@@ -150,3 +150,22 @@ input[type="range"]::-webkit-slider-thumb,
 input[type="range"]::-moz-range-thumb {
   border-radius: 0;
 }
+
+/* ── Flash messages ─────────────────────────────
+   shown above a form after a redirect, e.g. when the
+   backend rejects a duplicate journal submission. */
+.alert {
+  max-width: 680px;
+  margin: 0 auto 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: var(--mono);
+  box-shadow: var(--shadow-btn);
+}
+
+.alert-success { border-color: var(--success); color: var(--success); }
+.alert-error,
+.alert-danger { border-color: var(--danger); color: var(--danger); }
+.alert-warning { border-color: var(--warning); color: var(--warning); }

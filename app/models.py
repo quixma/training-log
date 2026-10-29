@@ -214,6 +214,116 @@ THROWING_SESSION_TYPES = (
 THROWING_BALL_WEIGHTS = ("3", "3.5", "4", "5", "6", "7", "9", "11", "16", "21", "32", "48", "64",
                          "jav", "football", "club", "volleyball", "tennis")
 
+#throw types offered in the throwing journal's session breakdown rows; game throws are
+#logged through the game journal rather than picked here
+THROW_TYPES = (
+    ("implement", "Implement"),
+    ("plyo", "Plyo"),
+    ("regular", "Regular"),
+    ("working_set", "Working Set"),
+    ("bullpen_high_intent", "Bullpen / High Intent"),
+)
+
+THROW_TYPE_MULTIPLIERS = {
+    "implement": 0.75,
+    "plyo": 1.00,
+    "regular": 1.00,
+    "working_set": 1.15,
+    "bullpen_high_intent": 1.30,
+    "game": 1.50,
+}
+
+#relative to a 5 oz baseball (1.00). non-baseball implements sit at 1.00 here because the
+#implement throw type already applies a flat 0.75 multiplier
+BALL_WEIGHT_MULTIPLIERS = {
+    "3": 1.10,
+    "3.5": 1.08,
+    "4": 1.05,
+    "5": 1.00,
+    "6": 0.98,
+    "7": 0.95,
+    "9": 0.90,
+    "11": 0.85,
+    "16": 0.80,
+    "21": 0.75,
+    "32": 0.70,
+    "48": 0.60,
+    "64": 0.50,
+    "jav": 1.00,
+    "football": 1.00,
+    "club": 1.00,
+    "volleyball": 1.00,
+    "tennis": 1.00,
+}
+
+def normalize_ball_weight(ball_weight):
+    #blank weight defaults to a 5 oz baseball; legacy rows stored float strings like "21.0"
+    if ball_weight is None:
+        return "5"
+    w = str(ball_weight).strip()
+    if not w:
+        return "5"
+    if w.endswith(".0"):
+        w = w[:-2]
+    return w
+
+def get_ball_weight_multiplier(ball_weight):
+    return BALL_WEIGHT_MULTIPLIERS.get(normalize_ball_weight(ball_weight), 1.00)
+
+def calc_row_workload(throw_type, ball_weight, throw_count):
+    count = int(throw_count or 0)
+    if count <= 0:
+        return 0.0
+    ttype = (throw_type or "regular").strip()
+    #implement throws are always low intent and take a flat 0.75 regardless of implement weight
+    if ttype == "implement":
+        return count * THROW_TYPE_MULTIPLIERS["implement"]
+    type_mult = THROW_TYPE_MULTIPLIERS.get(ttype, 1.00)
+    weight_mult = get_ball_weight_multiplier(ball_weight)
+    return count * type_mult * weight_mult
+
+def calc_session_workload(total_throws, breakdown_rows):
+    #rolls up per-type throw counts and weighted workload from the session breakdown rows.
+    #any throws in total_throws not accounted for by breakdown rows default to regular 5 oz (1.0)
+    non_baseball_throws = 0
+    plyo_throws = 0
+    working_set_throws = 0
+    high_intent_throws = 0
+    breakdown_sum = 0
+    breakdown_workload = 0.0
+
+    for row in (breakdown_rows or []):
+        count = int(row.get("throw_count") or 0)
+        if count <= 0:
+            continue
+        ttype = (row.get("throw_type") or "regular").strip()
+        bweight = row.get("ball_weight")
+        breakdown_sum += count
+        breakdown_workload += calc_row_workload(ttype, bweight, count)
+
+        if ttype == "implement":
+            non_baseball_throws += count
+        elif ttype == "plyo":
+            plyo_throws += count
+        elif ttype == "working_set":
+            working_set_throws += count
+        elif ttype == "bullpen_high_intent":
+            high_intent_throws += count
+
+    total = int(total_throws or 0)
+    unaccounted_regular = max(total - breakdown_sum, 0)
+    adjusted_throws = round(breakdown_workload + (unaccounted_regular * 1.00), 2)
+
+    return {
+        "total_throws": total,
+        "breakdown_sum": breakdown_sum,
+        "non_baseball_throws": non_baseball_throws,
+        "plyo_throws": plyo_throws,
+        "working_set_throws": working_set_throws,
+        "high_intent_throws": high_intent_throws,
+        "adjusted_throws": adjusted_throws,
+    }
+
 def get_throwing_day_types():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -312,14 +422,14 @@ def inszn_dash_data():
     peak_velos = cursor.execute("SELECT max(CASE WHEN date >= date(?, '-6 days') THEN max_velo ELSE 0 END) AS pv_last_7_days, max(CASE WHEN date >= date(?, '-29 days') THEN max_velo ELSE 0 END) AS pv_last_30_days, max(max_velo) as pv_all_time FROM game_journal", (date[0],date[0])).fetchall()
     avg_readiness = cursor.execute("SELECT round(avg(CASE WHEN date >= date(?, '-2 days') THEN arm_readiness END),1) AS ar_last_3_days, round(avg(CASE WHEN date >= date(?, '-6 days') THEN arm_readiness END),1) AS ar_last_7_days FROM throwing_sessions", (date[0],date[0])).fetchall()
     acr = cursor.execute("select acr from throwing_sessions order by date desc limit 1").fetchone()
-    prev_throw_day = cursor.execute("select date, session_type, total_throws, working_set_throws, max_velo from throwing_sessions order by date desc LIMIT 1").fetchall()
+    prev_throw_day = cursor.execute("select date, session_type, total_throws, working_set_throws, max_velo, adjusted_throws, high_intent_throws from throwing_sessions order by date desc LIMIT 1").fetchall()
     days_last_game = cursor.execute("select CAST(julianday('now') - julianday(max(date)) AS INTEGER) as days_since_last_game from game_journal").fetchone()
     avg_velos = cursor.execute("SELECT round(avg(CASE WHEN date >= date(?, '-6 days') THEN avg_velo END),1) AS avg_last_7_days, round(avg(CASE WHEN date >= date(?, '-29 days') THEN avg_velo END),1) AS avg_last_30_days, round(avg(avg_velo),1) as pv_all_time FROM game_journal", (date[0],date[0])).fetchall()
 
     return (peak_velos, avg_readiness, acr, prev_throw_day, days_last_game, avg_velos)
 
 def get_last7d_throw_breakdown():
-    #breaks each of the last 7 calendar days (including rest days) into game throws, working set throws (outside the game), and the rest of the throws
+    #breaks each of the last 7 calendar days (including rest days) into game throws, high intent throws, working set throws, and the rest of the throws
     conn = get_db_connection()
     cursor = conn.cursor()
     #anchor "today" on the most recent logged date, matching the -7/-14/-30 day windows used elsewhere in this app
@@ -333,6 +443,8 @@ def get_last7d_throw_breakdown():
         )
         SELECT ds.day as date,
                COALESCE(ts.total_throws, 0) as total_throws,
+               COALESCE(ts.adjusted_throws, ts.total_throws, 0) as adjusted_throws,
+               COALESCE(ts.high_intent_throws, 0) as high_intent_throws,
                COALESCE(ts.working_set_throws, 0) as working_set_throws,
                COALESCE(ts.non_baseball_throws, 0) as non_baseball_throws,
                COALESCE(ts.plyo_throws, 0) as plyo_throws,
@@ -347,24 +459,25 @@ def get_last7d_throw_breakdown():
     breakdown = []
     for row in rows:
         total_throws = row["total_throws"] or 0
+        adjusted_throws = round(float(row["adjusted_throws"] or 0), 2)
+        high_intent_throws = row["high_intent_throws"] or 0
         working_set_throws = row["working_set_throws"] or 0
         game_throws = row["game_throws"] or 0
         non_baseball_throws = row["non_baseball_throws"] or 0
         plyo_throws = row["plyo_throws"] or 0
 
-        #working_set_throws already has bullpen_throws folded in by updateThrowCount() when a game is logged,
-        #so subtracting only game_throws here keeps bullpen throws in this bucket rather than "other_throws"
-        #working set, implement (non_baseball_throws) and plyo throws are all subsets of total_throws, so
-        #"other_throws" is whatever is left of the total once they are taken out and the bar height matches
-        #total_throws for the day
+        #game, high intent (including game warmups), working set, implement and plyo throws are
+        #mutually exclusive subsets of total_throws; "other_throws" is whatever regular throws remain
         breakdown.append({
             "date": row["date"],
             "game_throws": game_throws,
-            "working_set_throws": max(working_set_throws - game_throws, 0),
-            "other_throws": max(total_throws - working_set_throws - non_baseball_throws - plyo_throws, 0),
+            "high_intent_throws": high_intent_throws,
+            "working_set_throws": working_set_throws,
+            "other_throws": max(total_throws - game_throws - high_intent_throws - working_set_throws - non_baseball_throws - plyo_throws, 0),
             "non_baseball_throws": non_baseball_throws,
             "plyo_throws": plyo_throws,
             "total_throws": total_throws,
+            "adjusted_throws": adjusted_throws,
         })
 
     return breakdown
@@ -376,16 +489,28 @@ def updateThrowCount(session_id): #updating daily throw count in db after a game
     
     bullpen_throws = cursor.execute('Select bullpen_throws from game_journal where session_id = ?', (session_id[0],)).fetchone()
     game_throws = cursor.execute('Select game_throws from game_journal where session_id = ?', (session_id[0],)).fetchone()
-    session_throws = cursor.execute('Select total_throws from throwing_sessions where id = ?', (session_id[0],)).fetchone()
-    working_throws = cursor.execute('Select working_set_throws from throwing_sessions where id = ?', (session_id[0],)).fetchone()
+    session_row = cursor.execute('Select total_throws, high_intent_throws, adjusted_throws from throwing_sessions where id = ?', (session_id[0],)).fetchone()
     
-    #these columns are all nullable, and working_set_throws in particular is unset on a lot of sessions,
-    #so coalesce to 0 rather than blowing up on None + int
-    bullpen = bullpen_throws[0] or 0
-    game = game_throws[0] or 0
-    total_throws = bullpen + game + (session_throws[0] or 0)
-    working_throws = (working_throws[0] or 0) + bullpen + game
-    cursor.execute("Update throwing_sessions SET total_throws = ?, session_type = session_type || ' + game', working_set_throws = ? Where id = ?", (total_throws, working_throws, session_id[0]))
+    #game warmups (bullpen_throws) fold into bullpen / high intent (1.30x) rather than working set,
+    #and in-game pitches weight at 1.50x
+    bullpen = (bullpen_throws[0] if bullpen_throws else 0) or 0
+    game = (game_throws[0] if game_throws else 0) or 0
+    base_total = (session_row["total_throws"] if session_row else 0) or 0
+    base_high_intent = (session_row["high_intent_throws"] if session_row else 0) or 0
+    base_adjusted = session_row["adjusted_throws"] if (session_row and session_row["adjusted_throws"] is not None) else float(base_total)
+
+    total_throws = base_total + bullpen + game
+    high_intent_throws = base_high_intent + bullpen
+    adjusted_throws = round(
+        float(base_adjusted)
+        + (bullpen * THROW_TYPE_MULTIPLIERS["bullpen_high_intent"])
+        + (game * THROW_TYPE_MULTIPLIERS["game"]),
+        2,
+    )
+    cursor.execute(
+        "Update throwing_sessions SET total_throws = ?, session_type = session_type || ' + game', high_intent_throws = ?, adjusted_throws = ? Where id = ?",
+        (total_throws, high_intent_throws, adjusted_throws, session_id[0]),
+    )
     
     conn.commit()
     conn.close()
@@ -401,28 +526,27 @@ def get_totalthrows4wk():
      
     return total_throws 
 
-def get_totalworkingthrows4wk():
+def get_adjustedthrows4wk():
     weeks = 4
     conn= get_db_connection()
     cursor = conn.cursor()
-    #groups dates as a whole week, listing in dict as the week starting on monday date, calc sum of total throws for that week
-    total_working_throws = cursor.execute("select DATE(date, 'weekday 0', '-7 days') AS week_start, sum(working_set_throws) from throwing_sessions GROUP By week_start ORDER By week_start DESC LIMIT ?",(weeks,)).fetchall()
+    #groups dates as a whole week, listing in dict as the week starting on monday date, calc sum of adjusted throws for that week
+    adjusted_throws = cursor.execute("select DATE(date, 'weekday 0', '-7 days') AS week_start, round(sum(COALESCE(adjusted_throws, total_throws)), 2) from throwing_sessions GROUP By week_start ORDER By week_start DESC LIMIT ?",(weeks,)).fetchall()
     conn.close()
      
-    return total_working_throws 
+    return adjusted_throws 
 
 def calcACR(date, session_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    #sends date of form submission, use that for date time function and -7 days instead of date now for pi.
+    #sends date of form submission, use that for date time function and -6/-27 days (inclusive of the target date = 7/28 calendar days)
     #windows are the 7/28 days ENDING on that date, so a back-dated session can't pull in later throws
-    throws7d = cursor.execute("SELECT sum(total_throws) FROM throwing_sessions WHERE date >= date(?, '-6 days') AND date <= ?", (date, date)).fetchone()
-    throws28d = cursor.execute("SELECT sum(total_throws) FROM throwing_sessions WHERE date >= date(?, '-27 days') AND date <= ?", (date, date)).fetchone()
+    throws7d = cursor.execute("SELECT sum(COALESCE(adjusted_throws, total_throws)) FROM throwing_sessions WHERE date >= date(?, '-6 days') AND date <= ?", (date, date)).fetchone()
+    throws28d = cursor.execute("SELECT sum(COALESCE(adjusted_throws, total_throws)) FROM throwing_sessions WHERE date >= date(?, '-27 days') AND date <= ?", (date, date)).fetchone()
 
-
-    #sum() is NULL when no session in the window has a total_throws logged
+    #sum() is NULL when no session in the window has throws logged
     aw = throws7d[0] or 0
-    cw = round((throws28d[0] or 0) / 4, 0)
+    cw = (throws28d[0] or 0) / 4.0
     #no chronic workload to compare against yet (first sessions logged), so leave acr unset rather than dividing by zero
     acr = round(aw / cw, 2) if cw else None
 

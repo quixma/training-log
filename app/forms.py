@@ -1,6 +1,6 @@
 from app import app
 from app.input_validation import ThrowingLogModel, ThrowingPlanModel
-from app.models import get_db_connection, updateThrowCount, calcACR, WORKOUT_TYPES, THROWING_SESSION_TYPES
+from app.models import get_db_connection, updateThrowCount, calcACR, calc_session_workload, WORKOUT_TYPES, THROWING_SESSION_TYPES
 from flask import request, flash, redirect, url_for, jsonify
 from pydantic import ValidationError
 from werkzeug.utils import secure_filename
@@ -10,21 +10,26 @@ from config import Config
 @app.route('/submit_insznthrow', methods = ["POST"])
 def submit_insznthrow():
     if request.method ==  "POST":
-        drill_names = request.form.getlist("drill_name[]")
+        throw_types = request.form.getlist("throw_type[]")
         ball_weights = request.form.getlist('drill_ball_weight[]')
-        drill_velos = request.form.getlist("drill_velocity[]")
         throw_counts = request.form.getlist('throw_count[]')
         drill_list = []
 
-        if(len(drill_names) == len(ball_weights) == len(drill_velos) == len(throw_counts)): #making sure entry lengths match, add each indvidual drill entry for db.
-            for x in range(len(drill_names)):
+        if len(throw_types) == len(ball_weights) == len(throw_counts):
+            for x in range(len(throw_counts)):
+                raw_type = throw_types[x].strip() if throw_types[x] else ""
+                raw_weight = ball_weights[x].strip() if ball_weights[x] else ""
+                raw_count = throw_counts[x].strip() if throw_counts[x] else ""
+
+                #skip blank breakdown rows left untouched on the form
+                if not raw_type and not raw_weight and not raw_count:
+                    continue
+
                 drill_entry = {
-                    "drill_name": drill_names[x],
-                    "ball_weight": ball_weights[x],
-                    "drill_velo": drill_velos[x],
-                    "throw_count": throw_counts[x]
-                    }
-                drill_entry = {key: None if value == "" else value for key, value in drill_entry.items()} # if empty value replace with null
+                    "throw_type": raw_type or ("regular" if raw_count else None),
+                    "ball_weight": raw_weight or ("5" if raw_count else None),
+                    "throw_count": raw_count or None,
+                }
                 drill_list.append(drill_entry)
 
         form_data = {
@@ -33,9 +38,6 @@ def submit_insznthrow():
             "session_type": request.form.get("session_type"),
             "body_weight": request.form.get("body_weight"),
             "total_throws": request.form.get("total_throws"),
-            "non_baseball_throws": request.form.get('non-baseball-throws'),
-            "plyo_throws": request.form.get('plyo_throws'),
-            "working_set_throws": request.form.get("working_set_throws"),
             "max_velo": request.form.get("max_velocity"),
             "acr": 0,
             "rpe": request.form.get('rpe'),
@@ -47,20 +49,63 @@ def submit_insznthrow():
         form_data = {key: None if value == "" else value for key, value in form_data.items()}
 
         try:
-            ThrowingLogModel(**form_data)
+            validated = ThrowingLogModel(**form_data)
         except ValidationError as e:
             return jsonify(e.errors()), 400
+
+        workload = calc_session_workload(
+            validated.total_throws,
+            [d.model_dump() for d in validated.drills],
+        )
+
+        #safeguard: session breakdown rows are subsets of total_throws, so reject a submit
+        #where the breakdown sum exceeds total_throws rather than saving inconsistent counts
+        if workload["breakdown_sum"] > workload["total_throws"]:
+            flash(
+                f"Session breakdown throws ({workload['breakdown_sum']}) exceed Total Throws ({workload['total_throws']}). Please check your throw counts.",
+                "error",
+            )
+            return redirect(url_for('inszn_throwing_form'))
 
         #insert data
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO throwing_sessions (date, throwing_block, session_type, body_weight, total_throws, non_baseball_throws, plyo_throws, working_set_throws, max_velo, acr, rpe, arm_readiness, notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                       (form_data["date"], form_data["throwing_block"], form_data["session_type"], form_data["body_weight"], form_data["total_throws"], form_data["non_baseball_throws"], form_data["plyo_throws"], form_data["working_set_throws"], form_data["max_velo"], form_data["acr"], form_data["rpe"], form_data["arm_readiness"], form_data["notes"]))
+
+        #one throwing journal per date: a second submit would stack duplicate sessions and
+        #double-count throws and ACR on the dashboard
+        existing = cursor.execute("select id from throwing_sessions where date = ?", (form_data["date"],)).fetchone()
+        if existing is not None:
+            conn.close()
+            flash(f"A throwing journal entry already exists for {form_data['date']}: only one can be logged per day.", "error")
+            return redirect(url_for('inszn_throwing_form'))
+
+        cursor.execute(
+            "INSERT INTO throwing_sessions (date, throwing_block, session_type, body_weight, total_throws, non_baseball_throws, plyo_throws, working_set_throws, high_intent_throws, adjusted_throws, max_velo, acr, rpe, arm_readiness, notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (
+                form_data["date"],
+                form_data["throwing_block"],
+                form_data["session_type"],
+                form_data["body_weight"],
+                workload["total_throws"],
+                workload["non_baseball_throws"],
+                workload["plyo_throws"],
+                workload["working_set_throws"],
+                workload["high_intent_throws"],
+                workload["adjusted_throws"],
+                form_data["max_velo"],
+                form_data["acr"],
+                form_data["rpe"],
+                form_data["arm_readiness"],
+                form_data["notes"],
+            ),
+        )
         
         session_id = cursor.lastrowid
-        for x in range(len(drill_names)):
-            cursor.execute("INSERT INTO drills (session_id, drill_name, ball_weight, drill_max_velo, throw_count) VALUES (?,?,?,?,?)",
-                           (session_id, drill_list[x]['drill_name'], drill_list[x]['ball_weight'], drill_list[x]['drill_velo'], drill_list[x]['throw_count']))
+        for entry in validated.drills:
+            cursor.execute(
+                "INSERT INTO drills (session_id, throw_type, ball_weight, throw_count) VALUES (?,?,?,?)",
+                (session_id, entry.throw_type, entry.ball_weight, entry.throw_count),
+            )
         conn.commit()
         conn.close()
         calcACR(form_data["date"], session_id)
@@ -154,6 +199,14 @@ def submit_workout_form():
         
         conn = get_db_connection()
         cursor = conn.cursor()
+
+        #one workout journal per date: a second submit would duplicate the readiness/body log
+        existing = cursor.execute("select id from workout_log where date = ?", (form_data["date"],)).fetchone()
+        if existing is not None:
+            conn.close()
+            flash(f"A workout journal entry already exists for {form_data['date']}: only one can be logged per day.", "error")
+            return redirect(url_for('workout_form'))
+
         cursor.execute('INSERT INTO workout_log (date, energy_value, fatigue_value, motivation_value, focus_value, explosiveness_value, bodyweight, body_notes, workout_notes) VALUES (?,?,?,?,?,?,?,?,?)',
                        (form_data["date"], form_data["energy_value"], form_data["fatigue_value"], form_data["motivation_value"], form_data["focus_value"], form_data["explosiveness_value"], form_data["body_weight"], form_data["body_notes"], form_data["workout_notes"]))
         conn.commit()

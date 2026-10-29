@@ -521,7 +521,7 @@ async function getData() {
 function updateChart(data) {
     clearCharts()
     metricMap = metricSelect.value;
-    if (metricMap == "totalThrows7d" || metricMap == "workingThrows7d") {
+    if (metricMap == "totalThrows7d" || metricMap == "workingThrows7d" || metricMap == "adjustedThrows7d") {
         label_dataX = data.date;
         label_dataY = data[metricMap];
     }
@@ -616,11 +616,12 @@ function throwsBreakdownOptions(isNarrow, breakdown) {
                 //a fixed seven-day window, so every day keeps its label
                 ticks: {
                     ...PitchCharts.dateTicks(isNarrow, false),
-                    //each date carries the day's total throws; on a phone the total drops to a
-                    //second line because seven "9/18 (55)" labels do not fit side by side
+                    //each date carries the day's total and adjusted throws; on a phone the counts
+                    //drop to a second line because seven labels do not fit side by side
                     callback: function (value, index) {
-                        const total = '(' + breakdown[index].total_throws + ')';
-                        const day = breakdown[index].date;
+                        const d = breakdown[index];
+                        const total = '(' + d.total_throws + ' | ' + d.adjusted_throws + ' adj)';
+                        const day = d.date;
                         return isNarrow ? [PitchCharts.shortDate(day), total] : day + ' ' + total;
                     }
                 }
@@ -650,7 +651,7 @@ function metricChartOptions(isNarrow) {
     };
 }
 
-//stacked bar chart: last 7 throwing days broken into game / working set / other throws
+//stacked bar chart: last 7 throwing days broken into game / high intent / working set / regular / implement / plyo throws
 function initializeThrowsBreakdownChart() {
     const dataEl = document.getElementById('throws-breakdown-data');
     const breakdown = JSON.parse(dataEl.textContent);
@@ -667,24 +668,29 @@ function initializeThrowsBreakdownChart() {
                     ...PitchCharts.stackedBarSpec(0, '#ffffff')
                 },
                 {
+                    label: 'Bullpen / High Intent',
+                    data: breakdown.map(d => d.high_intent_throws),
+                    ...PitchCharts.stackedBarSpec(1, '#ffffff')
+                },
+                {
                     label: 'Working Set Throws',
                     data: breakdown.map(d => d.working_set_throws),
-                    ...PitchCharts.stackedBarSpec(1, '#ffffff')
+                    ...PitchCharts.stackedBarSpec(2, '#ffffff')
                 },
                 {
                     label: 'Regular Throws',
                     data: breakdown.map(d => d.other_throws),
-                    ...PitchCharts.stackedBarSpec(2, '#ffffff')
+                    ...PitchCharts.stackedBarSpec(3, '#ffffff')
                 },
                 {
                     label: 'Implement Throws',
                     data: breakdown.map(d => d.non_baseball_throws),
-                    ...PitchCharts.stackedBarSpec(3, '#ffffff')
+                    ...PitchCharts.stackedBarSpec(4, '#ffffff')
                 },
                 {
                     label: 'Plyo Throws',
                     data: breakdown.map(d => d.plyo_throws),
-                    ...PitchCharts.stackedBarSpec(4, '#ffffff')
+                    ...PitchCharts.stackedBarSpec(5, '#ffffff')
                 }
             ]
         },
@@ -696,14 +702,18 @@ function initializeThrowsBreakdownChart() {
 
 function UpdateThrowsBreakdownStats(breakdown) {
     const gameThrows7d = breakdown.reduce((sum, d) => sum + d.game_throws, 0);
+    const highIntentThrows7d = breakdown.reduce((sum, d) => sum + (d.high_intent_throws || 0), 0);
     const workingSetThrows7d = breakdown.reduce((sum, d) => sum + d.working_set_throws, 0);
     const nonBaseballThrows7d = breakdown.reduce((sum, d) => sum + d.non_baseball_throws, 0);
     //every segment of the bar is a subset of the day's total throws
     const totalThrows7d = breakdown.reduce((sum, d) => sum + d.total_throws, 0);
+    const adjustedThrows7d = Math.round(breakdown.reduce((sum, d) => sum + (d.adjusted_throws || 0), 0) * 100) / 100;
 
     const statsEl = document.getElementById('throwsBreakdownStats');
     statsEl.innerHTML = `
         <div class="stat-item"><span class="stat-label">Total (7d)</span><span class="stat-value">${totalThrows7d}</span></div>
+        <div class="stat-item"><span class="stat-label">Adjusted (7d)</span><span class="stat-value">${adjustedThrows7d}</span></div>
+        <div class="stat-item"><span class="stat-label">High Intent (7d)</span><span class="stat-value">${highIntentThrows7d}</span></div>
         <div class="stat-item"><span class="stat-label">Working Set (7d)</span><span class="stat-value">${workingSetThrows7d}</span></div>
         <div class="stat-item"><span class="stat-label">Game (7d)</span><span class="stat-value">${gameThrows7d}</span></div>
         <div class="stat-item"><span class="stat-label">Implement (7d)</span><span class="stat-value">${nonBaseballThrows7d}</span></div>
