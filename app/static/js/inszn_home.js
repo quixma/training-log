@@ -663,23 +663,23 @@ function initializeThrowsBreakdownChart() {
             labels: breakdown.map(d => d.date),
             datasets: [
                 {
+                    label: 'Regular Throws',
+                    data: breakdown.map(d => d.other_throws),
+                    ...PitchCharts.stackedBarSpec(0, '#ffffff')
+                },
+                {
                     label: 'Game Throws',
                     data: breakdown.map(d => d.game_throws),
-                    ...PitchCharts.stackedBarSpec(0, '#ffffff')
+                    ...PitchCharts.stackedBarSpec(1, '#ffffff')
                 },
                 {
                     label: 'Bullpen / High Intent',
                     data: breakdown.map(d => d.high_intent_throws),
-                    ...PitchCharts.stackedBarSpec(1, '#ffffff')
+                    ...PitchCharts.stackedBarSpec(2, '#ffffff')
                 },
                 {
                     label: 'Working Set Throws',
                     data: breakdown.map(d => d.working_set_throws),
-                    ...PitchCharts.stackedBarSpec(2, '#ffffff')
-                },
-                {
-                    label: 'Regular Throws',
-                    data: breakdown.map(d => d.other_throws),
                     ...PitchCharts.stackedBarSpec(3, '#ffffff')
                 },
                 {
